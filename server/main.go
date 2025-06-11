@@ -45,9 +45,10 @@ func main() {
 		panic("Failed to AutoMigrate User")
 	}
 
-	minioClient, err := minio.New(viper.GetString("minio.host")+":"+viper.GetString("minio.port"), &minio.Options{
-		Creds:  credentials.NewStaticV4("HDeAly8XddiQTvjjTRfL", "9OtiaCEOL1586uDgPAXNANDndM04ga3oMdGy7kGF", ""),
-		Secure: false,
+	minioEndpoint := fmt.Sprintf("%s:%d", viper.GetString("minio.host"), viper.GetInt("minio.port"))
+	minioClient, err := minio.New(minioEndpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(viper.GetString("minio.accessKey"), viper.GetString("minio.secretKey"), ""),
+		Secure: false, // change to true if using HTTPS
 	})
 	if err != nil {
 		log.Fatalln(err)

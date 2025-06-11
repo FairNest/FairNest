@@ -37,6 +37,6 @@ func (s *uploadService) UploadFile(file *multipart.FileHeader) (*string, error) 
 		return nil, err
 	}
 
-	fileURL := fmt.Sprintf("https://minio.bocchikitsunei.com/fairnest/%s", fileName)
+	fileURL := fmt.Sprintf("%s/%s/%s", viper.GetString("minio.publicURL"), bucketName, fileName)
 	return &fileURL, err
 }
