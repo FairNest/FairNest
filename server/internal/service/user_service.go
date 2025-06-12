@@ -39,14 +39,14 @@ func (s userService) GetUsers() ([]entities.User, error) {
 	userResponses := []entities.User{}
 	for _, user := range users {
 		userResponse := entities.User{
-			UserID:    user.UserID,
-			Username:  user.Username,
-			Password:  user.Password,
-			Email:     user.Email,
-			Firstname: user.Firstname,
-			Lastname:  user.Lastname,
-			PhoneNum:  user.PhoneNum,
-			UserPic:   user.UserPic,
+			UserID:      user.UserID,
+			Username:    user.Username,
+			Password:    user.Password,
+			Email:       user.Email,
+			Firstname:   user.Firstname,
+			Lastname:    user.Lastname,
+			PhoneNumber: user.PhoneNumber,
+			UserPicture: user.UserPicture,
 		}
 		userResponses = append(userResponses, userResponse)
 	}
@@ -66,20 +66,20 @@ func (s userService) GetUserByUserId(userid int) (*entities.User, error) {
 		user.Email == nil &&
 		user.Firstname == nil &&
 		user.Lastname == nil &&
-		user.PhoneNum == nil &&
-		user.UserPic == nil {
+		user.PhoneNumber == nil &&
+		user.UserPicture == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
 	}
 
 	userResponse := entities.User{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Password:  user.Password,
-		Email:     user.Email,
-		Firstname: user.Firstname,
-		Lastname:  user.Lastname,
-		PhoneNum:  user.PhoneNum,
-		UserPic:   user.UserPic,
+		UserID:      user.UserID,
+		Username:    user.Username,
+		Password:    user.Password,
+		Email:       user.Email,
+		Firstname:   user.Firstname,
+		Lastname:    user.Lastname,
+		PhoneNumber: user.PhoneNumber,
+		UserPicture: user.UserPicture,
 	}
 	return &userResponse, nil
 }
@@ -97,20 +97,20 @@ func (s userService) GetUserByToken(userid int) (*entities.User, error) {
 		user.Email == nil &&
 		user.Firstname == nil &&
 		user.Lastname == nil &&
-		user.PhoneNum == nil &&
-		user.UserPic == nil {
+		user.PhoneNumber == nil &&
+		user.UserPicture == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
 	}
 
 	userResponse := entities.User{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Password:  user.Password,
-		Email:     user.Email,
-		Firstname: user.Firstname,
-		Lastname:  user.Lastname,
-		PhoneNum:  user.PhoneNum,
-		UserPic:   user.UserPic,
+		UserID:      user.UserID,
+		Username:    user.Username,
+		Password:    user.Password,
+		Email:       user.Email,
+		Firstname:   user.Firstname,
+		Lastname:    user.Lastname,
+		PhoneNumber: user.PhoneNumber,
+		UserPicture: user.UserPicture,
 	}
 	return &userResponse, nil
 }
@@ -125,14 +125,14 @@ func (s userService) GetCurrentUser(userid int) (*entities.User, error) {
 	}
 
 	userResponse := entities.User{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Password:  user.Password,
-		Email:     user.Email,
-		Firstname: user.Firstname,
-		Lastname:  user.Lastname,
-		PhoneNum:  user.PhoneNum,
-		UserPic:   user.UserPic,
+		UserID:      user.UserID,
+		Username:    user.Username,
+		Password:    user.Password,
+		Email:       user.Email,
+		Firstname:   user.Firstname,
+		Lastname:    user.Lastname,
+		PhoneNumber: user.PhoneNumber,
+		UserPicture: user.UserPicture,
 	}
 	return &userResponse, nil
 }
@@ -150,20 +150,20 @@ func (s userService) GetProfileOfCurrentUserByUserId(userid int) (*entities.User
 		user.Email == nil &&
 		user.Firstname == nil &&
 		user.Lastname == nil &&
-		user.PhoneNum == nil &&
-		user.UserPic == nil {
+		user.PhoneNumber == nil &&
+		user.UserPicture == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
 	}
 
 	userResponse := entities.User{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Password:  user.Password,
-		Email:     user.Email,
-		Firstname: user.Firstname,
-		Lastname:  user.Lastname,
-		PhoneNum:  user.PhoneNum,
-		UserPic:   user.UserPic,
+		UserID:      user.UserID,
+		Username:    user.Username,
+		Password:    user.Password,
+		Email:       user.Email,
+		Firstname:   user.Firstname,
+		Lastname:    user.Lastname,
+		PhoneNumber: user.PhoneNumber,
+		UserPicture: user.UserPicture,
 	}
 	return &userResponse, nil
 }
@@ -181,30 +181,30 @@ func (s userService) GetEditUserProfileByUserId(userid int) (*entities.User, err
 		user.Email == nil &&
 		user.Firstname == nil &&
 		user.Lastname == nil &&
-		user.PhoneNum == nil &&
-		user.UserPic == nil {
+		user.PhoneNumber == nil &&
+		user.UserPicture == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
 	}
 
 	userResponse := entities.User{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Email:     user.Email,
-		Firstname: user.Firstname,
-		Lastname:  user.Lastname,
-		PhoneNum:  user.PhoneNum,
+		UserID:      user.UserID,
+		Username:    user.Username,
+		Email:       user.Email,
+		Firstname:   user.Firstname,
+		Lastname:    user.Lastname,
+		PhoneNumber: user.PhoneNumber,
 	}
 	return &userResponse, nil
 }
 
 func (s userService) PatchEditUserProfileByUserId(userid int, req dtos.EditUserProfileByUserIdRequest) (*entities.User, error) {
 	user := &entities.User{
-		UserID:    v.UintPtr(userid),
-		Username:  req.Username,
-		Email:     req.Email,
-		Firstname: req.Firstname,
-		Lastname:  req.Lastname,
-		PhoneNum:  req.PhoneNum,
+		UserID:      v.UintPtr(userid),
+		Username:    req.Username,
+		Email:       req.Email,
+		Firstname:   req.Firstname,
+		Lastname:    req.Lastname,
+		PhoneNumber: req.PhoneNumber,
 	}
 
 	err := s.userRepo.PatchEditUserProfileByUserId(user)
@@ -223,13 +223,13 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 	}
 
 	user := entities.User{
-		Username:  request.Username,
-		Password:  v.Ptr(string(hashedPassword)),
-		Email:     request.Email,
-		Firstname: request.Firstname,
-		Lastname:  request.Lastname,
-		PhoneNum:  request.PhoneNum,
-		UserPic:   request.UserPic,
+		Username:    request.Username,
+		Password:    v.Ptr(string(hashedPassword)),
+		Email:       request.Email,
+		Firstname:   request.Firstname,
+		Lastname:    request.Lastname,
+		PhoneNumber: request.PhoneNumber,
+		UserPicture: request.UserPicture,
 	}
 
 	err = s.userRepo.CreateUser(&user)
@@ -238,9 +238,9 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 	}
 
 	return &dtos.UserResponse{
-		UserID:   user.UserID,
-		Username: user.Username,
-		UserPic:  user.UserPic,
+		UserID:      user.UserID,
+		Username:    user.Username,
+		UserPicture: user.UserPicture,
 	}, nil
 
 }
