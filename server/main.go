@@ -45,6 +45,11 @@ func main() {
 		panic("Failed to AutoMigrate User")
 	}
 
+	err = db.AutoMigrate(&entities.LifestyleQuiz{})
+	if err != nil {
+		panic("Failed to AutoMigrate LifestyleQuiz")
+	}
+
 	minioEndpoint := fmt.Sprintf("%s:%d", viper.GetString("minio.host"), viper.GetInt("minio.port"))
 	minioClient, err := minio.New(minioEndpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(viper.GetString("minio.accessKey"), viper.GetString("minio.secretKey"), ""),
