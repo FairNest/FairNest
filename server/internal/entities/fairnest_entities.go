@@ -13,63 +13,43 @@ type User struct {
 	BankAccountNumber *string
 	RoommateScore     *float64
 
-	LifestyleQuiz LifestyleQuiz `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Rooms         []Room        `gorm:"foreignKey:CreatorID"`
+	RoomMembers []RoomMember
 }
 
 type LifestyleQuiz struct {
-	LifestyleQuizID *uint `gorm:"primaryKey;autoIncrement"`
-	UserID          *uint `gorm:"not null;unique"`
+	QuizID  *uint `gorm:"primaryKey;autoIncrement"`
+	UserID  *uint `gorm:"uniqueIndex"` // one-to-one
+	Answers *string
 
-	Q1  *int
-	Q2  *int
-	Q3  *int
-	Q4  *int
-	Q5  *int
-	Q6  *int
-	Q7  *int
-	Q8  *int
-	Q9  *int
-	Q10 *int
-	Q11 *int
-	Q12 *int
+	// Relations
+	User *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type Room struct {
 	RoomID     *uint `gorm:"primaryKey;autoIncrement"`
-	CreatorID  *uint `gorm:"not null"`
-	LocationID *uint `gorm:"not null"`
+	LocationID *uint // one-to-one
+	Name       *string
+	Capacity   *uint
 
-	RoomCode           *string
-	RoomName           *string
-	RoomDescription    *string
-	RoomType           *bool
-	MaxSize            *int
-	CompatibilityRange *float64
-	RentPrice          *float64
-	ElectricityUnit    *float64
-	WaterUnit          *float64
-	WiFi               *bool
-	WashingMachine     *bool
-	PetAllow           *bool
-
-	// Associations
-	Creator  User     `gorm:"foreignKey:CreatorID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Location Location `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	// Relations
+	Location    *Location
+	RoomMembers []RoomMember
 }
 
 type Location struct {
 	LocationID *uint `gorm:"primaryKey;autoIncrement"`
+	City       *string
 	District   *string
+	Address    *string
 }
 
-//type RoomMember struct {
-//	RoomMemberID *uint `gorm:"primaryKey;autoIncrement"`
-//	UserID       *uint `gorm:"not null"`
-//	RoomID       *uint `gorm:"not null"`
-//	IsAdmin      *bool
-//	JoinedAt     *time.Time `gorm:"autoCreateTime"`
-//
-//	User *User `gorm:"foreignKey:UserID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-//	Room *Room `gorm:"foreignKey:RoomID;references:RoomID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-//}
+type RoomMember struct {
+	RoomMemberID *uint `gorm:"primaryKey;autoIncrement"`
+	UserID       *uint `gorm:"not null;uniqueIndex:idx_user_room"`
+	RoomID       *uint `gorm:"not null;uniqueIndex:idx_user_room"`
+	IsAdmin      *bool
+
+	// Relations
+	User *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}

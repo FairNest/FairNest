@@ -43,17 +43,21 @@ func main() {
 		&entities.User{},
 		&entities.LifestyleQuiz{},
 		&entities.Location{},
+		&entities.RoomMember{},
 		&entities.Room{},
-		//&entities.RoomMember{},
 	}
 
 	for _, model := range models {
-		log.Printf("📦 Migrating: %T", model)
+		log.Printf("📦 Starting migration for: %T", model)
+
 		if err := db.AutoMigrate(model); err != nil {
-			log.Fatalf("❌📦 Failed to migrate %T: %v", model, err)
+			log.Fatalf("❌ Failed to migrate %T: %v", model, err)
 		}
+
+		log.Printf("✅ Successfully migrated: %T", model)
 	}
-	log.Println("✅📦 All migrations completed successfully")
+
+	log.Println("🎉 All migrations completed successfully!")
 
 	minioEndpoint := fmt.Sprintf("%s:%d", viper.GetString("minio.host"), viper.GetInt("minio.port"))
 	minioClient, err := minio.New(minioEndpoint, &minio.Options{
