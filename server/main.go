@@ -35,20 +35,25 @@ func main() {
 	log.Println(dsn)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
 	if err != nil {
-		panic("Failed to connect database")
+		panic("❌ Failed to connect to database: " + err.Error())
 	}
 
-	err = db.AutoMigrate(&entities.User{})
-	if err != nil {
-		panic("Failed to AutoMigrate User")
+	models := []interface{}{
+		&entities.User{},
+		&entities.LifestyleQuiz{},
+		&entities.Location{},
+		&entities.Room{},
+		//&entities.RoomMember{},
 	}
 
-	err = db.AutoMigrate(&entities.LifestyleQuiz{})
-	if err != nil {
-		panic("Failed to AutoMigrate LifestyleQuiz")
+	for _, model := range models {
+		log.Printf("📦 Migrating: %T", model)
+		if err := db.AutoMigrate(model); err != nil {
+			log.Fatalf("❌📦 Failed to migrate %T: %v", model, err)
+		}
 	}
+	log.Println("✅📦 All migrations completed successfully")
 
 	minioEndpoint := fmt.Sprintf("%s:%d", viper.GetString("minio.host"), viper.GetInt("minio.port"))
 	minioClient, err := minio.New(minioEndpoint, &minio.Options{
