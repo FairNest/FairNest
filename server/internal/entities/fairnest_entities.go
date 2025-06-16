@@ -81,26 +81,26 @@ type RoomMember struct {
 	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
-// Uncomment if you want to implement user compatibility matching
-//type UserCompatibility struct {
-//	UserCompatibilityID *uint `gorm:"primaryKey;autoIncrement"`
-//
-//	RoomID  *uint `gorm:"not null"` // scope this match to a specific room
-//	UserAID *uint `gorm:"not null;index:idx_user_pair"`
-//	UserBID *uint `gorm:"not null;index:idx_user_pair"`
-//
-//	CompatibilityScore *float64
-//
-//	// Optional: prevent duplicate A-B and B-A pairs
-//	// Or enforce AID < BID ordering to avoid duplicates
-//
-//	CreatedAt time.Time
-//
-//	// Relations
-//	UserA *User `gorm:"foreignKey:UserAID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-//	UserB *User `gorm:"foreignKey:UserBID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-//	Room  *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-//}
+type UserCompatibilityProfile struct {
+	UserCompatibilityProfileID *uint `gorm:"primaryKey;autoIncrement"`
+
+	RoomID  *uint `gorm:"not null"`
+	UserAID *uint `gorm:"not null;index:idx_user_pair"`
+	UserBID *uint `gorm:"not null;index:idx_user_pair"`
+
+	// Optional: prevent duplicate A-B and B-A pairs
+	// Or enforce AID < BID ordering to avoid duplicates
+	CompatibilityScore *float64 // 0.0 to 1.0 → shown as 88%
+	SharedTraits       *string  // e.g. "Likes Quiet Time, Prefers Clean Spaces"
+	ConflictTraits     *string  // e.g. "Dislikes Guest Noise"
+	SuggestionMessage  *string  // e.g. "Consider aligning on quiet hours..."
+
+	CreatedAt *time.Time
+
+	UserA *User `gorm:"foreignKey:UserAID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	UserB *User `gorm:"foreignKey:UserBID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Room  *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
 
 type Notice struct {
 	NoticeID   *uint `gorm:"primaryKey;autoIncrement"`
@@ -112,7 +112,7 @@ type Notice struct {
 	NoticeMessage *string
 	IsRead        *bool   // true = read, nil = unread
 	Type          *string // e.g. "chore", "system", "reminder", etc.
-	CreatedAt     time.Time
+	CreatedAt     *time.Time
 
 	// Relations
 	Receiver *User `gorm:"foreignKey:ReceiverID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -173,7 +173,7 @@ type PaymentRequest struct {
 
 	IsPaid    *bool
 	PaidAt    *time.Time
-	CreatedAt time.Time
+	CreatedAt *time.Time
 
 	QRCodeURL      *string // For SCB QR code payment
 	TransactionRef *string // Ref1 or transaction_id from SCB response
@@ -192,5 +192,5 @@ type SCBAccessToken struct {
 	TokenType   *string
 	ExpiresIn   *int
 	Scope       *string
-	CreatedAt   time.Time
+	CreatedAt   *time.Time
 }
