@@ -1,5 +1,7 @@
 package entities
 
+import "time"
+
 type User struct {
 	UserID            *uint `gorm:"primaryKey;autoIncrement"`
 	Username          *string
@@ -79,6 +81,7 @@ type RoomMember struct {
 	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
+// Uncomment if you want to implement user compatibility matching
 //type UserCompatibility struct {
 //	UserCompatibilityID *uint `gorm:"primaryKey;autoIncrement"`
 //
@@ -98,3 +101,63 @@ type RoomMember struct {
 //	UserB *User `gorm:"foreignKey:UserBID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 //	Room  *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 //}
+
+type Notice struct {
+	NoticeID      *uint `gorm:"primaryKey;autoIncrement"`
+	ToUserID      *uint
+	NoticeTitle   *string
+	NoticeMessage *string
+	CreateAt      *time.Time
+}
+
+type UserReadNotice struct {
+	UserReadNoticeID *uint `gorm:"primaryKey;autoIncrement"`
+	UserID           *uint
+	NoticeID         *uint
+	ReadAt           *time.Time
+
+	// Relations
+	User   *User   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Notice *Notice `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+type Chore struct {
+	ChoreID           *uint `gorm:"primaryKey;autoIncrement"`
+	RoomID            *uint `gorm:"not null"`
+	ChoreTitle        *string
+	ChoreDescription  *string
+	DueDayOfWeek      *string // e.g. "Tuesday"
+	DueTime           *string // e.g. "17:00"
+	ReminderDayOfWeek *string // e.g. "Monday"
+	ReminderTime      *string // e.g. "16:00"
+	Recurrence        *string // e.g. "Weekly"
+	AutoRotate        *bool
+	Score             *int // +10 or -10, etc.
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+type ChoreAssignment struct {
+	ChoreAssignmentID *uint `gorm:"primaryKey;autoIncrement"`
+	ChoreID           *uint `gorm:"not null"`
+	UserID            *uint `gorm:"not null"`
+	AssignedDate      *time.Time
+	Status            *bool // "nil = Not Completed", "true = Completed", "false = Missed"
+	CompletedAt       *time.Time
+	ScoreEarned       *int // e.g. +10 or -10
+
+	Chore *Chore `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+type ChoreRotationUser struct {
+	ChoreRotationUserID *uint `gorm:"primaryKey;autoIncrement"`
+	ChoreID             *uint `gorm:"not null"`
+	UserID              *uint `gorm:"not null"`
+
+	Chore *Chore `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
