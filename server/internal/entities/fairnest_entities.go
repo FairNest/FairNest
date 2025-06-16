@@ -48,7 +48,7 @@ type Room struct {
 	LocationID           *uint // one-to-one
 	RoomName             *string
 	RoomDescription      *string
-	RoomType             *bool
+	RoomType             *bool // "true = Private", "false = Public"
 	RoomCode             *string
 	RoomCapacity         *int
 	OpennessAvg          *float64
@@ -64,17 +64,17 @@ type Room struct {
 }
 
 type Location struct {
-	LocationID *uint `gorm:"primaryKey;autoIncrement"`
-	City       *string
-	District   *string
-	Address    *string
+	LocationID *uint   `gorm:"primaryKey;autoIncrement"`
+	City       *string // "Bangkok"
+	District   *string // "Phaya Thai"
+	Address    *string // "123/45 Soi Sukhumvit 11 10140 Bangkok"
 }
 
 type RoomMember struct {
 	RoomMemberID *uint `gorm:"primaryKey;autoIncrement"`
 	UserID       *uint `gorm:"not null;uniqueIndex:idx_user_room"`
 	RoomID       *uint `gorm:"not null;uniqueIndex:idx_user_room"`
-	IsAdmin      *bool
+	IsHost       *bool // "true = Host", "false = Member"
 
 	// Relations
 	User *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -103,22 +103,21 @@ type RoomMember struct {
 //}
 
 type Notice struct {
-	NoticeID      *uint `gorm:"primaryKey;autoIncrement"`
-	ToUserID      *uint
+	NoticeID   *uint `gorm:"primaryKey;autoIncrement"`
+	ReceiverID *uint `gorm:"not null"` // user who receives the notice
+	SenderID   *uint `gorm:"not null"` // user_id = 1 is system, not real user
+	//SenderID   *uint // nullable: if null → system message
+	//RoomID        *uint // optional: only if related to a room
 	NoticeTitle   *string
 	NoticeMessage *string
-	CreateAt      *time.Time
-}
-
-type UserReadNotice struct {
-	UserReadNoticeID *uint `gorm:"primaryKey;autoIncrement"`
-	UserID           *uint
-	NoticeID         *uint
-	ReadAt           *time.Time
+	IsRead        *bool   // true = read, nil = unread
+	Type          *string // e.g. "chore", "system", "reminder", etc.
+	CreatedAt     time.Time
 
 	// Relations
-	User   *User   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Notice *Notice `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Receiver *User `gorm:"foreignKey:ReceiverID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Sender   *User `gorm:"foreignKey:SenderID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"` // nullable
+	Room     *Room `gorm:"foreignKey:RoomID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`   // optional
 }
 
 type Chore struct {
@@ -131,8 +130,8 @@ type Chore struct {
 	ReminderDayOfWeek *string // e.g. "Monday"
 	ReminderTime      *string // e.g. "16:00"
 	Recurrence        *string // e.g. "Weekly"
-	AutoRotate        *bool
-	Score             *int // +10 or -10, etc.
+	AutoRotate        *bool   // "true = Auto Rotate", "false = No Auto Rotate"
+	Score             *int    // +10 or -10, etc.
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
