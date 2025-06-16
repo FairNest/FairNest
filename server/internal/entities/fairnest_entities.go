@@ -15,6 +15,7 @@ type User struct {
 	BankAccountNumber *string
 	RoommateScore     *float64
 
+	// Relations
 	RoomMembers []RoomMember
 }
 
@@ -97,6 +98,7 @@ type UserCompatibilityProfile struct {
 
 	CreatedAt *time.Time
 
+	// Relations
 	UserA *User `gorm:"foreignKey:UserAID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	UserB *User `gorm:"foreignKey:UserBID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Room  *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -137,6 +139,7 @@ type Chore struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
+	// Relations
 	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
@@ -149,6 +152,7 @@ type ChoreAssignment struct {
 	CompletedAt       *time.Time
 	ScoreEarned       *int // e.g. +10 or -10
 
+	// Relations
 	Chore *Chore `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
@@ -158,6 +162,7 @@ type ChoreRotationUser struct {
 	ChoreID             *uint `gorm:"not null"`
 	UserID              *uint `gorm:"not null"`
 
+	// Relations
 	Chore *Chore `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
@@ -174,6 +179,9 @@ type Bill struct {
 
 	CreatedAt *time.Time
 	UpdatedAt *time.Time
+
+	// Relations
+	Room *Room `gorm:"foreignKey:RoomID"`
 }
 
 type BillSplit struct {
@@ -182,7 +190,9 @@ type BillSplit struct {
 	UserID      *uint    `gorm:"not null"`
 	Amount      *float64 // how much this user is responsible for
 
+	// Relations
 	User *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Bill *Bill `gorm:"foreignKey:BillID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type PaymentRequest struct {
@@ -206,6 +216,7 @@ type PaymentRequest struct {
 	// For async webhook (if SCB notifies you)
 	SCBStatus *string // "PENDING", "SUCCESS", "FAILED"
 
+	// Relations
 	Requester *User `gorm:"foreignKey:RequesterID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Payer     *User `gorm:"foreignKey:PayerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Bill      *Bill `gorm:"foreignKey:BillID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
