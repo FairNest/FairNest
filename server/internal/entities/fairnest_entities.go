@@ -161,3 +161,36 @@ type ChoreRotationUser struct {
 	Chore *Chore `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
+
+type PaymentRequest struct {
+	PaymentRequestID *uint `gorm:"primaryKey;autoIncrement"`
+
+	RequesterID *uint `gorm:"not null"`
+	PayerID     *uint `gorm:"not null"`
+
+	Amount      *float64
+	Description *string
+
+	IsPaid    *bool
+	PaidAt    *time.Time
+	CreatedAt time.Time
+
+	QRCodeURL      *string // For SCB QR code payment
+	TransactionRef *string // Ref1 or transaction_id from SCB response
+	SlipVerifyCode *string // For verifying slip scan (optional)
+
+	// For async webhook (if SCB notifies you)
+	SCBStatus *string // "PENDING", "SUCCESS", "FAILED"
+
+	Requester *User `gorm:"foreignKey:RequesterID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Payer     *User `gorm:"foreignKey:PayerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+type SCBAccessToken struct {
+	ID          *uint `gorm:"primaryKey;autoIncrement"`
+	AccessToken *string
+	TokenType   *string
+	ExpiresIn   *int
+	Scope       *string
+	CreatedAt   time.Time
+}

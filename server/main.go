@@ -120,7 +120,7 @@ func main() {
 
 	//#####################################################################################
 
-	log.Printf("NeedFul running at port:  %v", viper.GetInt("app.port"))
+	log.Printf("FairNest running at port:  %v", viper.GetInt("app.port"))
 	app.Listen(fmt.Sprintf(":%v", viper.GetInt("app.port")))
 
 }
