@@ -162,11 +162,35 @@ type ChoreRotationUser struct {
 	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
+type Bill struct {
+	BillID          *uint    `gorm:"primaryKey;autoIncrement"`
+	RoomID          *uint    `gorm:"not null"`
+	BillName        *string  // "Electricity", "Netflix", "Water"
+	Amount          *float64 // Total cost
+	Recurrence      *string  // "monthly", "weekly", "once"
+	DueDayOfMonth   *int     // 1-31, 3 = due on 3rd each month
+	IsSplitEvenly   *bool    // true -> split even, false -> use BillSplit
+	BillDescription *string
+
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
+}
+
+type BillSplit struct {
+	BillSplitID *uint    `gorm:"primaryKey;autoIncrement"`
+	BillID      *uint    `gorm:"not null"`
+	UserID      *uint    `gorm:"not null"`
+	Amount      *float64 // how much this user is responsible for
+
+	User *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
 type PaymentRequest struct {
 	PaymentRequestID *uint `gorm:"primaryKey;autoIncrement"`
-
-	RequesterID *uint `gorm:"not null"`
-	PayerID     *uint `gorm:"not null"`
+	BillID           *uint // link to original Bill
+	//BillID           *uint `gorm:"not null"` // link to original Bill
+	RequesterID *uint `gorm:"not null"` // the one who paid
+	PayerID     *uint `gorm:"not null"` // the one who owes
 
 	Amount      *float64
 	Description *string
