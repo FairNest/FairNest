@@ -45,6 +45,10 @@ func main() {
 		&entities.Location{},
 		&entities.RoomMember{},
 		&entities.Room{},
+		&entities.Notice{},
+		&entities.Chore{},
+		&entities.ChoreAssignment{},
+		&entities.ChoreRotationUser{},
 	}
 
 	for _, model := range models {

@@ -116,8 +116,9 @@ type Notice struct {
 
 	// Relations
 	Receiver *User `gorm:"foreignKey:ReceiverID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Sender   *User `gorm:"foreignKey:SenderID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"` // nullable
-	Room     *Room `gorm:"foreignKey:RoomID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`   // optional
+	Sender   *User `gorm:"foreignKey:SenderID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	//Sender   *User `gorm:"foreignKey:SenderID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
+	//Room     *Room `gorm:"foreignKey:RoomID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 }
 
 type Chore struct {
@@ -131,7 +132,7 @@ type Chore struct {
 	ReminderTime      *string // e.g. "16:00"
 	Recurrence        *string // e.g. "Weekly"
 	AutoRotate        *bool   // "true = Auto Rotate", "false = No Auto Rotate"
-	Score             *int    // +10 or -10, etc.
+	ChoreScore        *int    // +10 or -10, etc.
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
