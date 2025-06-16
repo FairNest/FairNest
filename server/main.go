@@ -46,9 +46,14 @@ func main() {
 		&entities.RoomMember{},
 		&entities.Room{},
 		&entities.Notice{},
+		&entities.UserCompatibilityProfile{},
 		&entities.Chore{},
 		&entities.ChoreAssignment{},
 		&entities.ChoreRotationUser{},
+		&entities.Bill{},
+		&entities.BillSplit{},
+		&entities.PaymentRequest{},
+		&entities.SCBAccessToken{},
 	}
 
 	for _, model := range models {

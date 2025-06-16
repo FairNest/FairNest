@@ -208,6 +208,7 @@ type PaymentRequest struct {
 
 	Requester *User `gorm:"foreignKey:RequesterID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Payer     *User `gorm:"foreignKey:PayerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Bill      *Bill `gorm:"foreignKey:BillID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 }
 
 type SCBAccessToken struct {
