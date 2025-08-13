@@ -223,13 +223,16 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 	}
 
 	user := entities.User{
-		Username:    request.Username,
-		Password:    v.Ptr(string(hashedPassword)),
-		Email:       request.Email,
-		Firstname:   request.Firstname,
-		Lastname:    request.Lastname,
-		PhoneNumber: request.PhoneNumber,
-		UserPicture: request.UserPicture,
+		Username:          request.Username,
+		Password:          v.Ptr(string(hashedPassword)),
+		Email:             request.Email,
+		Firstname:         request.Firstname,
+		Lastname:          request.Lastname,
+		PhoneNumber:       request.PhoneNumber,
+		UserPicture:       request.UserPicture,
+		UserAboutMe:       nil,
+		BankAccountNumber: request.BankAccountNumber,
+		RoommateScore:     v.Ptr(float64(100)),
 	}
 
 	err = s.userRepo.CreateUser(&user)
