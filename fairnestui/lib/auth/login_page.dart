@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
+import 'package:fairnestui/components/MainButton.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, this.onTapRegister, this.onSubmit});
@@ -31,26 +32,26 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Decorative pink blobs - adjusted positions and sizes
+            // Decorative pink blobs
             const _Blob(
-                color: AppColors.pinkSoft,
-                width: 140,
-                height: 80,
-                top: 40,
-                right: -20,
-                angle: -0.1),
+              color: AppColors.pinkSoft,
+              width: 140,
+              height: 80,
+              top: 40,
+              right: -20,
+              angle: -0.1,
+            ),
             const _Blob(
-                color: AppColors.pinkSoft,
-                width: 120,
-                height: 100,
-                top: 120,
-                left: -30,
-                angle: 0.2),
+              color: AppColors.pinkSoft,
+              width: 120,
+              height: 100,
+              top: 120,
+              left: -30,
+              angle: 0.2,
+            ),
 
-            // Content
             Column(
               children: [
-                // Top spacing and title
                 const SizedBox(height: 60),
                 Text(
                   'Log In',
@@ -61,8 +62,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-
-                // Expanded card that takes remaining space
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -91,8 +90,9 @@ class _LoginPageState extends State<LoginPage> {
                             hint: 'Your Email',
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty)
+                              if (v == null || v.trim().isEmpty) {
                                 return 'Email is required';
+                              }
                               return null;
                             },
                           ),
@@ -107,53 +107,43 @@ class _LoginPageState extends State<LoginPage> {
                             obscureText: _obscure,
                             suffix: IconButton(
                               icon: Icon(
-                                  _obscure
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                  color: Colors.grey[600],
-                                  size: 20),
+                                _obscure
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
                               onPressed: () =>
                                   setState(() => _obscure = !_obscure),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Password is required';
+                              }
                               return null;
                             },
                           ),
 
-                          const SizedBox(
-                              height: 40), // Reduced gap before button
+                          const SizedBox(height: 40),
 
-                          // Login button - matches the orange/yellow color in image
-                          SizedBox(
+                          // MainButton (reusable)
+                          MainButton(
+                            text: 'Log In',
+                            backgroundColor: const Color(0xFFE8B86D),
+                            textColor: const Color(0xFF000000),
                             width: double.infinity,
                             height: 52,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(
-                                    0xFFE8B86D), // Orange/yellow color from image
-                                foregroundColor:
-                                    const Color(0xFF5D4037), // Dark brown text
-                                elevation: 0,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                              ),
-                              onPressed: () {
-                                if (_formKey.currentState?.validate() ??
-                                    false) {
-                                  widget.onSubmit?.call(
-                                      _emailCtrl.text.trim(), _pwCtrl.text);
-                                }
-                              },
-                              child: const Text(
-                                'Log In',
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.w600),
-                              ),
-                            ),
+                            borderRadius: 12,
+                            onPressed: () {
+                              if (_formKey.currentState?.validate() ?? false) {
+                                widget.onSubmit?.call(
+                                  _emailCtrl.text.trim(),
+                                  _pwCtrl.text,
+                                );
+                              }
+                            },
                           ),
+
                           const SizedBox(height: 20),
 
                           // Register link
@@ -164,7 +154,9 @@ class _LoginPageState extends State<LoginPage> {
                                 const Text(
                                   "Don't have an account? ",
                                   style: TextStyle(
-                                      color: AppColors.textDark, fontSize: 12),
+                                    color: AppColors.textDark,
+                                    fontSize: 12,
+                                  ),
                                 ),
                                 GestureDetector(
                                   onTap: widget.onTapRegister,
@@ -297,6 +289,11 @@ class _Blob extends StatelessWidget {
     );
 
     return Positioned(
-        top: top, left: left, right: right, bottom: bottom, child: child);
+      top: top,
+      left: left,
+      right: right,
+      bottom: bottom,
+      child: child,
+    );
   }
 }

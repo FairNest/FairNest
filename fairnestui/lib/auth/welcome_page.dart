@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
-import 'package:fairnestui/auth/login_page.dart'; // <-- Import your LoginPage
+import 'package:fairnestui/auth/login_page.dart';
+import 'package:fairnestui/components/MainButton.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({
@@ -66,13 +67,21 @@ class WelcomePage extends StatelessWidget {
                       fit: BoxFit.contain,
                     ),
                     const SizedBox(height: 32),
-                    _FilledButton(
-                      label: 'Sign Up',
-                      background: AppColors.primary,
+
+                    // Sign Up button using MainButton
+                    MainButton(
+                      text: 'Sign Up',
+                      backgroundColor: AppColors.primary,
                       textColor: AppColors.textDark,
-                      onPressed: onTapSignUp,
+                      width: double.infinity,
+                      height: 56,
+                      borderRadius: 12,
+                      onPressed: onTapSignUp ?? () {},
                     ),
+
                     const SizedBox(height: 20),
+
+                    // Log In button (still outlined for now)
                     _OutlinedButtonCustom(
                       label: 'Log In',
                       border: AppColors.primary,
@@ -137,57 +146,6 @@ class _Blob extends StatelessWidget {
       right: right,
       bottom: bottom,
       child: child,
-    );
-  }
-}
-
-class _FilledButton extends StatelessWidget {
-  const _FilledButton({
-    required this.label,
-    required this.background,
-    required this.textColor,
-    this.onPressed,
-  });
-
-  final String label;
-  final Color background;
-  final Color textColor;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.10),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onPressed,
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: textColor,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
