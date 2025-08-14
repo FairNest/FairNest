@@ -226,6 +226,10 @@ func (h *userHandler) Register(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "User picture is required")
 	}
 
+	if request.BankAccountNumber == nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Bank account number is required")
+	}
+
 	response, err := h.userSer.Register(request)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())

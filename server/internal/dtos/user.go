@@ -74,13 +74,16 @@ type EditUserProfileByUserIdRequest struct {
 }
 
 type RegisterRequest struct {
-	Username    *string `json:"username" validate:"required"`
-	Password    *string `json:"password" validate:"required"`
-	Email       *string `json:"email" validate:"required"`
-	Firstname   *string `json:"firstname" validate:"required"`
-	Lastname    *string `json:"lastname" validate:"required"`
-	PhoneNumber *string `json:"phone_num" validate:"required"`
-	UserPicture *string `json:"user_pic" form:"userPic" validate:"required"`
+	Username          *string  `json:"username" validate:"required"`
+	Password          *string  `json:"password" validate:"required"`
+	Email             *string  `json:"email" validate:"required"`
+	Firstname         *string  `json:"firstname" validate:"required"`
+	Lastname          *string  `json:"lastname" validate:"required"`
+	PhoneNumber       *string  `json:"phone_num" validate:"required"`
+	UserPicture       *string  `json:"user_pic" form:"userPic" validate:"required"`
+	UserAboutMe       *string  `json:"user_about_me" validate:"omitempty"`
+	BankAccountNumber *string  `json:"bank_account_number" validate:"required"`
+	RoommateScore     *float64 `json:"roommate_score" validate:"omitempty"` // Default value is 100.0
 }
 
 type LoginRequest struct {
