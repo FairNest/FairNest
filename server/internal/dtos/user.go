@@ -74,16 +74,17 @@ type EditUserProfileByUserIdRequest struct {
 }
 
 type RegisterRequest struct {
-	Username          *string  `json:"username" validate:"required"`
-	Password          *string  `json:"password" validate:"required"`
-	Email             *string  `json:"email" validate:"required"`
-	Firstname         *string  `json:"firstname" validate:"required"`
-	Lastname          *string  `json:"lastname" validate:"required"`
-	PhoneNumber       *string  `json:"phone_num" validate:"required"`
-	UserPicture       *string  `json:"user_pic" form:"userPic" validate:"required"`
-	UserAboutMe       *string  `json:"user_about_me" validate:"omitempty"`
-	BankAccountNumber *string  `json:"bank_account_number" validate:"required"`
-	RoommateScore     *float64 `json:"roommate_score" validate:"omitempty"` // Default value is 100.0
+	Username                *string  `json:"username" validate:"required"`
+	Password                *string  `json:"password" validate:"required"`
+	Email                   *string  `json:"email" validate:"required"`
+	Firstname               *string  `json:"firstname" validate:"required"`
+	Lastname                *string  `json:"lastname" validate:"required"`
+	PhoneNumber             *string  `json:"phone_num" validate:"required"`
+	UserPicture             *string  `json:"user_picture" form:"userPic" validate:"required"`
+	UserAboutMe             *string  `json:"user_about_me" validate:"required"`
+	BankAccountNumber       *string  `json:"bank_account_number" validate:"required"`
+	RoommateScore           *float64 `json:"roommate_score" validate:"required"`
+	UserVerificationPicture *string  `json:"user_verification_picture" form:"userPic" validate:"required"`
 }
 
 type LoginRequest struct {
