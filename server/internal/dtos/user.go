@@ -80,11 +80,11 @@ type RegisterRequest struct {
 	Firstname               *string  `json:"firstname" validate:"required"`
 	Lastname                *string  `json:"lastname" validate:"required"`
 	PhoneNumber             *string  `json:"phone_num" validate:"required"`
-	UserPicture             *string  `json:"user_picture" form:"userPic" validate:"required"`
+	UserPicture             *string  `json:"user_picture" form:"userPicture" validate:"required"`
 	UserAboutMe             *string  `json:"user_about_me" validate:"required"`
 	BankAccountNumber       *string  `json:"bank_account_number" validate:"required"`
 	RoommateScore           *float64 `json:"roommate_score" validate:"required"`
-	UserVerificationPicture *string  `json:"user_verification_picture" form:"userPic" validate:"required"`
+	UserVerificationPicture *string  `json:"user_verification_picture" form:"userVerificationPicture" validate:"required"`
 }
 
 type LoginRequest struct {
