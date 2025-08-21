@@ -20,7 +20,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const jwtSecret = "FriendSecret"
+var jwtSecret = viper.GetString("jwt.jwtSecret")
 
 func main() {
 	initTimeZone()
@@ -39,7 +39,8 @@ func main() {
 		panic("❌ Failed to connect to database: " + err.Error())
 	}
 
-	models := []interface{}{
+	// AutoMigrate all entities
+	err = db.AutoMigrate(
 		&entities.User{},
 		&entities.LifestyleQuiz{},
 		&entities.Location{},
@@ -54,16 +55,9 @@ func main() {
 		&entities.BillSplit{},
 		&entities.PaymentRequest{},
 		&entities.SCBAccessToken{},
-	}
-
-	for _, model := range models {
-		log.Printf("📦 Starting migration for: %T", model)
-
-		if err := db.AutoMigrate(model); err != nil {
-			log.Fatalf("❌ Failed to migrate %T: %v", model, err)
-		}
-
-		log.Printf("✅ Successfully migrated: %T", model)
+	)
+	if err != nil {
+		panic("Failed to AutoMigrate entities: " + err.Error())
 	}
 
 	log.Println("🎉 All migrations completed successfully!")

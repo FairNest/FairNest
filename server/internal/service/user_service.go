@@ -290,12 +290,12 @@ func (s userService) Login(request dtos.LoginRequest, jwtSecret string) (*dtos.L
 
 	// Nil checks to prevent crashes
 	if user == nil || user.Password == nil || user.UserID == nil {
-		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid credentials")
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid password")
 	}
 
 	// Compare password
 	if err := bcrypt.CompareHashAndPassword(v.ByteSlice(user.Password), []byte(password)); err != nil {
-		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid credentials")
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid password")
 	}
 
 	// Generate JWT token
