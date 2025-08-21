@@ -57,7 +57,7 @@ func main() {
 		&entities.SCBAccessToken{},
 	)
 	if err != nil {
-		panic("Failed to AutoMigrate entities: " + err.Error())
+		panic("❌ Failed to AutoMigrate entities: " + err.Error())
 	}
 
 	log.Println("🎉 All migrations completed successfully!")
@@ -70,7 +70,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println("FairNest Minio connected")
+	log.Println("✅ FairNest Minio connected")
 
 	uploadSer := service.NewUploadService(minioClient)
 	storageHandler := handler.NewStorageHandler(uploadSer)
