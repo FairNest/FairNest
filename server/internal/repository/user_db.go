@@ -86,6 +86,15 @@ func (r userRepositoryDB) CreateUser(user *entities.User) error {
 	return nil
 }
 
+func (r userRepositoryDB) GetUserByEmail(email string) (*entities.User, error) {
+	var user entities.User
+	result := r.db.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
+}
+
 func (r userRepositoryDB) GetUserByUsername(username string) (*entities.User, error) {
 	var user entities.User
 	result := r.db.Where("username = ?", username).First(&user)

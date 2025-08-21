@@ -217,6 +217,26 @@ func (s userService) PatchEditUserProfileByUserId(userid int, req dtos.EditUserP
 }
 
 func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse, error) {
+	// Email, Username, Password Nil check
+	if request.Email == nil || request.Username == nil || request.Password == nil {
+		return nil, errors.New("email, username and password are required")
+	}
+
+	// Dereference
+	email := *request.Email
+	username := *request.Username
+
+	// Check email
+	if _, err := s.userRepo.GetUserByEmail(email); err == nil {
+		return nil, errors.New("email already exists")
+	}
+
+	// Check username
+	if _, err := s.userRepo.GetUserByUsername(username); err == nil {
+		return nil, errors.New("username already exists")
+	}
+
+	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword(v.ByteSlice(request.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -244,6 +264,7 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 	return &dtos.UserResponse{
 		UserID:      user.UserID,
 		Username:    user.Username,
+		Email:       user.Email,
 		UserPicture: user.UserPicture,
 	}, nil
 
@@ -251,18 +272,18 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 
 func (s userService) Login(request dtos.LoginRequest, jwtSecret string) (*dtos.LoginResponse, error) {
 	// Validate request data
-	if request.Username == nil || request.Password == nil {
-		return nil, fiber.NewError(fiber.StatusBadRequest, "Username and password are required")
+	if request.Email == nil || request.Password == nil {
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Email and password are required")
 	}
 
-	username := *request.Username
+	username := *request.Email
 	password := *request.Password
 
 	// Find user by username
-	user, err := s.userRepo.GetUserByUsername(username)
+	user, err := s.userRepo.GetUserByEmail(username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid username or password")
+			return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid email or password")
 		}
 		return nil, err
 	}
@@ -292,8 +313,8 @@ func (s userService) Login(request dtos.LoginRequest, jwtSecret string) (*dtos.L
 
 	// Return login response
 	return &dtos.LoginResponse{
-		UserID:   user.UserID,
-		Username: user.Username,
-		Token:    &jwtToken,
+		UserID: user.UserID,
+		Email:  user.Email,
+		Token:  &jwtToken,
 	}, nil
 }

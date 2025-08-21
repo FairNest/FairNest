@@ -3,17 +3,18 @@ package entities
 import "time"
 
 type User struct {
-	UserID            *uint `gorm:"primaryKey;autoIncrement"`
-	Username          *string
-	Password          *string
-	Email             *string
-	Firstname         *string
-	Lastname          *string
-	PhoneNumber       *string
-	UserPicture       *string
-	UserAboutMe       *string
-	BankAccountNumber *string
-	RoommateScore     *float64
+	UserID                  *uint   `gorm:"primaryKey;autoIncrement"`
+	Username                *string `gorm:"unique;not null"`
+	Password                *string
+	Email                   *string `gorm:"unique;not null"`
+	Firstname               *string
+	Lastname                *string
+	PhoneNumber             *string
+	UserPicture             *string
+	UserAboutMe             *string
+	BankAccountNumber       *string
+	RoommateScore           *float64
+	UserVerificationPicture *string
 
 	// Relations
 	RoomMembers []RoomMember
