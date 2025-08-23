@@ -206,28 +206,41 @@ func (h *userHandler) Register(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	// Check if a file is uploaded
-	file, err := c.FormFile("file")
+	// Check if a user picture file is uploaded
+	userPictureFile, err := c.FormFile("user_picture")
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "File not found")
+		return fiber.NewError(fiber.StatusBadRequest, "User picture file not found")
 	}
 
-	// Call upload service to upload the file
-	fileURL, err := h.uploadSer.UploadFile(file)
+	// Call upload service to upload the user picture file
+	userPictureFileURL, err := h.uploadSer.UploadFile(userPictureFile)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to upload file")
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to upload user picture file")
+	}
+
+	// Check if a user verification picture file is uploaded
+	userVerificationPictureFile, err := c.FormFile("user_verification_picture")
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "User picture file not found")
+	}
+
+	// Call upload service to upload the user verification picture file
+	userVerificationPictureFileURL, err := h.uploadSer.UploadFile(userVerificationPictureFile)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to upload user verification picture file")
 	}
 
 	// Set the uploaded file URL in the registration request
-	request.UserPicture = fileURL
+	request.UserPicture = userPictureFileURL
+	request.UserVerificationPicture = userVerificationPictureFileURL
 
 	// Check if user_pic field is empty or nil
 	if request.UserPicture == nil {
 		return fiber.NewError(fiber.StatusBadRequest, "User picture is required")
 	}
 
-	if request.BankAccountNumber == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Bank account number is required")
+	if request.UserVerificationPicture == nil {
+		return fiber.NewError(fiber.StatusBadRequest, "User verification picture is required")
 	}
 
 	response, err := h.userSer.Register(request)
@@ -244,8 +257,8 @@ func (h *userHandler) Login(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if request.Username == nil || request.Password == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Username and Password are required")
+	if request.Email == nil || request.Password == nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Email and Password are required")
 	}
 
 	response, err := h.userSer.Login(request, h.jwtSecret)
