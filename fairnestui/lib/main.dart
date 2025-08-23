@@ -1,5 +1,7 @@
 import 'package:fairnestui/TestCardPage.dart';
+import 'package:fairnestui/auth/SignUpPage.dart';
 import 'package:fairnestui/auth/login_page.dart';
+import 'package:fairnestui/pages/GroupHomePage.dart';
 import 'package:fairnestui/pages/LifestyleQuizPage.dart';
 import 'package:fairnestui/pages/groupcheckpage.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +23,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const TestHeaderPage(),
+      home: const VotePopupDemoPage(),
     );
   }
 }

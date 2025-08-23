@@ -1,3 +1,4 @@
+import 'package:fairnestui/auth/SignUpPage.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/components/MainButton.dart';
@@ -159,7 +160,14 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ),
                                 GestureDetector(
-                                  onTap: widget.onTapRegister,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const SignUpPage(),
+                                      ),
+                                    );
+                                  },
                                   child: const Text(
                                     'Register here',
                                     style: TextStyle(

@@ -1,3 +1,4 @@
+import 'package:fairnestui/pages/GroupHomePage.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 
@@ -35,7 +36,12 @@ class GroupCheckPage extends StatelessWidget {
                   title: 'Find Roommate',
                   assetPath: 'assets/images/User Groups.png',
                   bgColor: AppColors.secondary,
-                  onTap: onFindRoommate,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const GroupHomePage()),
+                    );
+                  },
                 ),
                 const SizedBox(height: 36),
                 _OptionCard(
