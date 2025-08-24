@@ -103,3 +103,12 @@ func (r userRepositoryDB) GetUserByUsername(username string) (*entities.User, er
 	}
 	return &user, nil
 }
+
+func (r userRepositoryDB) GetUserByUserIdentityDocumentNumber(userIdentityDocumentNumber string) (*entities.User, error) {
+	var user entities.User
+	result := r.db.Where("user_identity_document_number = ?", userIdentityDocumentNumber).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
+}
