@@ -217,14 +217,15 @@ func (s userService) PatchEditUserProfileByUserId(userid int, req dtos.EditUserP
 }
 
 func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse, error) {
-	// Email, Username, Password Nil check
-	if request.Email == nil || request.Username == nil || request.Password == nil {
-		return nil, errors.New("email, username and password are required")
+	// Email, Username, Password, UserIdentityDocumentNumber Nil check
+	if request.Email == nil || request.Username == nil || request.Password == nil || request.UserIdentityDocumentNumber == nil {
+		return nil, errors.New("email, username, password and user identity document number are required")
 	}
 
 	// Dereference
 	email := *request.Email
 	username := *request.Username
+	userIdentityDocumentNumber := *request.UserIdentityDocumentNumber
 
 	// Check email
 	if _, err := s.userRepo.GetUserByEmail(email); err == nil {
@@ -236,6 +237,11 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		return nil, errors.New("username already exists")
 	}
 
+	// Check user identity document number
+	if _, err := s.userRepo.GetUserByUserIdentityDocumentNumber(userIdentityDocumentNumber); err == nil {
+		return nil, errors.New("user identity document number already exists")
+	}
+
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword(v.ByteSlice(request.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -243,17 +249,18 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 	}
 
 	user := entities.User{
-		Username:                request.Username,
-		Password:                v.Ptr(string(hashedPassword)),
-		Email:                   request.Email,
-		Firstname:               request.Firstname,
-		Lastname:                request.Lastname,
-		PhoneNumber:             request.PhoneNumber,
-		UserPicture:             request.UserPicture,
-		UserAboutMe:             v.Ptr("Hello, I am new here!"),
-		BankAccountNumber:       request.BankAccountNumber,
-		RoommateScore:           v.Ptr(float64(100)),
-		UserVerificationPicture: request.UserVerificationPicture,
+		Username:                   request.Username,
+		Password:                   v.Ptr(string(hashedPassword)),
+		Email:                      request.Email,
+		Firstname:                  request.Firstname,
+		Lastname:                   request.Lastname,
+		PhoneNumber:                request.PhoneNumber,
+		UserPicture:                request.UserPicture,
+		UserAboutMe:                v.Ptr("Hello, I am new here!"),
+		BankAccountNumber:          request.BankAccountNumber,
+		RoommateScore:              v.Ptr(float64(100)),
+		UserVerificationPicture:    request.UserVerificationPicture,
+		UserIdentityDocumentNumber: request.UserIdentityDocumentNumber,
 	}
 
 	err = s.userRepo.CreateUser(&user)

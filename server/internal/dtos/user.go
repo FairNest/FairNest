@@ -74,15 +74,16 @@ type EditUserProfileByUserIdRequest struct {
 }
 
 type RegisterRequest struct {
-	Username                *string `json:"username" validate:"required" form:"username"`
-	Password                *string `json:"password" validate:"required" form:"password"`
-	Email                   *string `json:"email" validate:"required" form:"email"`
-	Firstname               *string `json:"firstname" validate:"required" form:"firstname"`
-	Lastname                *string `json:"lastname" validate:"required" form:"lastname"`
-	PhoneNumber             *string `json:"phone_number" validate:"required" form:"phone_number"`
-	UserPicture             *string `json:"user_picture" validate:"required" form:"user_picture"`
-	BankAccountNumber       *string `json:"bank_account_number" validate:"required" form:"bank_account_number"`
-	UserVerificationPicture *string `json:"user_verification_picture" validate:"required" form:"user_verification_picture"`
+	Username                   *string `json:"username" validate:"required" form:"username"`
+	Password                   *string `json:"password" validate:"required" form:"password"`
+	Email                      *string `json:"email" validate:"required" form:"email"`
+	Firstname                  *string `json:"firstname" validate:"required" form:"firstname"`
+	Lastname                   *string `json:"lastname" validate:"required" form:"lastname"`
+	PhoneNumber                *string `json:"phone_number" validate:"required" form:"phone_number"`
+	UserPicture                *string `json:"user_picture" validate:"required" form:"user_picture"`
+	BankAccountNumber          *string `json:"bank_account_number" validate:"required" form:"bank_account_number"`
+	UserVerificationPicture    *string `json:"user_verification_picture" validate:"required" form:"user_verification_picture"`
+	UserIdentityDocumentNumber *string `json:"user_identity_document_number" validate:"required" form:"user_identity_document_number"`
 }
 
 type LoginRequest struct {

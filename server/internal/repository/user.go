@@ -16,7 +16,8 @@ type UserRepository interface {
 	GetEditUserProfileByUserId(int) (*entities.User, error)
 	PatchEditUserProfileByUserId(user *entities.User) error
 
-	CreateUser(user *entities.User) error                      //Register
-	GetUserByEmail(email string) (*entities.User, error)       //Login
-	GetUserByUsername(username string) (*entities.User, error) //Login
+	CreateUser(user *entities.User) error                                                          //Register
+	GetUserByEmail(email string) (*entities.User, error)                                           //Login
+	GetUserByUsername(username string) (*entities.User, error)                                     //Login
+	GetUserByUserIdentityDocumentNumber(userIdentityDocumentNumber string) (*entities.User, error) //Login
 }
