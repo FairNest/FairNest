@@ -1,6 +1,7 @@
 import 'package:fairnestui/TestCardPage.dart';
 import 'package:fairnestui/auth/SignUpPage.dart';
 import 'package:fairnestui/auth/login_page.dart';
+import 'package:fairnestui/pages/UserProfilePage.dart';
 import 'package:fairnestui/pages/room_creation/CreateLivingSetup.dart';
 import 'package:fairnestui/pages/room_creation/CreateRoomDetails.dart';
 import 'package:fairnestui/pages/GroupHomePage.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const CreateRoomdetails(),
+      home: const MyProfilePage(),
     );
   }
 }
