@@ -43,6 +43,7 @@ func (h *userHandler) GetUsers(c *fiber.Ctx) error {
 			RoommateScore:              user.RoommateScore,
 			UserVerificationPicture:    user.UserVerificationPicture,
 			UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+			UserIdentityDocumentType:   user.UserIdentityDocumentType,
 		})
 	}
 	return c.JSON(usersResponse)
@@ -70,6 +71,7 @@ func (h *userHandler) GetUserByUserId(c *fiber.Ctx) error {
 		RoommateScore:              user.RoommateScore,
 		UserVerificationPicture:    user.UserVerificationPicture,
 		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
 	}
 
 	return c.JSON(userResponse)
@@ -109,6 +111,7 @@ func (h *userHandler) GetUserByToken(c *fiber.Ctx) error {
 		RoommateScore:              user.RoommateScore,
 		UserVerificationPicture:    user.UserVerificationPicture,
 		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
 	}
 
 	return c.JSON(userResponse)
@@ -150,6 +153,7 @@ func (h *userHandler) GetCurrentUser(c *fiber.Ctx) error {
 		RoommateScore:              user.RoommateScore,
 		UserVerificationPicture:    user.UserVerificationPicture,
 		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
 	}
 
 	return c.JSON(userResponse)

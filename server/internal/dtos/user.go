@@ -14,7 +14,7 @@ type UserDataResponse struct {
 	RoommateScore              *float64 `json:"roommate_score" validate:"required"`
 	UserVerificationPicture    *string  `json:"user_verification_picture" validate:"required"`
 	UserIdentityDocumentNumber *string  `json:"user_identity_document_number" validate:"required"`
-	//UserIdentityDocumentType   *string  `json:"user_identity_document_type" validate:"required"`
+	UserIdentityDocumentType   *bool    `json:"user_identity_document_type" validate:"required"`
 }
 
 type UserByUserIdDataResponse struct {
@@ -31,7 +31,7 @@ type UserByUserIdDataResponse struct {
 	RoommateScore              *float64 `json:"roommate_score" validate:"required"`
 	UserVerificationPicture    *string  `json:"user_verification_picture" validate:"required"`
 	UserIdentityDocumentNumber *string  `json:"user_identity_document_number" validate:"required"`
-	//UserIdentityDocumentType   *string  `json:"user_identity_document_type" validate:"required"`
+	UserIdentityDocumentType   *bool    `json:"user_identity_document_type" validate:"required"`
 }
 
 type UserByTokenDataResponse struct {
@@ -48,6 +48,7 @@ type UserByTokenDataResponse struct {
 	RoommateScore              *float64 `json:"roommate_score" validate:"required"`
 	UserVerificationPicture    *string  `json:"user_verification_picture" validate:"required"`
 	UserIdentityDocumentNumber *string  `json:"user_identity_document_number" validate:"required"`
+	UserIdentityDocumentType   *bool    `json:"user_identity_document_type" validate:"required"`
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -66,6 +67,7 @@ type CurrentUserResponse struct {
 	RoommateScore              *float64 `json:"roommate_score" validate:"required"`
 	UserVerificationPicture    *string  `json:"user_verification_picture" validate:"required"`
 	UserIdentityDocumentNumber *string  `json:"user_identity_document_number" validate:"required"`
+	UserIdentityDocumentType   *bool    `json:"user_identity_document_type" validate:"required"`
 }
 
 type ProfileOfCurrentUserByUserIdResponse struct {
@@ -103,6 +105,7 @@ type RegisterRequest struct {
 	BankAccountNumber          *string `json:"bank_account_number" validate:"required" form:"bank_account_number"`
 	UserVerificationPicture    *string `json:"user_verification_picture" validate:"required" form:"user_verification_picture"`
 	UserIdentityDocumentNumber *string `json:"user_identity_document_number" validate:"required" form:"user_identity_document_number"`
+	UserIdentityDocumentType   *bool   `json:"user_identity_document_type" validate:"required" form:"user_identity_document_type"`
 }
 
 type LoginRequest struct {
