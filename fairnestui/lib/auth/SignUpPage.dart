@@ -1,7 +1,5 @@
 // signup_page.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/components/MainButton.dart';
@@ -24,84 +22,27 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
 
-  final _usernameCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
+  // Controllers for the required fields
+  final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _firstCtrl = TextEditingController();
-  final _lastCtrl = TextEditingController();
+  final _nationalIdCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _bankCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _confirmPwCtrl = TextEditingController();
 
-  bool _obscure = true;
+  bool _obscurePw = true;
+  bool _obscureConfirm = true;
   bool _agree = false;
-
-  File? _userPhoto;
-  File? _verificationPhoto;
-
-  final _picker = ImagePicker();
 
   @override
   void dispose() {
-    _usernameCtrl.dispose();
-    _passwordCtrl.dispose();
+    _nameCtrl.dispose();
     _emailCtrl.dispose();
-    _firstCtrl.dispose();
-    _lastCtrl.dispose();
+    _nationalIdCtrl.dispose();
     _phoneCtrl.dispose();
-    _bankCtrl.dispose();
+    _passwordCtrl.dispose();
+    _confirmPwCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickImage({required bool forVerification}) async {
-    final choice = await showModalBottomSheet<ImageSource>(
-      context: context,
-      showDragHandle: true,
-      backgroundColor: Colors.white,
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera),
-              title: const Text(
-                'Take a photo',
-                style: TextStyle(
-                  fontFamily: 'Krub',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              onTap: () => Navigator.pop(_, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text(
-                'Choose from gallery',
-                style: TextStyle(
-                  fontFamily: 'Krub',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              onTap: () => Navigator.pop(_, ImageSource.gallery),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (choice == null) return;
-
-    final xFile = await _picker.pickImage(source: choice, imageQuality: 85);
-    if (xFile == null) return;
-
-    setState(() {
-      if (forVerification) {
-        _verificationPhoto = File(xFile.path);
-      } else {
-        _userPhoto = File(xFile.path);
-      }
-    });
   }
 
   void _submit() {
@@ -121,17 +62,14 @@ class _SignUpPageState extends State<SignUpPage> {
       );
       return;
     }
+
     widget.onSubmit?.call(
       SignUpData(
-        username: _usernameCtrl.text.trim(),
-        password: _passwordCtrl.text,
+        name: _nameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
-        firstName: _firstCtrl.text.trim(),
-        lastName: _lastCtrl.text.trim(),
+        nationalIdOrPassport: _nationalIdCtrl.text.trim(),
         phoneNumber: _phoneCtrl.text.trim(),
-        bankAccountNumber: _bankCtrl.text.trim(),
-        userPicture: _userPhoto,
-        verificationPicture: _verificationPhoto,
+        password: _passwordCtrl.text,
       ),
     );
   }
@@ -143,6 +81,7 @@ class _SignUpPageState extends State<SignUpPage> {
       body: SafeArea(
         child: Stack(
           children: [
+            // Decorative blobs
             const _Blob(
               color: AppColors.pinkSoft,
               width: 140,
@@ -159,6 +98,7 @@ class _SignUpPageState extends State<SignUpPage> {
               left: -30,
               angle: 0.2,
             ),
+
             Column(
               children: [
                 const SizedBox(height: 36),
@@ -177,7 +117,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
                     decoration: const BoxDecoration(
-                      color: AppColors.secondary,
+                      color: AppColors.secondary, // pink card
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(32),
                         topRight: Radius.circular(32),
@@ -192,45 +132,24 @@ class _SignUpPageState extends State<SignUpPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const _FieldLabel('Username'),
+                            // Name
+                            const _FieldLabel('Name'),
                             const SizedBox(height: 10),
                             _Input(
-                              controller: _usernameCtrl,
-                              hint: 'Your username',
+                              controller: _nameCtrl,
+                              hint: 'Your Name',
                               validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Username is required'
+                                  ? 'Name is required'
                                   : null,
                             ),
                             const SizedBox(height: 18),
 
-                            const _FieldLabel('Password'),
-                            const SizedBox(height: 10),
-                            _Input(
-                              controller: _passwordCtrl,
-                              hint: '••••••••••',
-                              obscureText: _obscure,
-                              suffix: IconButton(
-                                icon: Icon(
-                                  _obscure
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                  color: Colors.grey[700],
-                                  size: 22,
-                                ),
-                                onPressed: () =>
-                                    setState(() => _obscure = !_obscure),
-                              ),
-                              validator: (v) => (v == null || v.isEmpty)
-                                  ? 'Password is required'
-                                  : null,
-                            ),
-                            const SizedBox(height: 18),
-
+                            // Email
                             const _FieldLabel('Email'),
                             const SizedBox(height: 10),
                             _Input(
                               controller: _emailCtrl,
-                              hint: 'Your email',
+                              hint: 'Your Email',
                               keyboardType: TextInputType.emailAddress,
                               validator: (v) => (v == null || v.trim().isEmpty)
                                   ? 'Email is required'
@@ -238,33 +157,24 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             const SizedBox(height: 18),
 
-                            const _FieldLabel('First Name'),
+                            // National ID / Passport
+                            const _FieldLabel('National ID or Passport Number'),
                             const SizedBox(height: 10),
                             _Input(
-                              controller: _firstCtrl,
-                              hint: 'Your first name',
+                              controller: _nationalIdCtrl,
+                              hint: 'Your National ID or Passport No.',
                               validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'First name is required'
+                                  ? 'This field is required'
                                   : null,
                             ),
                             const SizedBox(height: 18),
 
-                            const _FieldLabel('Last Name'),
-                            const SizedBox(height: 10),
-                            _Input(
-                              controller: _lastCtrl,
-                              hint: 'Your last name',
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Last name is required'
-                                  : null,
-                            ),
-                            const SizedBox(height: 18),
-
+                            // Phone Number
                             const _FieldLabel('Phone Number'),
                             const SizedBox(height: 10),
                             _Input(
                               controller: _phoneCtrl,
-                              hint: 'e.g. +66 812345678',
+                              hint: 'Your Phone No.',
                               keyboardType: TextInputType.phone,
                               validator: (v) => (v == null || v.trim().isEmpty)
                                   ? 'Phone number is required'
@@ -272,36 +182,61 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             const SizedBox(height: 18),
 
-                            const _FieldLabel('User Picture'),
-                            const SizedBox(height: 10),
-                            _ImagePickerTile(
-                              file: _userPhoto,
-                              onTap: () => _pickImage(forVerification: false),
-                              placeholder: 'Tap to take/upload photo',
-                            ),
-                            const SizedBox(height: 18),
-
-                            const _FieldLabel('Bank Account Number'),
+                            // Password
+                            const _FieldLabel('Password'),
                             const SizedBox(height: 10),
                             _Input(
-                              controller: _bankCtrl,
-                              hint: 'Your bank account number',
-                              keyboardType: TextInputType.number,
-                              validator: (v) => (v == null || v.trim().isEmpty)
-                                  ? 'Bank account number is required'
+                              controller: _passwordCtrl,
+                              hint: '••••••••••',
+                              obscureText: _obscurePw,
+                              suffix: IconButton(
+                                icon: Icon(
+                                  _obscurePw
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey[700],
+                                  size: 22,
+                                ),
+                                onPressed: () =>
+                                    setState(() => _obscurePw = !_obscurePw),
+                              ),
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? 'Password is required'
                                   : null,
                             ),
                             const SizedBox(height: 18),
 
-                            const _FieldLabel('User Verification Picture'),
+                            // Confirm Password
+                            const _FieldLabel('Confirm Password'),
                             const SizedBox(height: 10),
-                            _ImagePickerTile(
-                              file: _verificationPhoto,
-                              onTap: () => _pickImage(forVerification: true),
-                              placeholder: 'Selfie of yourself and ID card',
+                            _Input(
+                              controller: _confirmPwCtrl,
+                              hint: '••••••••••',
+                              obscureText: _obscureConfirm,
+                              suffix: IconButton(
+                                icon: Icon(
+                                  _obscureConfirm
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey[700],
+                                  size: 22,
+                                ),
+                                onPressed: () => setState(
+                                    () => _obscureConfirm = !_obscureConfirm),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return 'Please confirm your password';
+                                }
+                                if (v != _passwordCtrl.text) {
+                                  return 'Passwords do not match';
+                                }
+                                return null;
+                              },
                             ),
                             const SizedBox(height: 12),
 
+                            // Terms
                             Row(
                               children: [
                                 Checkbox(
@@ -318,7 +253,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     'I accept the terms and privacy policy',
                                     style: TextStyle(
                                       fontFamily: 'Krub',
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.normal,
                                       fontSize: 18,
                                       color: AppColors.textDark,
                                     ),
@@ -328,6 +263,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             const SizedBox(height: 8),
 
+                            // Next button
                             MainButton(
                               text: 'Next',
                               backgroundColor: const Color(0xFFBDB0E1),
@@ -339,7 +275,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             const SizedBox(height: 14),
 
-                            // Bottom row (exception)
+                            // Bottom auth row
                             Center(
                               child: Wrap(
                                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -347,7 +283,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   const Text(
                                     'Already have an account? ',
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 13,
                                       color: AppColors.textDark,
                                     ),
                                   ),
@@ -389,27 +325,20 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 }
 
+/// Data you’ll receive on submit (simplified to match current fields)
 class SignUpData {
-  final String username;
-  final String password;
+  final String name;
   final String email;
-  final String firstName;
-  final String lastName;
+  final String nationalIdOrPassport;
   final String phoneNumber;
-  final String bankAccountNumber;
-  final File? userPicture;
-  final File? verificationPicture;
+  final String password;
 
   SignUpData({
-    required this.username,
-    required this.password,
+    required this.name,
     required this.email,
-    required this.firstName,
-    required this.lastName,
+    required this.nationalIdOrPassport,
     required this.phoneNumber,
-    required this.bankAccountNumber,
-    this.userPicture,
-    this.verificationPicture,
+    required this.password,
   });
 }
 
@@ -472,7 +401,7 @@ class _Input extends StatelessWidget {
           color: Color(0xFF888888),
         ),
         filled: true,
-        fillColor: Color(0xFFEFECE9),
+        fillColor: const Color(0xFFEFECE9),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
@@ -488,64 +417,6 @@ class _Input extends StatelessWidget {
           borderSide: BorderSide.none,
         ),
         suffixIcon: suffix,
-      ),
-    );
-  }
-}
-
-class _ImagePickerTile extends StatelessWidget {
-  const _ImagePickerTile({
-    required this.file,
-    required this.onTap,
-    required this.placeholder,
-  });
-
-  final File? file;
-  final VoidCallback onTap;
-  final String placeholder;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        height: 56,
-        decoration: BoxDecoration(
-          color: Color(0xFFEFECE9),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: file == null
-                  ? const Icon(Icons.camera_alt_rounded,
-                      size: 22, color: Colors.black54)
-                  : Image.file(file!, fit: BoxFit.cover),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                file == null ? placeholder : 'Photo selected',
-                style: const TextStyle(
-                  fontFamily: 'Krub',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Color(0xFF555555),
-                ),
-              ),
-            ),
-            const Icon(Icons.chevron_right, size: 22, color: Colors.black45),
-          ],
-        ),
       ),
     );
   }

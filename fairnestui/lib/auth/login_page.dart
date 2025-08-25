@@ -171,8 +171,8 @@ class _LoginPageState extends State<LoginPage> {
                                   child: const Text(
                                     'Register here',
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.secondary,
+                                      fontSize: 13,
+                                      color: AppColors.textOrange,
                                       decoration: TextDecoration.underline,
                                       fontWeight: FontWeight.w600,
                                     ),

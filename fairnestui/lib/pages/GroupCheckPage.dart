@@ -26,7 +26,7 @@ class GroupCheckPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _OptionCard(
-                  title: 'Create Group',
+                  title: 'Create a Room',
                   assetPath: 'assets/images/Add Male User Group.png',
                   bgColor: AppColors.primary,
                   onTap: onCreateGroup,
