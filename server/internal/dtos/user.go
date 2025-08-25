@@ -1,76 +1,95 @@
 package dtos
 
 type UserDataResponse struct {
-	UserID      *uint   `json:"user_id" validate:"required"`
-	Username    *string `json:"username" validate:"required"`
-	Password    *string `json:"password" validate:"required"`
-	Email       *string `json:"email" validate:"required"`
-	Firstname   *string `json:"firstname" validate:"required"`
-	Lastname    *string `json:"lastname" validate:"required"`
-	PhoneNumber *string `json:"phone_num" validate:"required"`
-	UserPicture *string `json:"user_pic" validate:"required"`
+	UserID                     *uint    `json:"user_id" validate:"required"`
+	Username                   *string  `json:"username" validate:"required"`
+	Password                   *string  `json:"password" validate:"required"`
+	Email                      *string  `json:"email" validate:"required"`
+	Firstname                  *string  `json:"firstname" validate:"required"`
+	Lastname                   *string  `json:"lastname" validate:"required"`
+	PhoneNumber                *string  `json:"phone_number" validate:"required"`
+	UserPicture                *string  `json:"user_picture" validate:"required"`
+	UserAboutMe                *string  `json:"user_about_me" validate:"required"`
+	BankAccountNumber          *string  `json:"bank_account_number" validate:"required"`
+	RoommateScore              *float64 `json:"roommate_score" validate:"required"`
+	UserVerificationPicture    *string  `json:"user_verification_picture" validate:"required"`
+	UserIdentityDocumentNumber *string  `json:"user_identity_document_number" validate:"required"`
+	//UserIdentityDocumentType   *string  `json:"user_identity_document_type" validate:"required"`
 }
 
 type UserByUserIdDataResponse struct {
-	UserID      *uint   `json:"user_id" validate:"required"`
-	Username    *string `json:"username" validate:"required"`
-	Password    *string `json:"password" validate:"required"`
-	Email       *string `json:"email" validate:"required"`
-	Firstname   *string `json:"firstname" validate:"required"`
-	Lastname    *string `json:"lastname" validate:"required"`
-	PhoneNumber *string `json:"phone_num" validate:"required"`
-	UserPicture *string `json:"user_pic" validate:"required"`
+	UserID                     *uint    `json:"user_id" validate:"required"`
+	Username                   *string  `json:"username" validate:"required"`
+	Password                   *string  `json:"password" validate:"required"`
+	Email                      *string  `json:"email" validate:"required"`
+	Firstname                  *string  `json:"firstname" validate:"required"`
+	Lastname                   *string  `json:"lastname" validate:"required"`
+	PhoneNumber                *string  `json:"phone_number" validate:"required"`
+	UserPicture                *string  `json:"user_picture" validate:"required"`
+	UserAboutMe                *string  `json:"user_about_me" validate:"required"`
+	BankAccountNumber          *string  `json:"bank_account_number" validate:"required"`
+	RoommateScore              *float64 `json:"roommate_score" validate:"required"`
+	UserVerificationPicture    *string  `json:"user_verification_picture" validate:"required"`
+	UserIdentityDocumentNumber *string  `json:"user_identity_document_number" validate:"required"`
+	//UserIdentityDocumentType   *string  `json:"user_identity_document_type" validate:"required"`
 }
 
 type UserByTokenDataResponse struct {
-	UserID      *uint   `json:"user_id" validate:"required"`
-	Username    *string `json:"username" validate:"required"`
-	Password    *string `json:"password" validate:"required"`
-	Email       *string `json:"email" validate:"required"`
-	Firstname   *string `json:"firstname" validate:"required"`
-	Lastname    *string `json:"lastname" validate:"required"`
-	PhoneNumber *string `json:"phone_num" validate:"required"`
-	UserPicture *string `json:"user_pic" validate:"required"`
+	UserID                     *uint    `json:"user_id" validate:"required"`
+	Username                   *string  `json:"username" validate:"required"`
+	Password                   *string  `json:"password" validate:"required"`
+	Email                      *string  `json:"email" validate:"required"`
+	Firstname                  *string  `json:"firstname" validate:"required"`
+	Lastname                   *string  `json:"lastname" validate:"required"`
+	PhoneNumber                *string  `json:"phone_number" validate:"required"`
+	UserPicture                *string  `json:"user_picture" validate:"required"`
+	UserAboutMe                *string  `json:"user_about_me" validate:"required"`
+	BankAccountNumber          *string  `json:"bank_account_number" validate:"required"`
+	RoommateScore              *float64 `json:"roommate_score" validate:"required"`
+	UserVerificationPicture    *string  `json:"user_verification_picture" validate:"required"`
+	UserIdentityDocumentNumber *string  `json:"user_identity_document_number" validate:"required"`
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 type CurrentUserResponse struct {
-	UserID      *uint   `json:"user_id" validate:"required"`
-	Username    *string `json:"username" validate:"required"`
-	Password    *string `json:"password" validate:"required"`
-	Email       *string `json:"email" validate:"required"`
-	Firstname   *string `json:"firstname" validate:"required"`
-	Lastname    *string `json:"lastname" validate:"required"`
-	PhoneNumber *string `json:"phone_num" validate:"required"`
-	UserPicture *string `json:"user_pic" validate:"required"`
+	UserID                     *uint    `json:"user_id" validate:"required"`
+	Username                   *string  `json:"username" validate:"required"`
+	Password                   *string  `json:"password" validate:"required"`
+	Email                      *string  `json:"email" validate:"required"`
+	Firstname                  *string  `json:"firstname" validate:"required"`
+	Lastname                   *string  `json:"lastname" validate:"required"`
+	PhoneNumber                *string  `json:"phone_number" validate:"required"`
+	UserPicture                *string  `json:"user_picture" validate:"required"`
+	UserAboutMe                *string  `json:"user_about_me" validate:"required"`
+	BankAccountNumber          *string  `json:"bank_account_number" validate:"required"`
+	RoommateScore              *float64 `json:"roommate_score" validate:"required"`
+	UserVerificationPicture    *string  `json:"user_verification_picture" validate:"required"`
+	UserIdentityDocumentNumber *string  `json:"user_identity_document_number" validate:"required"`
 }
 
 type ProfileOfCurrentUserByUserIdResponse struct {
 	UserID      *uint   `json:"user_id" validate:"required"`
 	Username    *string `json:"username" validate:"required"`
-	Email       *string `json:"email" validate:"required"`
 	Firstname   *string `json:"firstname" validate:"required"`
 	Lastname    *string `json:"lastname" validate:"required"`
-	PhoneNumber *string `json:"phone_num" validate:"required"`
-	UserPicture *string `json:"user_pic" validate:"required"`
+	UserPicture *string `json:"user_picture" validate:"required"`
+	UserAboutMe *string `json:"user_about_me" validate:"required"`
 }
 
 type EditUserProfileByUserIdResponse struct {
 	UserID      *uint   `json:"user_id" validate:"required"`
 	Username    *string `json:"username" validate:"required"`
-	Email       *string `json:"email" validate:"required"`
 	Firstname   *string `json:"firstname" validate:"required"`
 	Lastname    *string `json:"lastname" validate:"required"`
-	PhoneNumber *string `json:"phone_num" validate:"required"`
+	UserAboutMe *string `json:"user_about_me" validate:"required"`
 }
 
 type EditUserProfileByUserIdRequest struct {
 	Username    *string `json:"username" validate:"required"`
-	Email       *string `json:"email" validate:"required"`
 	Firstname   *string `json:"firstname" validate:"required"`
 	Lastname    *string `json:"lastname" validate:"required"`
-	PhoneNumber *string `json:"phone_num" validate:"required"`
+	UserAboutMe *string `json:"user_about_me" validate:"required"`
 }
 
 type RegisterRequest struct {

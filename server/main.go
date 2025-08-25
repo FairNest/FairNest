@@ -20,11 +20,10 @@ import (
 	"gorm.io/gorm"
 )
 
-var jwtSecret = viper.GetString("jwt.jwtSecret")
-
 func main() {
 	initTimeZone()
 	initConfig()
+	jwtSecret := viper.GetString("jwt.jwtSecret")
 	dsn := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable TimeZone=Asia/Bangkok",
 		viper.GetString("db.host"),
 		viper.GetInt("db.port"),
@@ -125,15 +124,21 @@ func main() {
 }
 
 func initConfig() {
-	viper.SetConfigName("config")
+	viper.SetConfigName("config") // config.yaml
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AddConfigPath(".")        // current directory
+	viper.AddConfigPath("./config") // optional extra path
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Printf("[config] could not read config file: %v", err)
+	}
+
+	secret := viper.GetString("jwt.jwtSecret")
+	if secret == "" {
+		log.Println("[config] jwt.jwtSecret is EMPTY")
 	}
 }
 
