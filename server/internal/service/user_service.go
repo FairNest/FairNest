@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fairnest/internal/utils/helper"
 	"log"
 	"strconv"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
 	"fairnest/internal/utils/v"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -39,14 +39,20 @@ func (s userService) GetUsers() ([]entities.User, error) {
 	userResponses := []entities.User{}
 	for _, user := range users {
 		userResponse := entities.User{
-			UserID:      user.UserID,
-			Username:    user.Username,
-			Password:    user.Password,
-			Email:       user.Email,
-			Firstname:   user.Firstname,
-			Lastname:    user.Lastname,
-			PhoneNumber: user.PhoneNumber,
-			UserPicture: user.UserPicture,
+			UserID:                     user.UserID,
+			Username:                   user.Username,
+			Password:                   user.Password,
+			Email:                      user.Email,
+			Firstname:                  user.Firstname,
+			Lastname:                   user.Lastname,
+			PhoneNumber:                user.PhoneNumber,
+			UserPicture:                user.UserPicture,
+			UserAboutMe:                user.UserAboutMe,
+			BankAccountNumber:          user.BankAccountNumber,
+			RoommateScore:              user.RoommateScore,
+			UserVerificationPicture:    user.UserVerificationPicture,
+			UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+			UserIdentityDocumentType:   user.UserIdentityDocumentType,
 		}
 		userResponses = append(userResponses, userResponse)
 	}
@@ -60,6 +66,22 @@ func (s userService) GetUserByUserId(userid int) (*entities.User, error) {
 		return nil, err
 	}
 
+	//if user.UserID == nil &&
+	//	user.Username == nil &&
+	//	user.Password == nil &&
+	//	user.Email == nil &&
+	//	user.Firstname == nil &&
+	//	user.Lastname == nil &&
+	//	user.PhoneNumber == nil &&
+	//	user.UserPicture == nil &&
+	//	user.UserAboutMe == nil &&
+	//	user.BankAccountNumber == nil &&
+	//	user.RoommateScore == nil &&
+	//	user.UserVerificationPicture == nil &&
+	//	user.UserIdentityDocumentNumber == nil {
+	//	return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
+	//}
+
 	if user.UserID == nil &&
 		user.Username == nil &&
 		user.Password == nil &&
@@ -67,19 +89,26 @@ func (s userService) GetUserByUserId(userid int) (*entities.User, error) {
 		user.Firstname == nil &&
 		user.Lastname == nil &&
 		user.PhoneNumber == nil &&
-		user.UserPicture == nil {
+		user.UserPicture == nil &&
+		user.UserAboutMe == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
 	}
 
 	userResponse := entities.User{
-		UserID:      user.UserID,
-		Username:    user.Username,
-		Password:    user.Password,
-		Email:       user.Email,
-		Firstname:   user.Firstname,
-		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
-		UserPicture: user.UserPicture,
+		UserID:                     user.UserID,
+		Username:                   user.Username,
+		Password:                   user.Password,
+		Email:                      user.Email,
+		Firstname:                  user.Firstname,
+		Lastname:                   user.Lastname,
+		PhoneNumber:                user.PhoneNumber,
+		UserPicture:                user.UserPicture,
+		UserAboutMe:                user.UserAboutMe,
+		BankAccountNumber:          user.BankAccountNumber,
+		RoommateScore:              user.RoommateScore,
+		UserVerificationPicture:    user.UserVerificationPicture,
+		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
 	}
 	return &userResponse, nil
 }
@@ -98,19 +127,26 @@ func (s userService) GetUserByToken(userid int) (*entities.User, error) {
 		user.Firstname == nil &&
 		user.Lastname == nil &&
 		user.PhoneNumber == nil &&
-		user.UserPicture == nil {
+		user.UserPicture == nil &&
+		user.UserAboutMe == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
 	}
 
 	userResponse := entities.User{
-		UserID:      user.UserID,
-		Username:    user.Username,
-		Password:    user.Password,
-		Email:       user.Email,
-		Firstname:   user.Firstname,
-		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
-		UserPicture: user.UserPicture,
+		UserID:                     user.UserID,
+		Username:                   user.Username,
+		Password:                   user.Password,
+		Email:                      user.Email,
+		Firstname:                  user.Firstname,
+		Lastname:                   user.Lastname,
+		PhoneNumber:                user.PhoneNumber,
+		UserPicture:                user.UserPicture,
+		UserAboutMe:                user.UserAboutMe,
+		BankAccountNumber:          user.BankAccountNumber,
+		RoommateScore:              user.RoommateScore,
+		UserVerificationPicture:    user.UserVerificationPicture,
+		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
 	}
 	return &userResponse, nil
 }
@@ -125,14 +161,20 @@ func (s userService) GetCurrentUser(userid int) (*entities.User, error) {
 	}
 
 	userResponse := entities.User{
-		UserID:      user.UserID,
-		Username:    user.Username,
-		Password:    user.Password,
-		Email:       user.Email,
-		Firstname:   user.Firstname,
-		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
-		UserPicture: user.UserPicture,
+		UserID:                     user.UserID,
+		Username:                   user.Username,
+		Password:                   user.Password,
+		Email:                      user.Email,
+		Firstname:                  user.Firstname,
+		Lastname:                   user.Lastname,
+		PhoneNumber:                user.PhoneNumber,
+		UserPicture:                user.UserPicture,
+		UserAboutMe:                user.UserAboutMe,
+		BankAccountNumber:          user.BankAccountNumber,
+		RoommateScore:              user.RoommateScore,
+		UserVerificationPicture:    user.UserVerificationPicture,
+		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
 	}
 	return &userResponse, nil
 }
@@ -146,24 +188,20 @@ func (s userService) GetProfileOfCurrentUserByUserId(userid int) (*entities.User
 
 	if user.UserID == nil &&
 		user.Username == nil &&
-		user.Password == nil &&
-		user.Email == nil &&
 		user.Firstname == nil &&
 		user.Lastname == nil &&
-		user.PhoneNumber == nil &&
-		user.UserPicture == nil {
+		user.UserPicture == nil &&
+		user.UserAboutMe == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
 	}
 
 	userResponse := entities.User{
 		UserID:      user.UserID,
 		Username:    user.Username,
-		Password:    user.Password,
-		Email:       user.Email,
 		Firstname:   user.Firstname,
 		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
 		UserPicture: user.UserPicture,
+		UserAboutMe: user.UserAboutMe,
 	}
 	return &userResponse, nil
 }
@@ -177,22 +215,18 @@ func (s userService) GetEditUserProfileByUserId(userid int) (*entities.User, err
 
 	if user.UserID == nil &&
 		user.Username == nil &&
-		user.Password == nil &&
-		user.Email == nil &&
 		user.Firstname == nil &&
 		user.Lastname == nil &&
-		user.PhoneNumber == nil &&
-		user.UserPicture == nil {
+		user.UserAboutMe == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
 	}
 
 	userResponse := entities.User{
 		UserID:      user.UserID,
 		Username:    user.Username,
-		Email:       user.Email,
 		Firstname:   user.Firstname,
 		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
+		UserAboutMe: user.UserAboutMe,
 	}
 	return &userResponse, nil
 }
@@ -201,10 +235,9 @@ func (s userService) PatchEditUserProfileByUserId(userid int, req dtos.EditUserP
 	user := &entities.User{
 		UserID:      v.UintPtr(userid),
 		Username:    req.Username,
-		Email:       req.Email,
 		Firstname:   req.Firstname,
 		Lastname:    req.Lastname,
-		PhoneNumber: req.PhoneNumber,
+		UserAboutMe: req.UserAboutMe,
 	}
 
 	err := s.userRepo.PatchEditUserProfileByUserId(user)
@@ -227,19 +260,21 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 	username := *request.Username
 	userIdentityDocumentNumber := *request.UserIdentityDocumentNumber
 
-	// Check email
+	// Uniqueness checks
 	if _, err := s.userRepo.GetUserByEmail(email); err == nil {
 		return nil, errors.New("email already exists")
 	}
-
-	// Check username
 	if _, err := s.userRepo.GetUserByUsername(username); err == nil {
 		return nil, errors.New("username already exists")
 	}
-
-	// Check user identity document number
 	if _, err := s.userRepo.GetUserByUserIdentityDocumentNumber(userIdentityDocumentNumber); err == nil {
 		return nil, errors.New("user identity document number already exists")
+	}
+
+	// Identify type (true = 13-digit citizen ID, false = 9-char passport)
+	isCitizenID, err := helper.DetectIdentityDocumentType(userIdentityDocumentNumber)
+	if err != nil {
+		return nil, err
 	}
 
 	// Hash password
@@ -261,10 +296,10 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		RoommateScore:              v.Ptr(float64(100)),
 		UserVerificationPicture:    request.UserVerificationPicture,
 		UserIdentityDocumentNumber: request.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   v.Ptr(isCitizenID),
 	}
 
-	err = s.userRepo.CreateUser(&user)
-	if err != nil {
+	if err := s.userRepo.CreateUser(&user); err != nil {
 		return nil, err
 	}
 
@@ -274,7 +309,6 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		Email:       user.Email,
 		UserPicture: user.UserPicture,
 	}, nil
-
 }
 
 func (s userService) Login(request dtos.LoginRequest, jwtSecret string) (*dtos.LoginResponse, error) {

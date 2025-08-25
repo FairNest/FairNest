@@ -16,6 +16,7 @@ type User struct {
 	RoommateScore              *float64
 	UserVerificationPicture    *string
 	UserIdentityDocumentNumber *string `gorm:"unique;not null"`
+	UserIdentityDocumentType   *bool
 
 	// Relations
 	RoomMembers []RoomMember

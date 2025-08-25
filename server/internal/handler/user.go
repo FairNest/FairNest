@@ -30,14 +30,20 @@ func (h *userHandler) GetUsers(c *fiber.Ctx) error {
 
 	for _, user := range users {
 		usersResponse = append(usersResponse, dtos.UserDataResponse{
-			UserID:      user.UserID,
-			Username:    user.Username,
-			Password:    user.Password,
-			Email:       user.Email,
-			Firstname:   user.Firstname,
-			Lastname:    user.Lastname,
-			PhoneNumber: user.PhoneNumber,
-			UserPicture: user.UserPicture,
+			UserID:                     user.UserID,
+			Username:                   user.Username,
+			Password:                   user.Password,
+			Email:                      user.Email,
+			Firstname:                  user.Firstname,
+			Lastname:                   user.Lastname,
+			PhoneNumber:                user.PhoneNumber,
+			UserPicture:                user.UserPicture,
+			UserAboutMe:                user.UserAboutMe,
+			BankAccountNumber:          user.BankAccountNumber,
+			RoommateScore:              user.RoommateScore,
+			UserVerificationPicture:    user.UserVerificationPicture,
+			UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+			UserIdentityDocumentType:   user.UserIdentityDocumentType,
 		})
 	}
 	return c.JSON(usersResponse)
@@ -52,14 +58,20 @@ func (h *userHandler) GetUserByUserId(c *fiber.Ctx) error {
 	}
 
 	userResponse := dtos.UserByUserIdDataResponse{
-		UserID:      user.UserID,
-		Username:    user.Username,
-		Password:    user.Password,
-		Email:       user.Email,
-		Firstname:   user.Firstname,
-		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
-		UserPicture: user.UserPicture,
+		UserID:                     user.UserID,
+		Username:                   user.Username,
+		Password:                   user.Password,
+		Email:                      user.Email,
+		Firstname:                  user.Firstname,
+		Lastname:                   user.Lastname,
+		PhoneNumber:                user.PhoneNumber,
+		UserPicture:                user.UserPicture,
+		UserAboutMe:                user.UserAboutMe,
+		BankAccountNumber:          user.BankAccountNumber,
+		RoommateScore:              user.RoommateScore,
+		UserVerificationPicture:    user.UserVerificationPicture,
+		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
 	}
 
 	return c.JSON(userResponse)
@@ -86,14 +98,20 @@ func (h *userHandler) GetUserByToken(c *fiber.Ctx) error {
 	}
 
 	userResponse := dtos.UserByTokenDataResponse{
-		UserID:      user.UserID,
-		Username:    user.Username,
-		Password:    user.Password,
-		Email:       user.Email,
-		Firstname:   user.Firstname,
-		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
-		UserPicture: user.UserPicture,
+		UserID:                     user.UserID,
+		Username:                   user.Username,
+		Password:                   user.Password,
+		Email:                      user.Email,
+		Firstname:                  user.Firstname,
+		Lastname:                   user.Lastname,
+		PhoneNumber:                user.PhoneNumber,
+		UserPicture:                user.UserPicture,
+		UserAboutMe:                user.UserAboutMe,
+		BankAccountNumber:          user.BankAccountNumber,
+		RoommateScore:              user.RoommateScore,
+		UserVerificationPicture:    user.UserVerificationPicture,
+		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
 	}
 
 	return c.JSON(userResponse)
@@ -122,14 +140,20 @@ func (h *userHandler) GetCurrentUser(c *fiber.Ctx) error {
 	}
 
 	userResponse := dtos.CurrentUserResponse{
-		UserID:      user.UserID,
-		Username:    user.Username,
-		Password:    user.Password,
-		Email:       user.Email,
-		Firstname:   user.Firstname,
-		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
-		UserPicture: user.UserPicture,
+		UserID:                     user.UserID,
+		Username:                   user.Username,
+		Password:                   user.Password,
+		Email:                      user.Email,
+		Firstname:                  user.Firstname,
+		Lastname:                   user.Lastname,
+		PhoneNumber:                user.PhoneNumber,
+		UserPicture:                user.UserPicture,
+		UserAboutMe:                user.UserAboutMe,
+		BankAccountNumber:          user.BankAccountNumber,
+		RoommateScore:              user.RoommateScore,
+		UserVerificationPicture:    user.UserVerificationPicture,
+		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
 	}
 
 	return c.JSON(userResponse)
@@ -146,11 +170,10 @@ func (h *userHandler) GetProfileOfCurrentUserByUserId(c *fiber.Ctx) error {
 	userResponse := dtos.ProfileOfCurrentUserByUserIdResponse{
 		UserID:      user.UserID,
 		Username:    user.Username,
-		Email:       user.Email,
 		Firstname:   user.Firstname,
 		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
 		UserPicture: user.UserPicture,
+		UserAboutMe: user.UserAboutMe,
 	}
 
 	return c.JSON(userResponse)
@@ -167,10 +190,9 @@ func (h *userHandler) GetEditUserProfileByUserId(c *fiber.Ctx) error {
 	userResponse := dtos.EditUserProfileByUserIdResponse{
 		UserID:      user.UserID,
 		Username:    user.Username,
-		Email:       user.Email,
 		Firstname:   user.Firstname,
 		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
+		UserAboutMe: user.UserAboutMe,
 	}
 
 	return c.JSON(userResponse)
@@ -191,10 +213,9 @@ func (h *userHandler) PatchEditUserProfileByUserId(c *fiber.Ctx) error {
 
 	userResponse := dtos.EditUserProfileByUserIdRequest{
 		Username:    user.Username,
-		Email:       user.Email,
 		Firstname:   user.Firstname,
 		Lastname:    user.Lastname,
-		PhoneNumber: user.PhoneNumber,
+		UserAboutMe: user.UserAboutMe,
 	}
 
 	return c.JSON(userResponse)
