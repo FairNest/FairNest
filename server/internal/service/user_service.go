@@ -283,6 +283,12 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		return nil, err
 	}
 
+	// Hash user identity document number
+	hashedUserIdentityDocumentNumber, err := bcrypt.GenerateFromPassword(v.ByteSlice(request.UserIdentityDocumentNumber), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
 	user := entities.User{
 		Username:                   request.Username,
 		Password:                   v.Ptr(string(hashedPassword)),
@@ -295,7 +301,7 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		BankAccountNumber:          request.BankAccountNumber,
 		RoommateScore:              v.Ptr(float64(100)),
 		UserVerificationPicture:    request.UserVerificationPicture,
-		UserIdentityDocumentNumber: request.UserIdentityDocumentNumber,
+		UserIdentityDocumentNumber: v.Ptr(string(hashedUserIdentityDocumentNumber)),
 		UserIdentityDocumentType:   v.Ptr(isCitizenID),
 	}
 
