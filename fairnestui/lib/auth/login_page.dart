@@ -33,27 +33,14 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Decorative pink blobs
-            const _Blob(
-              color: AppColors.pinkSoft,
-              width: 140,
-              height: 80,
-              top: 40,
-              right: -20,
-              angle: -0.1,
-            ),
-            const _Blob(
-              color: AppColors.pinkSoft,
-              width: 120,
-              height: 100,
-              top: 120,
-              left: -30,
-              angle: 0.2,
-            ),
-
+            Positioned.fill(
+                child: Image.asset(
+              'assets/images/log-in-bg.png',
+              fit: BoxFit.fill,
+            )),
             Column(
               children: [
-                const SizedBox(height: 60),
+                const SizedBox(height: 120),
                 Text(
                   'Log In',
                   style: TextStyle(
@@ -62,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
                     color: AppColors.primary.withOpacity(0.85),
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 80),
                 Expanded(
                   child: Container(
                     width: double.infinity,
