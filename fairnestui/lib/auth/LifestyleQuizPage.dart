@@ -289,11 +289,11 @@ class _QuestionWidgetState extends State<QuestionWidget> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(width: 4),
-              const Expanded(
+              Expanded(
                 flex: 3,
                 child: Text(
-                  "Start",
-                  style: TextStyle(fontSize: 12),
+                  widget.startLabel,
+                  style: const TextStyle(fontSize: 12),
                   softWrap: true,
                 ),
               ),
@@ -338,10 +338,10 @@ class _QuestionWidgetState extends State<QuestionWidget> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 flex: 3,
                 child: Text(
-                  "End",
+                  widget.endLabel,
                   style: TextStyle(fontSize: 12),
                   textAlign: TextAlign.right,
                   softWrap: true,
