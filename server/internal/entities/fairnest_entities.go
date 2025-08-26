@@ -22,21 +22,23 @@ type User struct {
 	RoomMembers []RoomMember
 }
 
-type LifestyleQuiz struct {
-	LifestyleQuizID       *uint `gorm:"primaryKey;autoIncrement"`
-	UserID                *uint `gorm:"uniqueIndex"` // one-to-one
-	Q1                    *int
-	Q2                    *int
-	Q3                    *int
-	Q4                    *int
-	Q5                    *int
-	Q6                    *int
-	Q7                    *int
-	Q8                    *int
-	Q9                    *int
-	Q10                   *int
-	Q11                   *int
-	Q12                   *int
+type Lifestyle struct {
+	LifestyleQuizID *uint `gorm:"primaryKey;autoIncrement"`
+	UserID          *uint `gorm:"uniqueIndex"` // one-to-one
+	Q1              *int
+	Q2              *int
+	Q3              *int
+	Q4              *int
+	Q5              *int
+	Q6              *int
+	Q7              *int
+	Q8              *int
+	Q9              *int
+	Q10             *int
+	Q11             *int
+	Q12             *int
+
+	// Personality Traits (Need change ???)
 	UserOpenness          *float64
 	UserConscientiousness *float64
 	UserExtraversion      *float64
@@ -48,13 +50,32 @@ type LifestyleQuiz struct {
 }
 
 type Room struct {
-	RoomID               *uint `gorm:"primaryKey;autoIncrement"`
-	LocationID           *uint // one-to-one
-	RoomName             *string
-	RoomDescription      *string
-	RoomType             *bool // "true = Private", "false = Public"
-	RoomCode             *string
-	RoomCapacity         *int
+	RoomID     *uint `gorm:"primaryKey;autoIncrement"`
+	LocationID *uint // one-to-one
+
+	// RoomDetails
+	RoomName        *string
+	RoomType        *bool // "true = Private", "false = Public"
+	RoomCapacity    *int
+	RoomDescription *string
+	RoomCode        *string
+
+	// LivingSpaceDetails
+	LivingSpaceName        *string
+	RentCost               *int
+	ElectricityCostPerUnit *int
+	WaterCostPerUnit       *int
+	OtherUtilityDetails    *string
+
+	// RoommateAgreements
+	QuietHoursStart *string
+	GuestStayOver   *string
+	HandleCleaning  *string
+	SharedSpace     *string
+	SplitCosts      *string
+	PaymentDeadline *string // Or it is time.Time???
+
+	// Personality Averages
 	OpennessAvg          *float64
 	ConscientiousnessAvg *float64
 	ExtraversionAvg      *float64
@@ -85,6 +106,35 @@ type RoomMember struct {
 	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
+type RoomJoinRequest struct {
+	RoomJoinRequestID *uint `gorm:"primaryKey;autoIncrement"`
+	RoomID            *uint `gorm:"not null;index"`
+	ApplicantUserID   *uint `gorm:"not null;index"`
+
+	// Tri-state: nil=pending, true=approved, false=rejected
+	Decision *bool `gorm:"index"`
+
+	EligibleVoterCount *int    `gorm:"not null"`
+	EligibleVoterIDs   *string // JSON snapshot of voter userIDs (optional but recommended)
+	CreatedAt          time.Time
+
+	// Relations
+	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+type RoomJoinVote struct {
+	RoomJoinVoteID    *uint `gorm:"primaryKey;autoIncrement"`
+	RoomJoinRequestID *uint `gorm:"not null;index"`
+	VoterUserID       *uint `gorm:"not null;index"`
+
+	// Tri-state: nil=pending (hasn’t voted), true=approve, false=reject
+	Decision  *bool `gorm:"index"`
+	CreatedAt time.Time
+
+	// Relations
+	Request *RoomJoinRequest `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
 type UserCompatibilityProfile struct {
 	UserCompatibilityProfileID *uint `gorm:"primaryKey;autoIncrement"`
 
@@ -107,7 +157,7 @@ type UserCompatibilityProfile struct {
 	Room  *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
-type Notice struct {
+type Notification struct {
 	NoticeID   *uint `gorm:"primaryKey;autoIncrement"`
 	ReceiverID *uint `gorm:"not null"` // user who receives the notice
 	SenderID   *uint `gorm:"not null"` // user_id = 1 is system, not real user
