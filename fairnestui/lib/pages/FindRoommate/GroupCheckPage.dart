@@ -1,4 +1,5 @@
-import 'package:fairnestui/pages/GroupHomePage.dart';
+import 'package:fairnestui/pages/FindRoommate/GroupHomePage.dart';
+import 'package:fairnestui/pages/room_creation/CreateRoomDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 
@@ -29,7 +30,13 @@ class GroupCheckPage extends StatelessWidget {
                   title: 'Create a Room',
                   assetPath: 'assets/images/Add Male User Group.png',
                   bgColor: AppColors.primary,
-                  onTap: onCreateGroup,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CreateRoomdetails()),
+                    );
+                  },
                 ),
                 const SizedBox(height: 36),
                 _OptionCard(

@@ -1,10 +1,19 @@
-import 'package:fairnestui/auth/login_page.dart';
-import 'package:fairnestui/theme/app_colors.dart';
+// lib/lifestyle/lifestyle_quiz_page.dart
+import 'package:fairnestui/auth/CompleteProfilePage.dart';
 import 'package:flutter/material.dart';
+import 'package:fairnestui/theme/app_colors.dart';
+import 'package:fairnestui/auth/login_page.dart';
+import 'package:fairnestui/auth/SignUpPage.dart'
+    show SignUpData; // or signup_page.dart
 
 class LifestyleQuizPage extends StatefulWidget {
-  const LifestyleQuizPage({super.key, this.onTapLogin});
+  const LifestyleQuizPage({
+    super.key,
+    required this.signUpData,
+    this.onTapLogin,
+  });
 
+  final SignUpData signUpData;
   final VoidCallback? onTapLogin;
 
   @override
@@ -12,12 +21,36 @@ class LifestyleQuizPage extends StatefulWidget {
 }
 
 class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
-  final Map<int, int> answers = {};
+  final Map<int, int> answers = {}; // questionIndex -> 1..5
 
   void setAnswer(int questionIndex, int score) {
     setState(() {
-      answers[questionIndex] = score; // stores 1..5
+      answers[questionIndex] = score;
     });
+  }
+
+  void _next() {
+    if (answers.length < 12) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please answer all questions before continuing.',
+            style: TextStyle(fontFamily: 'Krub', fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CompleteProfilePage(
+          signUpData: widget.signUpData,
+          quizAnswers: answers,
+        ),
+      ),
+    );
   }
 
   @override
@@ -40,14 +73,15 @@ class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                "This short quiz helps us understand your lifestyle preferences so we can match you with roommates who share similar habits and values.",
+              Text(
+                "Hi ${widget.signUpData.name.isNotEmpty ? widget.signUpData.name : 'there'}! "
+                "This short quiz helps us understand your lifestyle preferences so we can match you better.",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.black87),
+                style: const TextStyle(fontSize: 13, color: Colors.black87),
               ),
               const SizedBox(height: 20),
 
-              // ===== Questions =====
+              // ===== Questions (same as you had) =====
               QuestionWidget(
                 question:
                     "Q1 - How often do you clean shared spaces (kitchen, living room)?",
@@ -131,7 +165,7 @@ class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
 
               const SizedBox(height: 20),
 
-              // ===== Sign Up Button (black) =====
+              // ===== Next Button =====
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -143,12 +177,9 @@ class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     elevation: 2,
                   ),
-                  onPressed: () {
-                    debugPrint("User answers (1–5): $answers");
-                    // TODO: handle submit
-                  },
+                  onPressed: _next,
                   child: const Text(
-                    "Sign Up",
+                    "Next",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -170,10 +201,13 @@ class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
                   ),
                   GestureDetector(
                     onTap: () {
+                      if (widget.onTapLogin != null) {
+                        widget.onTapLogin!.call();
+                        return;
+                      }
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => const LoginPage()),
+                        MaterialPageRoute(builder: (_) => const LoginPage()),
                       );
                     },
                     child: const Text(
@@ -198,6 +232,7 @@ class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
   }
 }
 
+// === QuestionWidget stays the same as your version ===
 class QuestionWidget extends StatefulWidget {
   final String question;
   final String startLabel;
@@ -254,11 +289,11 @@ class _QuestionWidgetState extends State<QuestionWidget> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(width: 4),
-              Expanded(
+              const Expanded(
                 flex: 3,
                 child: Text(
-                  widget.startLabel,
-                  style: const TextStyle(fontSize: 12),
+                  "Start",
+                  style: TextStyle(fontSize: 12),
                   softWrap: true,
                 ),
               ),
@@ -276,7 +311,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: List.generate(dotCount, (i) {
-                          final isSelected = selectedIndex == i + 1; // 1..5
+                          final isSelected = selectedIndex == i + 1;
                           return GestureDetector(
                             onTap: () {
                               setState(() => selectedIndex = i + 1);
@@ -303,11 +338,11 @@ class _QuestionWidgetState extends State<QuestionWidget> {
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
+              const Expanded(
                 flex: 3,
                 child: Text(
-                  widget.endLabel,
-                  style: const TextStyle(fontSize: 12),
+                  "End",
+                  style: TextStyle(fontSize: 12),
                   textAlign: TextAlign.right,
                   softWrap: true,
                 ),

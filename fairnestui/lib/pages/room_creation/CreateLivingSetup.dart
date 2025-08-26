@@ -1,6 +1,7 @@
 // create_living_setup.dart
 import 'package:fairnestui/components/MainButton.dart';
 import 'package:fairnestui/pages/room_creation/RoommateAgreement.dart';
+import 'package:fairnestui/widgets/app_header.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -55,30 +56,10 @@ class _CreateLivingSetupState extends State<CreateLivingSetup> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // Header (same style as previous page)
-          Container(
-            width: double.infinity,
-            height: top + 69,
-            padding: EdgeInsets.only(top: top),
-            color: AppColors.primary,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Positioned(
-                  left: 12,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back,
-                        color: Color(0xFF645A80), size: 26),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                ),
-                Text(
-                  'Create a Room',
-                  style: AppFonts.heading1
-                      .copyWith(color: const Color(0xFF645A80)),
-                ),
-              ],
-            ),
+          const AppHeader(
+            title: 'Create a Room',
+            showBack: true,
+            rightType: AppHeaderRightType.none,
           ),
 
           // Body

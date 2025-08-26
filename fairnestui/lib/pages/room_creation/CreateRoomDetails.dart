@@ -1,4 +1,5 @@
 import 'package:fairnestui/pages/room_creation/CreateLivingSetup.dart';
+import 'package:fairnestui/widgets/app_header.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -51,33 +52,10 @@ class _CreateRoomdetailsState extends State<CreateRoomdetails> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // Header (purple bar with back + centered title)
-          Container(
-            width: double.infinity,
-            height: top + 69,
-            padding: EdgeInsets.only(top: top),
-            color: AppColors.primary,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // back
-                Positioned(
-                  left: 12,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back,
-                        color: Color(0xFF645A80), size: 26),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  ),
-                ),
-                // title
-                Text(
-                  'Create a Room',
-                  style: AppFonts.heading1
-                      .copyWith(color: const Color(0xFF645A80)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+          const AppHeader(
+            title: 'Create a Room',
+            showBack: true,
+            rightType: AppHeaderRightType.none,
           ),
 
           // Form body

@@ -6,6 +6,8 @@ class AppColors {
   static const Color secondary = Color(0xFFFF96B4);
   static const Color accent = Color(0xFFE7AC66);
   static const Color background = Color(0xFFFAEDE5);
+  static const Color whitebackground = Color(0xFFECE9E6);
+  static const Color darkPurple = Color(0xFF645A80);
 
   // Helpful text colors
   static const Color textDark = Color(0xFF2E2E2E);

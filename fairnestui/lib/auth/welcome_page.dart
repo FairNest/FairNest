@@ -1,3 +1,4 @@
+import 'package:fairnestui/auth/SignUpPage.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/auth/login_page.dart';
@@ -76,7 +77,14 @@ class WelcomePage extends StatelessWidget {
                       width: double.infinity,
                       height: 56,
                       borderRadius: 12,
-                      onPressed: onTapSignUp ?? () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SignUpPage(),
+                          ),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 20),

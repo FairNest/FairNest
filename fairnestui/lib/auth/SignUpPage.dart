@@ -1,4 +1,5 @@
 // signup_page.dart
+import 'package:fairnestui/auth/LifestyleQuizPage.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fairnestui/theme/app_colors.dart';
@@ -6,6 +7,8 @@ import 'package:fairnestui/components/MainButton.dart';
 
 // adjust import to your LoginPage location
 import 'package:fairnestui/auth/login_page.dart';
+
+// ✅ add this import (adjust path to your project)
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({
@@ -45,6 +48,7 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 
+  // ✅ UPDATED: after validate, navigate to LifestyleQuizPage with data
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_agree) {
@@ -63,13 +67,22 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
-    widget.onSubmit?.call(
-      SignUpData(
-        name: _nameCtrl.text.trim(),
-        email: _emailCtrl.text.trim(),
-        nationalIdOrPassport: _nationalIdCtrl.text.trim(),
-        phoneNumber: _phoneCtrl.text.trim(),
-        password: _passwordCtrl.text,
+    final data = SignUpData(
+      name: _nameCtrl.text.trim(),
+      email: _emailCtrl.text.trim(),
+      nationalIdOrPassport: _nationalIdCtrl.text.trim(),
+      phoneNumber: _phoneCtrl.text.trim(),
+      password: _passwordCtrl.text,
+    );
+
+    // optional callback for analytics / API
+    widget.onSubmit?.call(data);
+
+    // 👉 navigate to LifestyleQuizPage, passing the collected data
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LifestyleQuizPage(signUpData: data),
       ),
     );
   }
