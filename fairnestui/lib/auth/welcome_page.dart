@@ -74,6 +74,7 @@ class WelcomePage extends StatelessWidget {
                     MainButton(
                       text: 'Sign Up',
                       backgroundColor: AppColors.primary,
+                      fontWeight: FontWeight.bold,
                       textColor: AppColors.textDark,
                       width: double.infinity,
                       height: 56,
@@ -94,6 +95,7 @@ class WelcomePage extends StatelessWidget {
                     _OutlinedButtonCustom(
                       label: 'Log In',
                       border: AppColors.primary,
+                      fontWeight: FontWeight.bold,
                       textColor: AppColors.textDark,
                       background: AppColors.background,
                       onPressed: () {
@@ -165,6 +167,7 @@ class _OutlinedButtonCustom extends StatelessWidget {
     required this.border,
     required this.textColor,
     required this.background,
+    required this.fontWeight,
     this.onPressed,
   });
 
@@ -172,6 +175,7 @@ class _OutlinedButtonCustom extends StatelessWidget {
   final Color border;
   final Color textColor;
   final Color background;
+  final FontWeight fontWeight;
   final VoidCallback? onPressed;
 
   @override
@@ -191,7 +195,11 @@ class _OutlinedButtonCustom extends StatelessWidget {
         onPressed: onPressed,
         child: Text(
           label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: fontWeight,
+            color: textColor,
+          ),
         ),
       ),
     );
