@@ -19,42 +19,47 @@ class WelcomePage extends StatelessWidget {
       body: SafeArea(
         child: Stack(
           children: [
-            const _Blob(
-              color: AppColors.accent,
-              size: 140,
-              top: 8,
-              right: -20,
-              angle: -0.2,
-            ),
-            const _Blob(
-              color: AppColors.coral,
-              size: 110,
-              left: -16,
-              top: 140,
-              angle: 0.35,
-            ),
-            const _Blob(
-              color: AppColors.pinkSoft,
-              size: 120,
-              right: -22,
-              top: 260,
-              angle: 0.15,
-            ),
-            const _Blob(
-              color: AppColors.neutralSage,
-              size: 160,
-              bottom: -30,
-              left: 70,
-              angle: -0.15,
-            ),
-            const _Blob(
-              color: AppColors.primary,
-              size: 120,
-              left: -28,
-              bottom: 120,
-              angle: -0.6,
-              hollow: true,
-            ),
+            Positioned.fill(
+                child: Image.asset(
+              'assets/images/log-in-copy.png',
+              fit: BoxFit.fill,
+            )),
+            // const _Blob(
+            //   color: AppColors.accent,
+            //   size: 140,
+            //   top: 8,
+            //   right: -20,
+            //   angle: -0.2,
+            // ),
+            // const _Blob(
+            //   color: AppColors.coral,
+            //   size: 110,
+            //   left: -16,
+            //   top: 140,
+            //   angle: 0.35,
+            // ),
+            // const _Blob(
+            //   color: AppColors.pinkSoft,
+            //   size: 120,
+            //   right: -22,
+            //   top: 260,
+            //   angle: 0.15,
+            // ),
+            // const _Blob(
+            //   color: AppColors.neutralSage,
+            //   size: 160,
+            //   bottom: -30,
+            //   left: 70,
+            //   angle: -0.15,
+            // ),
+            // const _Blob(
+            //   color: AppColors.primary,
+            //   size: 120,
+            //   left: -28,
+            //   bottom: 120,
+            //   angle: -0.6,
+            //   hollow: true,
+            // ),
             Align(
               alignment: Alignment.center,
               child: Padding(
@@ -62,17 +67,14 @@ class WelcomePage extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      'assets/images/fairnest.png',
-                      height: 360,
-                      fit: BoxFit.contain,
+                    SizedBox(
+                      height: 500,
                     ),
-                    const SizedBox(height: 32),
-
                     // Sign Up button using MainButton
                     MainButton(
                       text: 'Sign Up',
                       backgroundColor: AppColors.primary,
+                      fontWeight: FontWeight.bold,
                       textColor: AppColors.textDark,
                       width: double.infinity,
                       height: 56,
@@ -93,6 +95,7 @@ class WelcomePage extends StatelessWidget {
                     _OutlinedButtonCustom(
                       label: 'Log In',
                       border: AppColors.primary,
+                      fontWeight: FontWeight.bold,
                       textColor: AppColors.textDark,
                       background: AppColors.background,
                       onPressed: () {
@@ -164,6 +167,7 @@ class _OutlinedButtonCustom extends StatelessWidget {
     required this.border,
     required this.textColor,
     required this.background,
+    required this.fontWeight,
     this.onPressed,
   });
 
@@ -171,6 +175,7 @@ class _OutlinedButtonCustom extends StatelessWidget {
   final Color border;
   final Color textColor;
   final Color background;
+  final FontWeight fontWeight;
   final VoidCallback? onPressed;
 
   @override
@@ -190,7 +195,11 @@ class _OutlinedButtonCustom extends StatelessWidget {
         onPressed: onPressed,
         child: Text(
           label,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: fontWeight,
+            color: textColor,
+          ),
         ),
       ),
     );

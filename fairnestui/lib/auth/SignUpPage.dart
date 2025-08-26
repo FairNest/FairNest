@@ -8,8 +8,6 @@ import 'package:fairnestui/components/MainButton.dart';
 // adjust import to your LoginPage location
 import 'package:fairnestui/auth/login_page.dart';
 
-// ✅ add this import (adjust path to your project)
-
 class SignUpPage extends StatefulWidget {
   const SignUpPage({
     super.key,
@@ -94,37 +92,24 @@ class _SignUpPageState extends State<SignUpPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Decorative blobs
-            const _Blob(
-              color: AppColors.pinkSoft,
-              width: 140,
-              height: 80,
-              top: 40,
-              right: -20,
-              angle: -0.1,
-            ),
-            const _Blob(
-              color: AppColors.pinkSoft,
-              width: 120,
-              height: 100,
-              top: 120,
-              left: -30,
-              angle: 0.2,
-            ),
-
+            Positioned.fill(
+                child: Image.asset(
+              'assets/images/sign-up-bg.png',
+              fit: BoxFit.fill,
+            )),
             Column(
               children: [
-                const SizedBox(height: 36),
-                const Text(
-                  'Sign Up',
-                  style: TextStyle(
-                    fontFamily: 'Krub',
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                const SizedBox(height: 210),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    "Sign Up",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF645A80),
+                        fontSize: 22),
                   ),
                 ),
-                const SizedBox(height: 28),
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -132,8 +117,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     decoration: const BoxDecoration(
                       color: AppColors.secondary, // pink card
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(32),
-                        topRight: Radius.circular(32),
+                        topLeft: Radius.circular(50),
+                        topRight: Radius.circular(50),
                         bottomLeft: Radius.circular(12),
                         bottomRight: Radius.circular(12),
                       ),

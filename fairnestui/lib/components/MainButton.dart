@@ -11,6 +11,7 @@ class MainButton extends StatelessWidget {
     this.width = 339,
     this.height = 64,
     this.borderRadius = 12,
+    this.fontWeight = FontWeight.w600,
   });
 
   final String text;
@@ -20,6 +21,7 @@ class MainButton extends StatelessWidget {
   final double width;
   final double height;
   final double borderRadius;
+  final FontWeight fontWeight;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,10 @@ class MainButton extends StatelessWidget {
         onPressed: onPressed,
         child: Text(
           text,
-          style: AppFonts.heading3.copyWith(color: textColor),
+          style: AppFonts.heading3.copyWith(
+            color: textColor,
+            fontWeight: fontWeight,
+          ),
         ),
       ),
     );

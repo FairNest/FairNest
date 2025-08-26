@@ -33,36 +33,25 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Decorative pink blobs
-            const _Blob(
-              color: AppColors.pinkSoft,
-              width: 140,
-              height: 80,
-              top: 40,
-              right: -20,
-              angle: -0.1,
-            ),
-            const _Blob(
-              color: AppColors.pinkSoft,
-              width: 120,
-              height: 100,
-              top: 120,
-              left: -30,
-              angle: 0.2,
-            ),
-
+            Positioned.fill(
+                child: Image.asset(
+              'assets/images/log-in-bg.png',
+              fit: BoxFit.fill,
+            )),
             Column(
               children: [
-                const SizedBox(height: 60),
-                Text(
-                  'Log In',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary.withOpacity(0.85),
+                const SizedBox(height: 210),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    "Log In",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF645A80),
+                        fontSize: 22),
                   ),
                 ),
-                const SizedBox(height: 40),
+                // const SizedBox(height: 80),
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -70,8 +59,8 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: const BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(32),
-                        topRight: Radius.circular(32),
+                        topLeft: Radius.circular(50),
+                        topRight: Radius.circular(50),
                         bottomLeft: Radius.circular(12),
                         bottomRight: Radius.circular(12),
                       ),
