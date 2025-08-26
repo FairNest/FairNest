@@ -40,16 +40,18 @@ class _LoginPageState extends State<LoginPage> {
             )),
             Column(
               children: [
-                const SizedBox(height: 120),
-                Text(
-                  'Log In',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary.withOpacity(0.85),
+                const SizedBox(height: 210),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    "Log In",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF645A80),
+                        fontSize: 22),
                   ),
                 ),
-                const SizedBox(height: 80),
+                // const SizedBox(height: 80),
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -57,8 +59,8 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: const BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(32),
-                        topRight: Radius.circular(32),
+                        topLeft: Radius.circular(50),
+                        topRight: Radius.circular(50),
                         bottomLeft: Radius.circular(12),
                         bottomRight: Radius.circular(12),
                       ),

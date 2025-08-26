@@ -13,6 +13,7 @@ class AppColors {
   static const Color textDark = Color(0xFF2E2E2E);
   static const Color textLight = Colors.white;
   static const Color textOrange = Color(0xFFC34C04);
+  static const Color textPurple = Color(0xFF3E3A4B);
 
   // (Optional) neutrals you’re already using for blobs
   static const Color neutralSage = Color(0xFFD2D0C4);
