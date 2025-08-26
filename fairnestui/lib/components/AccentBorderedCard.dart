@@ -1,9 +1,6 @@
+import 'package:fairnestui/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
-/// A reusable rounded card with an accent-colored border.
-/// - Default borderColor: 0xFFE7AC66
-/// - Default radius: 12
-/// - Default borderWidth: 3
 class AccentBorderedCard extends StatelessWidget {
   const AccentBorderedCard({
     super.key,
@@ -12,12 +9,17 @@ class AccentBorderedCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(16),
     this.margin = EdgeInsets.zero,
     required this.child,
-    this.backgroundColor = const Color(0xFFFFF7EE), // soft warm background
-    this.borderColor = const Color(0xFFE7AC66),
+    this.backgroundColor = AppColors.background,
+    this.borderColor = const Color(0xFFE7AC66), // accent
     this.borderWidth = 3,
     this.borderRadius = 12,
     this.onTap,
-    this.shadow,
+    // keep these so your calls don’t break; only shadowOpacity is used now
+    this.shadowOpacity = 0.35,
+    this.shadowBlur = 1, // (ignored with Card)
+    this.shadowOffset = const Offset(11, 11), // (ignored with Card)
+    this.shadowSpread = -1, // (ignored with Card)
+    this.elevation = 6, // simple Material shadow control
   });
 
   final double? width;
@@ -30,38 +32,37 @@ class AccentBorderedCard extends StatelessWidget {
   final double borderWidth;
   final double borderRadius;
   final VoidCallback? onTap;
-  final List<BoxShadow>? shadow;
+
+  // shadow tuning (only shadowOpacity is applied to the Card’s shadowColor)
+  final double shadowOpacity;
+  final double shadowBlur; // not used with Card
+  final Offset shadowOffset; // not used with Card
+  final double shadowSpread; // not used with Card
+  final double elevation;
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(borderRadius);
+    final r = BorderRadius.circular(borderRadius);
 
-    return Container(
-      margin: margin,
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: radius,
-        border: Border.all(color: borderColor, width: borderWidth),
-        boxShadow: shadow ??
-            [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 6),
-              ),
-            ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: radius,
-          child: Padding(
-            padding: padding,
-            child: child,
+    return Padding(
+      padding: margin,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: Card(
+          color: backgroundColor,
+          surfaceTintColor: Colors.transparent, // no M3 tint
+          elevation: elevation,
+          shadowColor:
+              borderColor.withOpacity(shadowOpacity), // your accent color
+          shape: RoundedRectangleBorder(
+            borderRadius: r,
+            side: BorderSide(color: borderColor, width: borderWidth),
+          ),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: r,
+            child: Padding(padding: padding, child: child),
           ),
         ),
       ),

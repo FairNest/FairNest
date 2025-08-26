@@ -1,3 +1,8 @@
+import 'package:fairnestui/components/AccentBorderedCard.dart';
+import 'package:fairnestui/components/ChoresProgressCard.dart';
+import 'package:fairnestui/components/FinancesProgressCard.dart';
+import 'package:fairnestui/components/LavenderBorderedCard.dart';
+import 'package:fairnestui/components/RoomCompatibilityCard.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
@@ -81,8 +86,6 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
           ],
         ),
       ),
-
-      // 👇 add your bottom nav here
       bottomNavigationBar: AppBottomNav(
         currentIndex: _bottomIndex,
         onTabSelected: _onBottomTab,
@@ -99,7 +102,6 @@ class _RoomDashContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      // optional; remove if not needed
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, // ← left-align children
         children: [
@@ -107,7 +109,10 @@ class _RoomDashContent extends StatelessWidget {
             padding: const EdgeInsets.only(left: 15),
             child: Text(
               "Notices",
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  color: AppColors.textDark),
             ),
           ),
           const SizedBox(height: 5),
@@ -121,10 +126,135 @@ class _RoomDashContent extends StatelessWidget {
             ),
             child: Stack(
               children: [
-                // Background text/image
+                Padding(
+                    padding: EdgeInsets.fromLTRB(10, 13, 10, 10),
+                    child: Container(
+                      height: 34,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                          color: Color(0xFFFAEDE5),
+                          borderRadius: BorderRadius.circular(5)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          "Max added a new bill: Electricity ฿1,200 — due in 5 days ⚡",
+                          style: TextStyle(
+                              color: AppColors.textPink,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12),
+                        ),
+                      ),
+                    )),
+                Padding(
+                    padding: EdgeInsets.fromLTRB(10, 56, 10, 10),
+                    child: Container(
+                      height: 34,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                          color: Color(0xFFFAEDE5),
+                          borderRadius: BorderRadius.circular(5)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          "Lando settled his part of the water bill 💧",
+                          style: TextStyle(
+                              color: AppColors.textPink,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12),
+                        ),
+                      ),
+                    )),
+                Padding(
+                    padding: EdgeInsets.fromLTRB(10, 100, 10, 10),
+                    child: Container(
+                      height: 34,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                          color: Color(0xFFFAEDE5),
+                          borderRadius: BorderRadius.circular(5)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          "New payment reminder: Rent due in 3 days 🏠",
+                          style: TextStyle(
+                              color: AppColors.textPink,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12),
+                        ),
+                      ),
+                    )),
               ],
             ),
-          )
+          ),
+          SizedBox(
+            height: 15,
+          ),
+          Row(
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                child: Text(
+                  "Overall Room Status",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 70, bottom: 15),
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.background, // cream bg
+                    foregroundColor: AppColors.darkPurple, // text color
+                    elevation: 3, // remove shadow
+                    padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                    shape: const StadiumBorder(
+                      side: BorderSide(color: AppColors.primary, width: 1.5),
+                    ),
+                    textStyle: AppFonts.heading1.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: const Text("House Rules"),
+                ),
+              )
+            ],
+          ),
+          LavenderBorderedCard(
+              child: Column(
+            children: [
+              Container(
+                height: 350,
+                child: Column(
+                  children: [
+                    RoomCompatibilityCard(value: 0.5),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    ChoresProgressCard(
+                      totalTasks: 6,
+                      completedTasks: 5,
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    FinancesProgressCard(completedFinances: 2, totalFinances: 6)
+                  ],
+                ),
+              ),
+            ],
+          )),
+          SizedBox(
+            height: 15,
+          ),
+          AccentBorderedCard(
+              child: Container(
+            height: 350,
+            width: double.infinity,
+          )),
+          SizedBox(
+            height: 15,
+          ),
         ],
       ),
     );
