@@ -3,6 +3,7 @@ import 'package:fairnestui/TestCardPage.dart';
 import 'package:fairnestui/auth/CompleteProfilePage.dart';
 import 'package:fairnestui/auth/SignUpPage.dart';
 import 'package:fairnestui/auth/login_page.dart';
+import 'package:fairnestui/pages/Compatibility/CompatibilityPage.dart';
 import 'package:fairnestui/pages/FindRoommate/GroupCheckPage.dart';
 import 'package:fairnestui/pages/FindRoommate/RequestJoinRoomPage.dart';
 import 'package:fairnestui/pages/FindRoommate/StartRoommatePage.dart';
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const RoomDashboardPage(),
+      home: const CompatibilityPage(),
     );
   }
 }
