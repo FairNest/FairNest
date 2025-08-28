@@ -261,11 +261,27 @@ class _RoomDashContent extends StatelessWidget {
             ),
           ),
           AccentBorderedCard(
-              child: Container(
-            height: 350,
-            width: double.infinity,
-            child: Roommateoverviewcard(name: "Max"),
-          )),
+            child: Container(
+              height: 350,
+              width: double.infinity,
+              child: Column(
+                children: [
+                  Roommateoverviewcard(
+                    name: "Max",
+                    compatibilityScore: 43,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Roommateoverviewcard(name: "George", compatibilityScore: 50),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Roommateoverviewcard(name: "Lando", compatibilityScore: 1)
+                ],
+              ),
+            ),
+          ),
           SizedBox(
             height: 15,
           ),
