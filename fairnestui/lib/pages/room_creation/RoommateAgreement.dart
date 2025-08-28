@@ -368,7 +368,7 @@ enum CleaningMethodOption { weekly, biweekly, assigned, flexible }
 
 enum ResponsibilityOption { kitchen, livingRoom, bathroom, trash }
 
-enum SplitCostsOption { equal, byUsageOrRoomSize, other }
+enum SplitCostsOption { equal, custom }
 
 enum PaymentDeadlineOption { fifth, tenth, endOfMonth }
 
@@ -402,8 +402,7 @@ const responsibilitiesLabels = <ResponsibilityOption, String>{
 
 const splitCostsLabels = <SplitCostsOption, String>{
   SplitCostsOption.equal: 'Equal split',
-  SplitCostsOption.byUsageOrRoomSize: 'By usage/room size',
-  SplitCostsOption.other: 'Other',
+  SplitCostsOption.custom: 'Custom',
 };
 
 const paymentDeadlineLabels = <PaymentDeadlineOption, String>{

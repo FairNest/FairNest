@@ -17,10 +17,10 @@ class CompleteProfilePage extends StatefulWidget {
     this.initialUsername = '',
     this.initialBio = '',
     this.avatarChoices = const [
-      'assets/images/avatar1.png',
-      'assets/images/avatar2.png',
-      'assets/images/avatar3.png',
-      'assets/images/avatar4.png',
+      'assets/images/bird.png',
+      'assets/images/char.png',
+      'assets/images/pikachu.png',
+      'assets/images/poke.png',
     ],
     this.metrics = const [
       LifestyleMetric(kind: LifestyleMetricKind.tidiness, value: 0.82),
