@@ -227,17 +227,17 @@ func (h *userHandler) Register(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	// Check if a user picture file is uploaded
-	userPictureFile, err := c.FormFile("user_picture")
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "User picture file not found")
-	}
+	//// Check if a user picture file is uploaded
+	//userPictureFile, err := c.FormFile("user_picture")
+	//if err != nil {
+	//	return fiber.NewError(fiber.StatusBadRequest, "User picture file not found")
+	//}
 
-	// Call upload service to upload the user picture file
-	userPictureFileURL, err := h.uploadSer.UploadFile(userPictureFile)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to upload user picture file")
-	}
+	//// Call upload service to upload the user picture file
+	//userPictureFileURL, err := h.uploadSer.UploadFile(userPictureFile)
+	//if err != nil {
+	//	return fiber.NewError(fiber.StatusInternalServerError, "Failed to upload user picture file")
+	//}
 
 	// Check if a user verification picture file is uploaded
 	userVerificationPictureFile, err := c.FormFile("user_verification_picture")
@@ -252,7 +252,7 @@ func (h *userHandler) Register(c *fiber.Ctx) error {
 	}
 
 	// Set the uploaded file URL in the registration request
-	request.UserPicture = userPictureFileURL
+	//request.UserPicture = userPictureFileURL
 	request.UserVerificationPicture = userVerificationPictureFileURL
 
 	// Check if user_pic field is empty or nil

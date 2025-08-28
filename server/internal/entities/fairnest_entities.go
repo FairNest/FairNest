@@ -38,27 +38,29 @@ type Lifestyle struct {
 	Q11             *int
 	Q12             *int
 
-	// Personality Traits (Need change ???)
-	UserOpenness          *float64
-	UserConscientiousness *float64
-	UserExtraversion      *float64
-	UserAgreeableness     *float64
-	UserNeuroticism       *float64
+	// Personality Traits
+	UserTidiness       *float64
+	UserNoiseActivity  *float64
+	UserSchedule       *float64
+	UserGuestFrequency *float64
+	UserTaskStructure  *float64
+	UserMoneyAttitude  *float64
 
 	// Relations
 	User *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type Room struct {
-	RoomID     *uint `gorm:"primaryKey;autoIncrement"`
-	LocationID *uint // one-to-one
+	RoomID *uint `gorm:"primaryKey;autoIncrement"`
 
 	// RoomDetails
-	RoomName        *string
-	RoomType        *bool // "true = Private", "false = Public"
-	RoomCapacity    *int
-	RoomDescription *string
-	RoomCode        *string
+	RoomName               *string
+	RoomType               *bool // "true = Private", "false = Public"
+	RoomMaxCapacity        *int
+	RoomCurrentCapacity    *int
+	RoomDescription        *string
+	RoomCode               *string
+	RoomCompatibilityScore *int // average of all members' roommate scores
 
 	// LivingSpaceDetails
 	LivingSpaceName        *string
@@ -72,8 +74,7 @@ type Room struct {
 	GuestStayOver   *string
 	HandleCleaning  *string
 	SharedSpace     *string
-	SplitCosts      *string
-	PaymentDeadline *string // Or it is time.Time???
+	SplitCosts      *bool // "true = Equal split", "false = By usage/room size"
 
 	// Personality Averages
 	OpennessAvg          *float64
@@ -81,18 +82,9 @@ type Room struct {
 	ExtraversionAvg      *float64
 	AgreeablenessAvg     *float64
 	NeuroticismAvg       *float64
-	CompatibilityScore   *float64
 
 	// Relations
-	Location    *Location
 	RoomMembers []RoomMember
-}
-
-type Location struct {
-	LocationID *uint   `gorm:"primaryKey;autoIncrement"`
-	City       *string // "Bangkok"
-	District   *string // "Phaya Thai"
-	Address    *string // "123/45 Soi Sukhumvit 11 10140 Bangkok"
 }
 
 type RoomMember struct {
