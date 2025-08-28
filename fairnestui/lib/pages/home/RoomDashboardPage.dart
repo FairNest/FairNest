@@ -269,15 +269,33 @@ class _RoomDashContent extends StatelessWidget {
                   Roommateoverviewcard(
                     name: "Max",
                     compatibilityScore: 43,
+                    tasksCompleted: 4,
+                    tasksTotal: 7,
+                    amount: 500,
+                    financeStatus: FinanceStatus.owesYou,
                   ),
                   SizedBox(
                     height: 20,
                   ),
-                  Roommateoverviewcard(name: "George", compatibilityScore: 50),
+                  Roommateoverviewcard(
+                    name: "George",
+                    compatibilityScore: 50,
+                    tasksCompleted: 4,
+                    tasksTotal: 4,
+                    amount: 0,
+                    financeStatus: FinanceStatus.allSettled,
+                  ),
                   SizedBox(
                     height: 20,
                   ),
-                  Roommateoverviewcard(name: "Lando", compatibilityScore: 1)
+                  Roommateoverviewcard(
+                    name: "Lando",
+                    compatibilityScore: 1,
+                    tasksCompleted: 1,
+                    tasksTotal: 2,
+                    amount: 100,
+                    financeStatus: FinanceStatus.owesYou,
+                  )
                 ],
               ),
             ),

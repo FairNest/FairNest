@@ -1,26 +1,58 @@
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
+enum FinanceStatus { owesYou, youOwe, allSettled }
+
 class Roommateoverviewcard extends StatelessWidget {
   const Roommateoverviewcard({
     super.key,
-    this.avatarImage, // AssetImage / NetworkImage / null
+    this.avatarImage,
     this.avatarColor, // optional ring/bg color
-    this.name, // optional name label
-    required this.compatibilityScore, //
+    required this.name,
+    required this.tasksCompleted,
+    required this.tasksTotal,
+    required this.amount,
+    required this.financeStatus,
+    required this.compatibilityScore,
+    this.currencyLabel = 'THB',
   });
 
   final ImageProvider? avatarImage;
   final Color? avatarColor;
-  final String? name;
-  final int compatibilityScore; //
+  final String name;
+
+  final int tasksCompleted;
+  final int tasksTotal;
+
+  final int amount;
+  final FinanceStatus financeStatus;
+  final String currencyLabel;
+
+  final int compatibilityScore;
 
   @override
   Widget build(BuildContext context) {
+    Color badgeColor;
+    String badgeLabel;
+    switch (financeStatus) {
+      case FinanceStatus.owesYou:
+        badgeColor = AppColors.accent; // orange
+        badgeLabel = "Owes You";
+        break;
+      case FinanceStatus.youOwe:
+        badgeColor = const Color(0xFF4A9AF0); // blue
+        badgeLabel = "You Owe";
+        break;
+      case FinanceStatus.allSettled:
+        badgeColor = const Color(0xFF49B67A); // green
+        badgeLabel = "All Settled";
+        break;
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(width: 10),
+        const SizedBox(width: 5),
         Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -35,19 +67,22 @@ class Roommateoverviewcard extends StatelessWidget {
                   : null,
             ),
             const SizedBox(height: 5),
-            if (name != null) ...[
-              const SizedBox(width: 8),
-              Text(
-                name!,
+            SizedBox(
+              width: 60,
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
               ),
-            ],
+            ),
           ],
         ),
-        const SizedBox(width: 15),
+        const SizedBox(width: 10),
         SizedBox(
           height: 100,
           width: 260,
@@ -74,16 +109,16 @@ class Roommateoverviewcard extends StatelessWidget {
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Text(
-                            "5/7",
-                            style: TextStyle(
+                            "$tasksCompleted/$tasksTotal",
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          SizedBox(height: 5),
-                          Text(
+                          const SizedBox(height: 5),
+                          const Text(
                             "Tasks Completed",
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -113,16 +148,16 @@ class Roommateoverviewcard extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            "400",
-                            style: TextStyle(
+                          Text(
+                            "$amount",
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          const Text(
-                            "THB",
-                            style: TextStyle(
+                          Text(
+                            currencyLabel,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
                             ),
@@ -131,17 +166,15 @@ class Roommateoverviewcard extends StatelessWidget {
                             height: 15,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(2),
-                              color: AppColors.accent,
+                              color: badgeColor,
                             ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 4),
-                              child: Text(
-                                "Owes You",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Text(
+                              badgeLabel,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -171,7 +204,7 @@ class Roommateoverviewcard extends StatelessWidget {
                             padding: EdgeInsets.only(
                               left: compatibilityScore.toString().length <= 2
                                   ? 6
-                                  : 3, // dynamic
+                                  : 3,
                             ),
                             child: Text(
                               "$compatibilityScore%",
