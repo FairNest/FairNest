@@ -3,6 +3,7 @@ import 'package:fairnestui/components/ChoresProgressCard.dart';
 import 'package:fairnestui/components/FinancesProgressCard.dart';
 import 'package:fairnestui/components/LavenderBorderedCard.dart';
 import 'package:fairnestui/components/RoomCompatibilityCard.dart';
+import 'package:fairnestui/components/RoommateOverviewCard.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
@@ -112,7 +113,7 @@ class _RoomDashContent extends StatelessWidget {
               style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
-                  color: AppColors.textDark),
+                  color: AppColors.textPurple),
             ),
           ),
           const SizedBox(height: 5),
@@ -195,7 +196,10 @@ class _RoomDashContent extends StatelessWidget {
                 padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                 child: Text(
                   "Overall Room Status",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPurple),
                 ),
               ),
               Padding(
@@ -247,10 +251,20 @@ class _RoomDashContent extends StatelessWidget {
           SizedBox(
             height: 15,
           ),
+          Container(
+            child: Text(
+              "Roommate Overview",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPurple),
+            ),
+          ),
           AccentBorderedCard(
               child: Container(
             height: 350,
             width: double.infinity,
+            child: Roommateoverviewcard(name: "Max"),
           )),
           SizedBox(
             height: 15,
