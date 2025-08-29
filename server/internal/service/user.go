@@ -13,7 +13,7 @@ type UserService interface {
 	////////////////////////////////////////////////////////////////////
 
 	GetCurrentUser(int) (*entities.User, error)
-	GetProfileOfCurrentUserByUserId(int) (*entities.User, error)
+	GetProfileOfCurrentUserByUserId(int) (*dtos.ProfileOfCurrentUserByUserIdResponse, error)
 
 	GetEditUserProfileByUserId(int) (*entities.User, error)
 	PatchEditUserProfileByUserId(int, dtos.EditUserProfileByUserIdRequest) (*entities.User, error)

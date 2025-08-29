@@ -77,6 +77,14 @@ type ProfileOfCurrentUserByUserIdResponse struct {
 	Lastname    *string `json:"lastname" validate:"required"`
 	UserPicture *string `json:"user_picture" validate:"required"`
 	UserAboutMe *string `json:"user_about_me" validate:"required"`
+
+	// User Lifestyle
+	UserTidiness       *float64 `json:"user_tidiness" validate:"required"`
+	UserNoiseActivity  *float64 `json:"user_noise_activity" validate:"required"`
+	UserSchedule       *float64 `json:"user_schedule" validate:"required"`
+	UserGuestFrequency *float64 `json:"user_guest_frequency" validate:"required"`
+	UserTaskStructure  *float64 `json:"user_task_structure" validate:"required"`
+	UserMoneyAttitude  *float64 `json:"user_money_attitude" validate:"required"`
 }
 
 type EditUserProfileByUserIdResponse struct {

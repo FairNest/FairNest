@@ -169,29 +169,49 @@ func (s userService) GetCurrentUser(userId int) (*entities.User, error) {
 	return &userResponse, nil
 }
 
-func (s userService) GetProfileOfCurrentUserByUserId(userId int) (*entities.User, error) {
+func (s userService) GetProfileOfCurrentUserByUserId(userId int) (*dtos.ProfileOfCurrentUserByUserIdResponse, error) {
 	user, err := s.userRepo.GetProfileOfCurrentUserByUserId(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-
 	if user.UserID == nil &&
 		user.Username == nil &&
 		user.Firstname == nil &&
 		user.Lastname == nil &&
-		user.UserPicture == nil &&
-		user.UserAboutMe == nil {
-		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
+		user.UserPicture == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "user profile data is not found")
 	}
 
-	userResponse := entities.User{
-		UserID:      user.UserID,
-		Username:    user.Username,
-		Firstname:   user.Firstname,
-		Lastname:    user.Lastname,
-		UserPicture: user.UserPicture,
-		UserAboutMe: user.UserAboutMe,
+	userLifestyle, err := s.lifestyleRepo.GetUserLifestyleByUserId(userId)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	if userLifestyle.LifestyleID == nil &&
+		userLifestyle.UserID == nil &&
+		userLifestyle.UserTidiness == nil &&
+		userLifestyle.UserNoiseActivity == nil &&
+		userLifestyle.UserSchedule == nil &&
+		userLifestyle.UserGuestFrequency == nil &&
+		userLifestyle.UserTaskStructure == nil &&
+		userLifestyle.UserMoneyAttitude == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "user lifestyle data is not found")
+	}
+
+	userResponse := dtos.ProfileOfCurrentUserByUserIdResponse{
+		UserID:             user.UserID,
+		Username:           user.Username,
+		Firstname:          user.Firstname,
+		Lastname:           user.Lastname,
+		UserPicture:        user.UserPicture,
+		UserAboutMe:        user.UserAboutMe,
+		UserTidiness:       userLifestyle.UserTidiness,
+		UserNoiseActivity:  userLifestyle.UserNoiseActivity,
+		UserSchedule:       userLifestyle.UserSchedule,
+		UserGuestFrequency: userLifestyle.UserGuestFrequency,
+		UserTaskStructure:  userLifestyle.UserTaskStructure,
+		UserMoneyAttitude:  userLifestyle.UserMoneyAttitude,
 	}
 	return &userResponse, nil
 }

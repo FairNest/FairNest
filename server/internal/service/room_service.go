@@ -6,6 +6,7 @@ import (
 	"fairnest/internal/repository"
 	"fairnest/internal/utils"
 	"fairnest/internal/utils/v"
+	"github.com/gofiber/fiber/v2"
 	"log"
 	"math/rand"
 	"time"
@@ -104,10 +105,20 @@ func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUse
 		}
 	}
 	// Get user personality to set initial avg personality of the room
-	hostPeronality, err := s.lifestyleRepo.GetLifestyleByUserId(userId)
+	hostLifestyle, err := s.lifestyleRepo.GetUserLifestyleByUserId(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
+	}
+	if hostLifestyle.LifestyleID == nil &&
+		hostLifestyle.UserID == nil &&
+		hostLifestyle.UserTidiness == nil &&
+		hostLifestyle.UserNoiseActivity == nil &&
+		hostLifestyle.UserSchedule == nil &&
+		hostLifestyle.UserGuestFrequency == nil &&
+		hostLifestyle.UserTaskStructure == nil &&
+		hostLifestyle.UserMoneyAttitude == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "host lifestyle data is not found")
 	}
 
 	room := entities.Room{
@@ -135,12 +146,12 @@ func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUse
 		SplitCosts:      request.SplitCosts,
 
 		// Personality Averages - set to host personality initially
-		AvgTidiness:       hostPeronality.UserTidiness,
-		AvgNoiseActivity:  hostPeronality.UserNoiseActivity,
-		AvgSchedule:       hostPeronality.UserSchedule,
-		AvgGuestFrequency: hostPeronality.UserGuestFrequency,
-		AvgTaskStructure:  hostPeronality.UserTaskStructure,
-		AvgMoneyAttitude:  hostPeronality.UserMoneyAttitude,
+		AvgTidiness:       hostLifestyle.UserTidiness,
+		AvgNoiseActivity:  hostLifestyle.UserNoiseActivity,
+		AvgSchedule:       hostLifestyle.UserSchedule,
+		AvgGuestFrequency: hostLifestyle.UserGuestFrequency,
+		AvgTaskStructure:  hostLifestyle.UserTaskStructure,
+		AvgMoneyAttitude:  hostLifestyle.UserMoneyAttitude,
 	}
 
 	if err := s.roomRepo.CreateRoomByUserId(&room); err != nil {

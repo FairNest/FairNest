@@ -22,10 +22,21 @@ func (r lifestyleRepositoryDB) GetLifestyleByUserId(userId int) (*entities.Lifes
 	return &lifestyles, nil
 }
 
+///////////////////////////////////////////////////////////////////////////
+
 func (r lifestyleRepositoryDB) CreateLifestyle(lifestyle *entities.Lifestyle) error {
 	result := r.db.Create(lifestyle)
 	if result.Error != nil {
 		return result.Error
 	}
 	return nil
+}
+
+func (r lifestyleRepositoryDB) GetUserLifestyleByUserId(userId int) (*entities.Lifestyle, error) {
+	lifestyles := entities.Lifestyle{}
+	result := r.db.Where("user_id = ?", userId).Find(&lifestyles)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &lifestyles, nil
 }

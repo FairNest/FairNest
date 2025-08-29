@@ -168,12 +168,18 @@ func (h *userHandler) GetProfileOfCurrentUserByUserId(c *fiber.Ctx) error {
 	}
 
 	userResponse := dtos.ProfileOfCurrentUserByUserIdResponse{
-		UserID:      user.UserID,
-		Username:    user.Username,
-		Firstname:   user.Firstname,
-		Lastname:    user.Lastname,
-		UserPicture: user.UserPicture,
-		UserAboutMe: user.UserAboutMe,
+		UserID:             user.UserID,
+		Username:           user.Username,
+		Firstname:          user.Firstname,
+		Lastname:           user.Lastname,
+		UserPicture:        user.UserPicture,
+		UserAboutMe:        user.UserAboutMe,
+		UserTidiness:       user.UserTidiness,
+		UserNoiseActivity:  user.UserNoiseActivity,
+		UserSchedule:       user.UserSchedule,
+		UserGuestFrequency: user.UserGuestFrequency,
+		UserTaskStructure:  user.UserTaskStructure,
+		UserMoneyAttitude:  user.UserMoneyAttitude,
 	}
 
 	return c.JSON(userResponse)
