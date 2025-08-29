@@ -74,17 +74,20 @@ func main() {
 	storageHandler := handler.NewStorageHandler(uploadSer)
 
 	userRepositoryDB := repository.NewUserRepositoryDB(db)
-	roomRepositoryDB := repository.NewRoomRepositoryDB(db)
 	lifestyleRepositoryDB := repository.NewLifestyleRepositoryDB(db)
+	roomRepositoryDB := repository.NewRoomRepositoryDB(db)
+	roomMemberRepositoryDB := repository.NewRoomMemberRepositoryDB(db)
 
 	userService := service.NewUserService(userRepositoryDB, jwtSecret, lifestyleRepositoryDB)
 	uploadService := service.NewUploadService(minioClient)
-	roomService := service.NewRoomService(roomRepositoryDB)
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
+	roomService := service.NewRoomService(roomRepositoryDB)
+	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService)
-	roomHandler := handler.NewRoomHandler(roomService)
 	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService)
+	roomHandler := handler.NewRoomHandler(roomService)
+	roomMemberHandler := handler.NewRoomMemberHandler(roomMemberService)
 
 	app := fiber.New()
 
@@ -103,7 +106,7 @@ func main() {
 
 	//Endpoint ###########################################################################
 
-	// Endpoint for test
+	// Endpoints for test
 	app.Get("/FetchUsers", userHandler.FetchUsers)
 	app.Get("/GetUserByUserId/:UserID", userHandler.GetUserByUserId)
 	app.Get("/GetUserByToken", userHandler.GetUserByToken) //#
@@ -112,11 +115,13 @@ func main() {
 
 	app.Get("/GetLifestyleByUserId/:UserID", lifestyleHandler.GetLifestyleByUserId)
 
+	app.Get("/GetRoomMemberByRoomId/:RoomID", roomMemberHandler.GetRoomMemberByRoomId)
+
 	app.Post("/upload", storageHandler.UploadFile)
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
-	// Endpoint for project
+	// Endpoints for project
 	app.Post("/Register", userHandler.Register)
 	app.Post("/Login", userHandler.Login)
 
