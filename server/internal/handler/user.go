@@ -20,10 +20,10 @@ func NewUserHandler(userSer service.UserService, jwtSecret string, uploadSer ser
 	return userHandler{userSer: userSer, jwtSecret: jwtSecret, uploadSer: uploadSer}
 }
 
-func (h *userHandler) GetUsers(c *fiber.Ctx) error {
+func (h *userHandler) FetchUsers(c *fiber.Ctx) error {
 	usersResponse := make([]dtos.UserDataResponse, 0)
 
-	users, err := h.userSer.GetUsers()
+	users, err := h.userSer.FetchUsers()
 	if err != nil {
 		return err
 	}

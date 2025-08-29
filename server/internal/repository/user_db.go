@@ -13,7 +13,7 @@ func NewUserRepositoryDB(db *gorm.DB) userRepositoryDB {
 	return userRepositoryDB{db: db}
 }
 
-func (r userRepositoryDB) GetAllUser() ([]entities.User, error) {
+func (r userRepositoryDB) FetchAllUser() ([]entities.User, error) {
 	users := []entities.User{}
 	result := r.db.Find(&users)
 	if result.Error != nil {
