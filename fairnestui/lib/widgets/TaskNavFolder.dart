@@ -1,3 +1,5 @@
+import 'package:fairnestui/components/ChoresTaskCard.dart';
+import 'package:fairnestui/components/FInanceTaskCard.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -57,7 +59,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
     }
   }
 
-  // ---------- MAIN AREA (uses SingleChildScrollView per tab) ----------
   Widget _buildTabContent(BuildContext context) {
     switch (activeIndex) {
       case 0: // TODAY
@@ -67,15 +68,10 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: const [
-              // ===== REPLACE BELOW WITH YOUR "TODAY" CARDS =====
-              SizedBox(height: 8),
-              Text("TODO: Add TODAY tab content here",
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black45)),
-              SizedBox(height: 400),
-              // =================================================
+              Financetaskcard(
+                paidByImage: AssetImage('assets/images/char.png'),
+              ),
+              SizedBox(height: 10),
             ],
           ),
         );
@@ -87,15 +83,10 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: const [
-              // ===== REPLACE BELOW WITH YOUR "COMPLETED" CARDS =====
-              SizedBox(height: 8),
-              Text("TODO: Add COMPLETED tab content here",
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black45)),
+              ChoresTaskCard(
+                paidByImage: AssetImage('assets/images/char.png'),
+              ),
               SizedBox(height: 400),
-              // =====================================================
             ],
           ),
         );
