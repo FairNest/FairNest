@@ -1,67 +1,57 @@
-import 'package:fairnestui/widgets/LifestyleOverview.dart';
 import 'package:flutter/material.dart';
-import 'package:fairnestui/theme/app_colors.dart';
+import 'package:fairnestui/components/SecondaryButton.dart';
+import 'package:fairnestui/theme/app_fonts.dart';
 
-class LifestyleOverviewDemoPage extends StatelessWidget {
-  const LifestyleOverviewDemoPage({super.key});
+// Import your dialogs (adjust the paths if your folder structure is different)
+import 'package:fairnestui/util/ConfirmDialog.dart';
+import 'package:fairnestui/util/VoteSubmittedDialog.dart';
+
+const _bg = Color(0xFFECE9E6);
+const _accent = Color(0xFF645A80);
+
+class TestConfirmVotePage extends StatelessWidget {
+  const TestConfirmVotePage({super.key});
+
+  void _openAcceptance(BuildContext context) {
+    showConfirmDialog(
+      context,
+      action: "accept",
+      name: "George",
+    );
+  }
+
+  void _openRejection(BuildContext context) {
+    showConfirmDialog(
+      context,
+      action: "reject",
+      name: "George",
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _bg,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          'LifestyleOverview Demo',
-          style: TextStyle(
-              color: Colors.black,
-              fontFamily: 'Krub',
-              fontWeight: FontWeight.w700),
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: _accent,
+        foregroundColor: Colors.white,
+        title: Text("Confirm & Vote Test", style: AppFonts.heading3),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            LifestyleOverview(
-              barHeight: 12,
-              metrics: const [
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.tidiness, value: 0.82),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.noiseActivity, value: 0.45),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.schedule, value: 0.90),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.guestFrequency, value: 0.40),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.taskStructure, value: 1.00),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.moneyAttitude, value: 0.95),
-              ],
+            SecondaryButton(
+              text: "Test Acceptance Flow",
+              width: 240,
+              onPressed: () => _openAcceptance(context),
             ),
-            const SizedBox(height: 24),
-
-            // Another example with different values
-            LifestyleOverview(
-              barHeight: 10,
-              metrics: const [
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.tidiness, value: 0.20),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.noiseActivity, value: 0.75),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.schedule, value: 0.30),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.guestFrequency, value: 0.80),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.taskStructure, value: 0.55),
-                LifestyleMetric(
-                    kind: LifestyleMetricKind.moneyAttitude, value: 0.35),
-              ],
+            const SizedBox(height: 20),
+            SecondaryButton(
+              text: "Test Rejection Flow",
+              width: 240,
+              backgroundColor: Colors.red.shade400,
+              onPressed: () => _openRejection(context),
             ),
           ],
         ),
