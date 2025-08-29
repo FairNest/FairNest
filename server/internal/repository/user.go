@@ -3,7 +3,7 @@ package repository
 import "fairnest/internal/entities"
 
 type UserRepository interface {
-	GetAllUser() ([]entities.User, error)
+	FetchAllUser() ([]entities.User, error)
 	GetUserByUserId(int) (*entities.User, error)
 	GetUserByToken(int) (*entities.User, error)
 

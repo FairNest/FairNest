@@ -61,6 +61,7 @@ type Room struct {
 	RoomDescription        *string
 	RoomCode               *string
 	RoomCompatibilityScore *int // average of all members' roommate scores
+	RoomPicture            *string
 
 	// LivingSpaceDetails
 	LivingSpaceName        *string

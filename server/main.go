@@ -74,11 +74,14 @@ func main() {
 	storageHandler := handler.NewStorageHandler(uploadSer)
 
 	userRepositoryDB := repository.NewUserRepositoryDB(db)
+	roomRepositoryDB := repository.NewRoomRepositoryDB(db)
 
 	userService := service.NewUserService(userRepositoryDB, jwtSecret)
 	uploadService := service.NewUploadService(minioClient)
+	roomService := service.NewRoomService(roomRepositoryDB)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService)
+	roomHandler := handler.NewRoomHandler(roomService)
 
 	app := fiber.New()
 
@@ -98,9 +101,11 @@ func main() {
 	//Endpoint ###########################################################################
 
 	// Endpoint for test
-	app.Get("/GetUsers", userHandler.GetUsers)
+	app.Get("/FetchUsers", userHandler.FetchUsers)
 	app.Get("/GetUserByUserId/:UserID", userHandler.GetUserByUserId)
 	app.Get("/GetUserByToken", userHandler.GetUserByToken) //#
+
+	app.Get("/FetchRooms", roomHandler.FetchRooms)
 
 	app.Post("/upload", storageHandler.UploadFile)
 
