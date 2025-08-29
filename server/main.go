@@ -77,7 +77,7 @@ func main() {
 	roomRepositoryDB := repository.NewRoomRepositoryDB(db)
 	lifestyleRepositoryDB := repository.NewLifestyleRepositoryDB(db)
 
-	userService := service.NewUserService(userRepositoryDB, jwtSecret)
+	userService := service.NewUserService(userRepositoryDB, jwtSecret, lifestyleRepositoryDB)
 	uploadService := service.NewUploadService(minioClient)
 	roomService := service.NewRoomService(roomRepositoryDB)
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)

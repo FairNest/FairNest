@@ -18,14 +18,16 @@ import (
 )
 
 type userService struct {
-	userRepo  repository.UserRepository
-	jwtSecret string
+	userRepo      repository.UserRepository
+	jwtSecret     string
+	lifestyleRepo repository.LifestyleRepository
 }
 
-func NewUserService(userRepo repository.UserRepository, jwtSecret string) userService {
+func NewUserService(userRepo repository.UserRepository, jwtSecret string, lifestyleRepo repository.LifestyleRepository) userService {
 	return userService{
-		userRepo:  userRepo,
-		jwtSecret: jwtSecret,
+		userRepo:      userRepo,
+		jwtSecret:     jwtSecret,
+		lifestyleRepo: lifestyleRepo,
 	}
 }
 
@@ -293,7 +295,33 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		UserIdentityDocumentType:   v.Ptr(isCitizenID),
 	}
 
+	lifestyle := entities.Lifestyle{
+		UserID:             user.UserID,
+		Q1:                 request.Q1,
+		Q2:                 request.Q2,
+		Q3:                 request.Q3,
+		Q4:                 request.Q4,
+		Q5:                 request.Q5,
+		Q6:                 request.Q6,
+		Q7:                 request.Q7,
+		Q8:                 request.Q8,
+		Q9:                 request.Q9,
+		Q10:                request.Q10,
+		Q11:                request.Q11,
+		Q12:                request.Q12,
+		UserTidiness:       request.UserTidiness,
+		UserNoiseActivity:  request.UserNoiseActivity,
+		UserSchedule:       request.UserSchedule,
+		UserGuestFrequency: request.UserGuestFrequency,
+		UserTaskStructure:  request.UserTaskStructure,
+		UserMoneyAttitude:  request.UserMoneyAttitude,
+	}
+
 	if err := s.userRepo.CreateUser(&user); err != nil {
+		return nil, err
+	}
+
+	if err := s.lifestyleRepo.CreateLifestyle(&lifestyle); err != nil {
 		return nil, err
 	}
 

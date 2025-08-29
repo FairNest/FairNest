@@ -21,3 +21,11 @@ func (r lifestyleRepositoryDB) GetLifestyleByUserId(userid int) (*entities.Lifes
 	}
 	return &lifestyles, nil
 }
+
+func (r lifestyleRepositoryDB) CreateLifestyle(lifestyle *entities.Lifestyle) error {
+	result := r.db.Create(lifestyle)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

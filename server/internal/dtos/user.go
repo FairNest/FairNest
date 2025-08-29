@@ -107,6 +107,27 @@ type RegisterRequest struct {
 	UserVerificationPicture    *string `json:"user_verification_picture" validate:"required" form:"user_verification_picture"`
 	UserIdentityDocumentNumber *string `json:"user_identity_document_number" validate:"required" form:"user_identity_document_number"`
 	UserIdentityDocumentType   *bool   `json:"user_identity_document_type" validate:"required" form:"user_identity_document_type"`
+
+	//Lifestyle Questions
+	Q1  *int `json:"q1" validate:"required" form:"q1"`
+	Q2  *int `json:"q2" validate:"required" form:"q2"`
+	Q3  *int `json:"q3" validate:"required" form:"q3"`
+	Q4  *int `json:"q4" validate:"required" form:"q4"`
+	Q5  *int `json:"q5" validate:"required" form:"q5"`
+	Q6  *int `json:"q6" validate:"required" form:"q6"`
+	Q7  *int `json:"q7" validate:"required" form:"q7"`
+	Q8  *int `json:"q8" validate:"required" form:"q8"`
+	Q9  *int `json:"q9" validate:"required" form:"q9"`
+	Q10 *int `json:"q10" validate:"required" form:"q10"`
+	Q11 *int `json:"q11" validate:"required" form:"q11"`
+	Q12 *int `json:"q12" validate:"required" form:"q12"`
+	// Personality Traits
+	UserTidiness       *float64 `json:"user_tidiness" validate:"required" form:"user_tidiness"`
+	UserNoiseActivity  *float64 `json:"user_noise_activity" validate:"required" form:"user_noise_activity"`
+	UserSchedule       *float64 `json:"user_schedule" validate:"required" form:"user_schedule"`
+	UserGuestFrequency *float64 `json:"user_guest_frequency" validate:"required" form:"user_guest_frequency"`
+	UserTaskStructure  *float64 `json:"user_task_structure" validate:"required" form:"user_task_structure"`
+	UserMoneyAttitude  *float64 `json:"user_money_attitude" validate:"required" form:"user_money_attitude"`
 }
 
 type LoginRequest struct {
