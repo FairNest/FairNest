@@ -3,7 +3,10 @@ import 'package:fairnestui/components/ChoresProgressCard.dart';
 import 'package:fairnestui/components/FinancesProgressCard.dart';
 import 'package:fairnestui/components/LavenderBorderedCard.dart';
 import 'package:fairnestui/components/RoomCompatibilityCard.dart';
+import 'package:fairnestui/components/RoommateOverviewCard.dart';
+import 'package:fairnestui/components/YourProgressNowCard.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
+import 'package:fairnestui/widgets/TaskNavFolder.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/widgets/room_header_appbar.dart';
@@ -95,7 +98,6 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
   }
 }
 
-/* ---------- Example content widgets ---------- */
 class _RoomDashContent extends StatelessWidget {
   const _RoomDashContent({super.key});
 
@@ -103,7 +105,7 @@ class _RoomDashContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // ← left-align children
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 15),
@@ -112,7 +114,7 @@ class _RoomDashContent extends StatelessWidget {
               style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
-                  color: AppColors.textDark),
+                  color: AppColors.textPurple),
             ),
           ),
           const SizedBox(height: 5),
@@ -195,7 +197,10 @@ class _RoomDashContent extends StatelessWidget {
                 padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                 child: Text(
                   "Overall Room Status",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPurple),
                 ),
               ),
               Padding(
@@ -247,11 +252,55 @@ class _RoomDashContent extends StatelessWidget {
           SizedBox(
             height: 15,
           ),
+          Container(
+            child: Text(
+              "Roommate Overview",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPurple),
+            ),
+          ),
           AccentBorderedCard(
-              child: Container(
-            height: 350,
-            width: double.infinity,
-          )),
+            child: Container(
+              height: 350,
+              width: double.infinity,
+              child: Column(
+                children: [
+                  Roommateoverviewcard(
+                    name: "Max",
+                    compatibilityScore: 43,
+                    tasksCompleted: 4,
+                    tasksTotal: 7,
+                    amount: 500,
+                    financeStatus: FinanceStatus.owesYou,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Roommateoverviewcard(
+                    name: "George",
+                    compatibilityScore: 50,
+                    tasksCompleted: 4,
+                    tasksTotal: 4,
+                    amount: 0,
+                    financeStatus: FinanceStatus.allSettled,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Roommateoverviewcard(
+                    name: "Lando",
+                    compatibilityScore: 1,
+                    tasksCompleted: 1,
+                    tasksTotal: 2,
+                    amount: 100,
+                    financeStatus: FinanceStatus.owesYou,
+                  )
+                ],
+              ),
+            ),
+          ),
           SizedBox(
             height: 15,
           ),
@@ -265,9 +314,23 @@ class _YourDashContent extends StatelessWidget {
   const _YourDashContent({super.key});
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child:
-          Text('Your personal dashboard stuff here', style: AppFonts.heading1),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          SizedBox(
+            height: 10,
+          ),
+          YourProgressNowCard(completedTasks: 4, totalTasks: 6),
+          SizedBox(
+            height: 20,
+          ),
+          TaskNavFolder(
+            todayUnfinishedCount: 1,
+            completedCount: 2,
+            upcomingUnfinishedCount: 3,
+          )
+        ],
+      ),
     );
   }
 }

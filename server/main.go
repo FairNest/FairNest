@@ -42,7 +42,6 @@ func main() {
 	err = db.AutoMigrate(
 		&entities.User{},
 		&entities.Lifestyle{},
-		&entities.Location{},
 		&entities.RoomMember{},
 		&entities.Room{},
 		&entities.Notification{},
