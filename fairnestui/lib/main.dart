@@ -16,6 +16,7 @@ import 'package:fairnestui/pages/room_creation/CreateRoomDetails.dart';
 import 'package:fairnestui/auth/LifestyleQuizPage.dart';
 import 'package:fairnestui/pages/room_creation/GenerateInviteCode.dart';
 import 'package:fairnestui/pages/room_creation/RoommateAgreement.dart';
+import 'package:fairnestui/shell/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'auth/welcome_page.dart';
 
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const RoomDashboardPage(),
+      home: const AppShell(),
     );
   }
 }

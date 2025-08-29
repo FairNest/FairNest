@@ -185,11 +185,6 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
       ),
 
       // Bottom navigation
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: _bottomIndex,
-        onTabSelected: _onBottomTab,
-        onCenterAction: _onCenterAction,
-      ),
     );
   }
 }

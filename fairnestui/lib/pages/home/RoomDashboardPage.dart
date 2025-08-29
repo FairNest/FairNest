@@ -10,7 +10,6 @@ import 'package:fairnestui/widgets/TaskNavFolder.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/widgets/room_header_appbar.dart';
-import 'package:fairnestui/widgets/app_bottom_nav.dart';
 
 class RoomDashboardPage extends StatefulWidget {
   const RoomDashboardPage({super.key});
@@ -88,11 +87,6 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: _bottomIndex,
-        onTabSelected: _onBottomTab,
-        onCenterAction: _onCenterAction,
       ),
     );
   }
@@ -273,6 +267,7 @@ class _RoomDashContent extends StatelessWidget {
                     tasksCompleted: 4,
                     tasksTotal: 7,
                     amount: 500,
+                    avatarImage: const AssetImage('assets/images/char.png'),
                     financeStatus: FinanceStatus.owesYou,
                   ),
                   SizedBox(
@@ -284,6 +279,7 @@ class _RoomDashContent extends StatelessWidget {
                     tasksCompleted: 4,
                     tasksTotal: 4,
                     amount: 0,
+                    avatarImage: const AssetImage('assets/images/poke.png'),
                     financeStatus: FinanceStatus.allSettled,
                   ),
                   SizedBox(
@@ -295,6 +291,7 @@ class _RoomDashContent extends StatelessWidget {
                     tasksCompleted: 1,
                     tasksTotal: 2,
                     amount: 100,
+                    avatarImage: const AssetImage('assets/images/pikachu.png'),
                     financeStatus: FinanceStatus.owesYou,
                   )
                 ],
