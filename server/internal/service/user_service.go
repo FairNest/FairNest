@@ -295,6 +295,10 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		UserIdentityDocumentType:   v.Ptr(isCitizenID),
 	}
 
+	if err := s.userRepo.CreateUser(&user); err != nil {
+		return nil, err
+	}
+
 	lifestyle := entities.Lifestyle{
 		UserID:             user.UserID,
 		Q1:                 request.Q1,
@@ -315,10 +319,6 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		UserGuestFrequency: request.UserGuestFrequency,
 		UserTaskStructure:  request.UserTaskStructure,
 		UserMoneyAttitude:  request.UserMoneyAttitude,
-	}
-
-	if err := s.userRepo.CreateUser(&user); err != nil {
-		return nil, err
 	}
 
 	if err := s.lifestyleRepo.CreateLifestyle(&lifestyle); err != nil {
