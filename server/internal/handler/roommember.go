@@ -23,7 +23,7 @@ func (h *roomMemberHandler) GetRoomMemberByRoomId(c *fiber.Ctx) error {
 		return err
 	}
 
-	roomMemberResponse := dtos.RoomMemberByRoomIdDataResponse{
+	roomMemberResponse := dtos.RoomMemberByRoomIdResponse{
 		RoomMemberID: roomMember.RoomMemberID,
 		RoomID:       roomMember.RoomID,
 		UserID:       roomMember.UserID,

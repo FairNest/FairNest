@@ -1,18 +1,25 @@
 package service
 
 import (
+	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
+	"fairnest/internal/utils"
+	"fairnest/internal/utils/v"
 	"log"
+	"math/rand"
+	"time"
 )
 
 type roomService struct {
-	roomRepo repository.RoomRepository
+	roomRepo       repository.RoomRepository
+	roomMemberRepo repository.RoomMemberRepository
 }
 
-func NewRoomService(roomRepo repository.RoomRepository) roomService {
+func NewRoomService(roomRepo repository.RoomRepository, roomMemberRepo repository.RoomMemberRepository) roomService {
 	return roomService{
-		roomRepo: roomRepo,
+		roomRepo:       roomRepo,
+		roomMemberRepo: roomMemberRepo,
 	}
 }
 
@@ -59,4 +66,104 @@ func (s roomService) FetchRooms() ([]entities.Room, error) {
 		roomResponses = append(roomResponses, roomResponse)
 	}
 	return roomResponses, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUserIdRequest) (*dtos.CreateRoomByUserIdResponse, error) {
+	// Mock rng Room Picture
+	roomPictures := []string{
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_1.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_2.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_3.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_4.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_5.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_6.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_7.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_8.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_9.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_10.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_11.png",
+		"https://minio.bocchikitsunei.com/fairnest/rng_room_12.png",
+	}
+	rand.Seed(time.Now().UnixNano())
+	randomRoomPicture := roomPictures[rand.Intn(len(roomPictures))]
+
+	// Generate unique room code
+	var code string
+	for {
+		code = utils.GenerateRoomCode(6)
+		exists, err := s.roomRepo.ExistsByCode(code)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
+			break
+		}
+	}
+
+	room := entities.Room{
+		// RoomDetails
+		RoomName:               request.RoomName,
+		RoomType:               request.RoomType,
+		RoomMaxCapacity:        request.RoomMaxCapacity,
+		RoomCurrentCapacity:    v.Ptr(1), // Since the creator is the first member
+		RoomDescription:        request.RoomDescription,
+		RoomCode:               v.Ptr(code),
+		RoomCompatibilityScore: request.RoomCompatibilityScore,
+		RoomPicture:            v.Ptr(randomRoomPicture),
+
+		// LivingSpaceDetails
+		LivingSpaceName:        request.LivingSpaceName,
+		RentCost:               request.RentCost,
+		ElectricityCostPerUnit: request.ElectricityCostPerUnit,
+		WaterCostPerUnit:       request.WaterCostPerUnit,
+		OtherUtilityDetails:    request.OtherUtilityDetails,
+		// RoommateAgreements
+		QuietHoursStart: request.QuietHoursStart,
+		GuestStayOver:   request.GuestStayOver,
+		HandleCleaning:  request.HandleCleaning,
+		SharedSpace:     request.SharedSpace,
+		SplitCosts:      request.SplitCosts,
+	}
+
+	if err := s.roomRepo.CreateRoomByUserId(&room); err != nil {
+		return nil, err
+	}
+
+	roomMember := entities.RoomMember{
+		RoomID: room.RoomID,
+		UserID: v.UintPtr(userId),
+		IsHost: v.Ptr(true),
+	}
+
+	if err := s.roomMemberRepo.CreateRoomMember(&roomMember); err != nil {
+		return nil, err
+	}
+
+	return &dtos.CreateRoomByUserIdResponse{
+		RoomID:                 room.RoomID,
+		RoomName:               room.RoomName,
+		RoomType:               room.RoomType,
+		RoomMaxCapacity:        room.RoomMaxCapacity,
+		RoomCurrentCapacity:    room.RoomCurrentCapacity,
+		RoomDescription:        room.RoomDescription,
+		RoomCode:               room.RoomCode,
+		RoomCompatibilityScore: room.RoomCompatibilityScore,
+		RoomPicture:            room.RoomPicture,
+
+		// LivingSpaceDetails
+		LivingSpaceName:        room.LivingSpaceName,
+		RentCost:               room.RentCost,
+		ElectricityCostPerUnit: room.ElectricityCostPerUnit,
+		WaterCostPerUnit:       room.WaterCostPerUnit,
+		OtherUtilityDetails:    room.OtherUtilityDetails,
+
+		// RoommateAgreements
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
+	}, nil
 }

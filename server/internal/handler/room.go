@@ -4,6 +4,7 @@ import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/service"
 	"github.com/gofiber/fiber/v2"
+	"strconv"
 )
 
 type roomHandler struct {
@@ -56,4 +57,20 @@ func (h *roomHandler) FetchRooms(c *fiber.Ctx) error {
 		})
 	}
 	return c.JSON(roomsResponse)
+}
+
+func (h *roomHandler) CreateRoomByUserId(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+
+	var req dtos.CreateRoomByUserIdRequest
+	if err := c.BodyParser(&req); err != nil {
+		return err
+	}
+
+	room, err := h.roomSer.CreateRoomByUserId(userIDReceive, req)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(room)
 }

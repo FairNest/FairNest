@@ -81,7 +81,7 @@ func main() {
 	userService := service.NewUserService(userRepositoryDB, jwtSecret, lifestyleRepositoryDB)
 	uploadService := service.NewUploadService(minioClient)
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
-	roomService := service.NewRoomService(roomRepositoryDB)
+	roomService := service.NewRoomService(roomRepositoryDB, roomMemberRepositoryDB)
 	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService)
@@ -109,7 +109,7 @@ func main() {
 	// Endpoints for test
 	app.Get("/FetchUsers", userHandler.FetchUsers)
 	app.Get("/GetUserByUserId/:UserID", userHandler.GetUserByUserId)
-	app.Get("/GetUserByToken", userHandler.GetUserByToken) //#
+	app.Get("/GetUserByToken", userHandler.GetUserByToken) //%
 
 	app.Get("/FetchRooms", roomHandler.FetchRooms)
 
@@ -129,6 +129,8 @@ func main() {
 	app.Get("/GetProfileOfCurrentUserByUserId/:UserID", userHandler.GetProfileOfCurrentUserByUserId)
 	app.Get("/GetEditUserProfileByUserId/:UserID", userHandler.GetEditUserProfileByUserId)
 	app.Patch("/PatchEditUserProfileByUserId/:UserID", userHandler.PatchEditUserProfileByUserId)
+
+	app.Post("/CreateRoomByUserId/:UserID", roomHandler.CreateRoomByUserId)
 
 	//#####################################################################################
 

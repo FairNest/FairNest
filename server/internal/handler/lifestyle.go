@@ -23,7 +23,7 @@ func (h *lifestyleHandler) GetLifestyleByUserId(c *fiber.Ctx) error {
 		return err
 	}
 
-	lifestyleResponse := dtos.LifestyleByUserIdDataResponse{
+	lifestyleResponse := dtos.LifestyleByUserIdResponse{
 		LifestyleID:        lifestyle.LifestyleID,
 		UserID:             lifestyle.UserID,
 		Q1:                 lifestyle.Q1,

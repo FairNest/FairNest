@@ -2,7 +2,7 @@ package service
 
 import (
 	"errors"
-	"fairnest/internal/utils/helper"
+	"fairnest/internal/utils"
 	"log"
 	"strconv"
 	"time"
@@ -262,7 +262,7 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 	}
 
 	// Identify type (true = 13-digit citizen ID, false = 9-char passport)
-	isCitizenID, err := helper.DetectIdentityDocumentType(userIdentityDocumentNumber)
+	isCitizenID, err := utils.DetectIdentityDocumentType(userIdentityDocumentNumber)
 	if err != nil {
 		return nil, err
 	}

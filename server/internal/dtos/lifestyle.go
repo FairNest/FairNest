@@ -1,6 +1,6 @@
 package dtos
 
-type LifestyleByUserIdDataResponse struct {
+type LifestyleByUserIdResponse struct {
 	LifestyleID *uint `json:"lifestyle_id" validate:"required" `
 	UserID      *uint `json:"user_id" validate:"required"`
 	Q1          *int  `json:"q1" validate:"required"`

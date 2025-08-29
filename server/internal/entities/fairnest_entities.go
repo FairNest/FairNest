@@ -59,8 +59,8 @@ type Room struct {
 	RoomMaxCapacity        *int
 	RoomCurrentCapacity    *int
 	RoomDescription        *string
-	RoomCode               *string
-	RoomCompatibilityScore *int // average of all members' roommate scores
+	RoomCode               *string `gorm:"uniqueIndex"`
+	RoomCompatibilityScore *int    // average of all members' roommate scores
 	RoomPicture            *string
 
 	// LivingSpaceDetails
