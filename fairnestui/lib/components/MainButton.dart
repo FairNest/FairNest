@@ -15,7 +15,7 @@ class MainButton extends StatelessWidget {
   });
 
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed; // Changed to nullable
   final Color backgroundColor;
   final Color textColor;
   final double width;
@@ -30,18 +30,22 @@ class MainButton extends StatelessWidget {
       height: height,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
+          backgroundColor: onPressed == null
+              ? backgroundColor.withOpacity(0.6) // Disabled state
+              : backgroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
-          elevation: 6,
+          elevation: onPressed == null ? 2 : 6,
           shadowColor: Colors.black.withOpacity(0.25),
         ),
         onPressed: onPressed,
         child: Text(
           text,
           style: AppFonts.heading3.copyWith(
-            color: textColor,
+            color: onPressed == null
+                ? textColor.withOpacity(0.6) // Disabled text color
+                : textColor,
             fontWeight: fontWeight,
           ),
         ),
