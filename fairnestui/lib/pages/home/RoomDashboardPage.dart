@@ -6,6 +6,7 @@ import 'package:fairnestui/components/RoomCompatibilityCard.dart';
 import 'package:fairnestui/components/RoommateOverviewCard.dart';
 import 'package:fairnestui/components/YourProgressNowCard.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
+import 'package:fairnestui/util/EditHouseRules.dart';
 import 'package:fairnestui/widgets/TaskNavFolder.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
@@ -200,11 +201,20 @@ class _RoomDashContent extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 70, bottom: 15),
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final confirmed = await showEditHouseRulesDialog(context);
+
+                    // you can react to result here if needed
+                    if (confirmed == true) {
+                      debugPrint("User clicked Edit House Rule");
+                    } else {
+                      debugPrint("Dialog dismissed");
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.background, // cream bg
                     foregroundColor: AppColors.darkPurple, // text color
-                    elevation: 3, // remove shadow
+                    elevation: 3,
                     padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
                     shape: const StadiumBorder(
                       side: BorderSide(color: AppColors.primary, width: 1.5),

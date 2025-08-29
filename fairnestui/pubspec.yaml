@@ -33,6 +33,10 @@ dependencies:
 
   image_picker: ^1.0.7
   google_fonts: ^6.3.0
+  dio: ^5.4.0
+  
+  # Secure storage for tokens
+  flutter_secure_storage: ^9.0.0
 
 
   # The following adds the Cupertino Icons font to your application.

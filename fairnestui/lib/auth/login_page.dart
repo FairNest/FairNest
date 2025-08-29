@@ -1,7 +1,10 @@
 import 'package:fairnestui/auth/SignUpPage.dart';
+import 'package:fairnestui/shell/app_shell.dart' show AppShell;
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/components/MainButton.dart';
+import 'package:fairnestui/services/auth_service.dart';
+import 'package:fairnestui/services/storage_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, this.onTapRegister, this.onSubmit});
@@ -18,12 +21,68 @@ class _LoginPageState extends State<LoginPage> {
   final _emailCtrl = TextEditingController();
   final _pwCtrl = TextEditingController();
   bool _obscure = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _emailCtrl.dispose();
     _pwCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await AuthService.login(
+        email: _emailCtrl.text.trim(),
+        password: _pwCtrl.text,
+      );
+
+      // Store token and user data
+      await StorageService.saveToken(result['token']);
+      await StorageService.saveUserData({
+        'user_id': result['user_id'],
+        'email': result['email'],
+      });
+
+      if (mounted) {
+        // Call the original onSubmit callback if provided
+        widget.onSubmit?.call(_emailCtrl.text.trim(), _pwCtrl.text);
+
+        // Navigate to home or dashboard
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                const AppShell(initialIndex: 0), // start on dashboard tab
+          ),
+        );
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -51,7 +110,6 @@ class _LoginPageState extends State<LoginPage> {
                         fontSize: 22),
                   ),
                 ),
-                // const SizedBox(height: 80),
                 Expanded(
                   child: Container(
                     width: double.infinity,
@@ -83,6 +141,10 @@ class _LoginPageState extends State<LoginPage> {
                               if (v == null || v.trim().isEmpty) {
                                 return 'Email is required';
                               }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                  .hasMatch(v.trim())) {
+                                return 'Please enter a valid email';
+                              }
                               return null;
                             },
                           ),
@@ -110,28 +172,24 @@ class _LoginPageState extends State<LoginPage> {
                               if (v == null || v.isEmpty) {
                                 return 'Password is required';
                               }
+                              if (v.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
                               return null;
                             },
                           ),
 
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 45),
 
-                          // MainButton (reusable)
+                          // Login Button
                           MainButton(
-                            text: 'Log In',
+                            text: _isLoading ? 'Logging in...' : 'Log In',
                             backgroundColor: const Color(0xFFE8B86D),
                             textColor: const Color(0xFF000000),
                             width: double.infinity,
                             height: 52,
                             borderRadius: 12,
-                            onPressed: () {
-                              if (_formKey.currentState?.validate() ?? false) {
-                                widget.onSubmit?.call(
-                                  _emailCtrl.text.trim(),
-                                  _pwCtrl.text,
-                                );
-                              }
-                            },
+                            onPressed: _isLoading ? null : () => _handleLogin(),
                           ),
 
                           const SizedBox(height: 20),
@@ -177,6 +235,18 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ],
             ),
+
+            // Loading overlay
+            if (_isLoading)
+              Container(
+                color: Colors.black54,
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Color(0xFFE8B86D)),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -247,50 +317,16 @@ class _Input extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
+        ),
         suffixIcon: suffix,
       ),
-    );
-  }
-}
-
-class _Blob extends StatelessWidget {
-  const _Blob({
-    required this.color,
-    required this.width,
-    required this.height,
-    this.top,
-    this.left,
-    this.right,
-    this.bottom,
-    this.angle = 0,
-  });
-
-  final Color color;
-  final double width;
-  final double height;
-  final double? top, left, right, bottom;
-  final double angle;
-
-  @override
-  Widget build(BuildContext context) {
-    final child = Transform.rotate(
-      angle: angle,
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(60),
-        ),
-      ),
-    );
-
-    return Positioned(
-      top: top,
-      left: left,
-      right: right,
-      bottom: bottom,
-      child: child,
     );
   }
 }
