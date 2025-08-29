@@ -18,8 +18,8 @@ func NewLifestyleService(lifestyleRepo repository.LifestyleRepository) lifestyle
 	}
 }
 
-func (s lifestyleService) GetLifestyleByUserId(userid int) (*entities.Lifestyle, error) {
-	lifestyle, err := s.lifestyleRepo.GetLifestyleByUserId(userid)
+func (s lifestyleService) GetLifestyleByUserId(userId int) (*entities.Lifestyle, error) {
+	lifestyle, err := s.lifestyleRepo.GetLifestyleByUserId(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err

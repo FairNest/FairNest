@@ -13,9 +13,9 @@ func NewLifestyleRepositoryDB(db *gorm.DB) lifestyleRepositoryDB {
 	return lifestyleRepositoryDB{db: db}
 }
 
-func (r lifestyleRepositoryDB) GetLifestyleByUserId(userid int) (*entities.Lifestyle, error) {
+func (r lifestyleRepositoryDB) GetLifestyleByUserId(userId int) (*entities.Lifestyle, error) {
 	lifestyles := entities.Lifestyle{}
-	result := r.db.Where("user_id = ?", userid).Find(&lifestyles)
+	result := r.db.Where("user_id = ?", userId).Find(&lifestyles)
 	if result.Error != nil {
 		return nil, result.Error
 	}

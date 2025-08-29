@@ -61,8 +61,8 @@ func (s userService) FetchUsers() ([]entities.User, error) {
 	return userResponses, nil
 }
 
-func (s userService) GetUserByUserId(userid int) (*entities.User, error) {
-	user, err := s.userRepo.GetUserByUserId(userid)
+func (s userService) GetUserByUserId(userId int) (*entities.User, error) {
+	user, err := s.userRepo.GetUserByUserId(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -103,8 +103,8 @@ func (s userService) GetUserByUserId(userid int) (*entities.User, error) {
 	return &userResponse, nil
 }
 
-func (s userService) GetUserByToken(userid int) (*entities.User, error) {
-	user, err := s.userRepo.GetUserByToken(userid)
+func (s userService) GetUserByToken(userId int) (*entities.User, error) {
+	user, err := s.userRepo.GetUserByToken(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -143,8 +143,8 @@ func (s userService) GetUserByToken(userid int) (*entities.User, error) {
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-func (s userService) GetCurrentUser(userid int) (*entities.User, error) {
-	user, err := s.userRepo.GetCurrentUser(userid)
+func (s userService) GetCurrentUser(userId int) (*entities.User, error) {
+	user, err := s.userRepo.GetCurrentUser(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -169,8 +169,8 @@ func (s userService) GetCurrentUser(userid int) (*entities.User, error) {
 	return &userResponse, nil
 }
 
-func (s userService) GetProfileOfCurrentUserByUserId(userid int) (*entities.User, error) {
-	user, err := s.userRepo.GetProfileOfCurrentUserByUserId(userid)
+func (s userService) GetProfileOfCurrentUserByUserId(userId int) (*entities.User, error) {
+	user, err := s.userRepo.GetProfileOfCurrentUserByUserId(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -196,8 +196,8 @@ func (s userService) GetProfileOfCurrentUserByUserId(userid int) (*entities.User
 	return &userResponse, nil
 }
 
-func (s userService) GetEditUserProfileByUserId(userid int) (*entities.User, error) {
-	user, err := s.userRepo.GetEditUserProfileByUserId(userid)
+func (s userService) GetEditUserProfileByUserId(userId int) (*entities.User, error) {
+	user, err := s.userRepo.GetEditUserProfileByUserId(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -221,9 +221,9 @@ func (s userService) GetEditUserProfileByUserId(userid int) (*entities.User, err
 	return &userResponse, nil
 }
 
-func (s userService) PatchEditUserProfileByUserId(userid int, req dtos.EditUserProfileByUserIdRequest) (*entities.User, error) {
+func (s userService) PatchEditUserProfileByUserId(userId int, req dtos.EditUserProfileByUserIdRequest) (*entities.User, error) {
 	user := &entities.User{
-		UserID:      v.UintPtr(userid),
+		UserID:      v.UintPtr(userId),
 		Username:    req.Username,
 		Firstname:   req.Firstname,
 		Lastname:    req.Lastname,
