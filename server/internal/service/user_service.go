@@ -66,22 +66,6 @@ func (s userService) GetUserByUserId(userid int) (*entities.User, error) {
 		return nil, err
 	}
 
-	//if user.UserID == nil &&
-	//	user.Username == nil &&
-	//	user.Password == nil &&
-	//	user.Email == nil &&
-	//	user.Firstname == nil &&
-	//	user.Lastname == nil &&
-	//	user.PhoneNumber == nil &&
-	//	user.UserPicture == nil &&
-	//	user.UserAboutMe == nil &&
-	//	user.BankAccountNumber == nil &&
-	//	user.RoommateScore == nil &&
-	//	user.UserVerificationPicture == nil &&
-	//	user.UserIdentityDocumentNumber == nil {
-	//	return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
-	//}
-
 	if user.UserID == nil &&
 		user.Username == nil &&
 		user.Password == nil &&
@@ -90,7 +74,11 @@ func (s userService) GetUserByUserId(userid int) (*entities.User, error) {
 		user.Lastname == nil &&
 		user.PhoneNumber == nil &&
 		user.UserPicture == nil &&
-		user.UserAboutMe == nil {
+		user.UserAboutMe == nil &&
+		user.BankAccountNumber == nil &&
+		user.RoommateScore == nil &&
+		user.UserVerificationPicture == nil &&
+		user.UserIdentityDocumentNumber == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
 	}
 

@@ -77,11 +77,12 @@ type Room struct {
 	SplitCosts      *bool // "true = Equal split", "false = By usage/room size"
 
 	// Personality Averages
-	OpennessAvg          *float64
-	ConscientiousnessAvg *float64
-	ExtraversionAvg      *float64
-	AgreeablenessAvg     *float64
-	NeuroticismAvg       *float64
+	AvgTidiness       *float64
+	AvgNoiseActivity  *float64
+	AvgSchedule       *float64
+	AvgGuestFrequency *float64
+	AvgTaskStructure  *float64
+	AvgMoneyAttitude  *float64
 
 	// Relations
 	RoomMembers []RoomMember
