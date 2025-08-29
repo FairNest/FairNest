@@ -104,4 +104,12 @@ type CreateRoomByUserIdResponse struct {
 	HandleCleaning  *string `json:"handle_cleaning" validate:"required"`
 	SharedSpace     *string `json:"shared_space" validate:"required"`
 	SplitCosts      *bool   `json:"split_costs" validate:"required"`
+
+	// Personality Averages
+	AvgTidiness       *float64 `json:"avg_tidiness" validate:"required"`
+	AvgNoiseActivity  *float64 `json:"avg_noise_activity" validate:"required"`
+	AvgSchedule       *float64 `json:"avg_schedule" validate:"required"`
+	AvgGuestFrequency *float64 `json:"avg_guest_frequency" validate:"required"`
+	AvgTaskStructure  *float64 `json:"avg_task_structure" validate:"required"`
+	AvgMoneyAttitude  *float64 `json:"avg_money_attitude" validate:"required"`
 }

@@ -14,12 +14,14 @@ import (
 type roomService struct {
 	roomRepo       repository.RoomRepository
 	roomMemberRepo repository.RoomMemberRepository
+	lifestyleRepo  repository.LifestyleRepository
 }
 
-func NewRoomService(roomRepo repository.RoomRepository, roomMemberRepo repository.RoomMemberRepository) roomService {
+func NewRoomService(roomRepo repository.RoomRepository, roomMemberRepo repository.RoomMemberRepository, lifestyleRepo repository.LifestyleRepository) roomService {
 	return roomService{
 		roomRepo:       roomRepo,
 		roomMemberRepo: roomMemberRepo,
+		lifestyleRepo:  lifestyleRepo,
 	}
 }
 
@@ -101,6 +103,12 @@ func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUse
 			break
 		}
 	}
+	// Get user personality to set initial avg personality of the room
+	hostPeronality, err := s.lifestyleRepo.GetLifestyleByUserId(userId)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
 
 	room := entities.Room{
 		// RoomDetails
@@ -125,6 +133,14 @@ func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUse
 		HandleCleaning:  request.HandleCleaning,
 		SharedSpace:     request.SharedSpace,
 		SplitCosts:      request.SplitCosts,
+
+		// Personality Averages - set to host personality initially
+		AvgTidiness:       hostPeronality.UserTidiness,
+		AvgNoiseActivity:  hostPeronality.UserNoiseActivity,
+		AvgSchedule:       hostPeronality.UserSchedule,
+		AvgGuestFrequency: hostPeronality.UserGuestFrequency,
+		AvgTaskStructure:  hostPeronality.UserTaskStructure,
+		AvgMoneyAttitude:  hostPeronality.UserMoneyAttitude,
 	}
 
 	if err := s.roomRepo.CreateRoomByUserId(&room); err != nil {
@@ -165,5 +181,13 @@ func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUse
 		HandleCleaning:  room.HandleCleaning,
 		SharedSpace:     room.SharedSpace,
 		SplitCosts:      room.SplitCosts,
+
+		// Personality Averages - set to host personality initially
+		AvgTidiness:       room.AvgTidiness,
+		AvgNoiseActivity:  room.AvgNoiseActivity,
+		AvgSchedule:       room.AvgSchedule,
+		AvgGuestFrequency: room.AvgGuestFrequency,
+		AvgTaskStructure:  room.AvgTaskStructure,
+		AvgMoneyAttitude:  room.AvgMoneyAttitude,
 	}, nil
 }

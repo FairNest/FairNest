@@ -81,7 +81,7 @@ func main() {
 	userService := service.NewUserService(userRepositoryDB, jwtSecret, lifestyleRepositoryDB)
 	uploadService := service.NewUploadService(minioClient)
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
-	roomService := service.NewRoomService(roomRepositoryDB, roomMemberRepositoryDB)
+	roomService := service.NewRoomService(roomRepositoryDB, roomMemberRepositoryDB, lifestyleRepositoryDB)
 	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService)
