@@ -23,20 +23,20 @@ type User struct {
 }
 
 type Lifestyle struct {
-	LifestyleQuizID *uint `gorm:"primaryKey;autoIncrement"`
-	UserID          *uint `gorm:"uniqueIndex"` // one-to-one
-	Q1              *int
-	Q2              *int
-	Q3              *int
-	Q4              *int
-	Q5              *int
-	Q6              *int
-	Q7              *int
-	Q8              *int
-	Q9              *int
-	Q10             *int
-	Q11             *int
-	Q12             *int
+	LifestyleID *uint `gorm:"primaryKey;autoIncrement"`
+	UserID      *uint `gorm:"uniqueIndex"` // one-to-one
+	Q1          *int
+	Q2          *int
+	Q3          *int
+	Q4          *int
+	Q5          *int
+	Q6          *int
+	Q7          *int
+	Q8          *int
+	Q9          *int
+	Q10         *int
+	Q11         *int
+	Q12         *int
 
 	// Personality Traits
 	UserTidiness       *float64

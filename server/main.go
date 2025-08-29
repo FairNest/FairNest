@@ -75,13 +75,16 @@ func main() {
 
 	userRepositoryDB := repository.NewUserRepositoryDB(db)
 	roomRepositoryDB := repository.NewRoomRepositoryDB(db)
+	lifestyleRepositoryDB := repository.NewLifestyleRepositoryDB(db)
 
 	userService := service.NewUserService(userRepositoryDB, jwtSecret)
 	uploadService := service.NewUploadService(minioClient)
 	roomService := service.NewRoomService(roomRepositoryDB)
+	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService)
 	roomHandler := handler.NewRoomHandler(roomService)
+	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService)
 
 	app := fiber.New()
 
@@ -106,6 +109,8 @@ func main() {
 	app.Get("/GetUserByToken", userHandler.GetUserByToken) //#
 
 	app.Get("/FetchRooms", roomHandler.FetchRooms)
+
+	app.Get("/GetLifestyleByUserId/:UserID", lifestyleHandler.GetLifestyleByUserId)
 
 	app.Post("/upload", storageHandler.UploadFile)
 
