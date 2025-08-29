@@ -4,8 +4,6 @@ import 'package:fairnestui/widgets/LifestyleOverview.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:fairnestui/components/MainButton.dart';
-
-// ⬇️ If your file is named signup_page.dart, change this import accordingly.
 import 'package:fairnestui/auth/SignUpPage.dart' show SignUpData;
 
 class CompleteProfilePage extends StatefulWidget {
@@ -22,14 +20,7 @@ class CompleteProfilePage extends StatefulWidget {
       'assets/images/pikachu.png',
       'assets/images/poke.png',
     ],
-    this.metrics = const [
-      LifestyleMetric(kind: LifestyleMetricKind.tidiness, value: 0.82),
-      LifestyleMetric(kind: LifestyleMetricKind.noiseActivity, value: 0.45),
-      LifestyleMetric(kind: LifestyleMetricKind.schedule, value: 0.90),
-      LifestyleMetric(kind: LifestyleMetricKind.guestFrequency, value: 0.40),
-      LifestyleMetric(kind: LifestyleMetricKind.taskStructure, value: 0.95),
-      LifestyleMetric(kind: LifestyleMetricKind.moneyAttitude, value: 0.93),
-    ],
+    this.metrics, // ⬅️ optional: if provided by the quiz page we use it directly
   });
 
   final SignUpData signUpData;
@@ -39,7 +30,7 @@ class CompleteProfilePage extends StatefulWidget {
   final String initialUsername;
   final String initialBio;
   final List<String> avatarChoices;
-  final List<LifestyleMetric> metrics;
+  final List<LifestyleMetric>? metrics; // ⬅️ may come from LifestyleQuizPage
 
   @override
   State<CompleteProfilePage> createState() => _CompleteProfilePageState();
@@ -51,11 +42,23 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
   final _bioCtrl = TextEditingController();
   int? _selectedAvatarIndex; // 0..(avatarChoices.length - 1)
 
+  // The metrics actually rendered on this page.
+  late final List<LifestyleMetric> _metrics;
+
   @override
   void initState() {
     super.initState();
     _usernameCtrl.text = widget.initialUsername;
     _bioCtrl.text = widget.initialBio;
+
+    // Prefer incoming metrics from the quiz page; otherwise compute from answers.
+    _metrics = widget.metrics ?? _computeFromAnswers(widget.quizAnswers);
+
+    debugPrint('SignUpData: '
+        '${widget.signUpData.name}, ${widget.signUpData.email}, '
+        '${widget.signUpData.nationalIdOrPassport}, ${widget.signUpData.phoneNumber}');
+    debugPrint('Quiz answers (1..5): ${widget.quizAnswers}');
+    debugPrint('Computed/received metrics: $_metrics');
   }
 
   @override
@@ -63,6 +66,47 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
     _usernameCtrl.dispose();
     _bioCtrl.dispose();
     super.dispose();
+  }
+
+  // === Mapping Q1..Q12 (1..5) -> 6 Lifestyle metrics (0..1) ===
+  List<LifestyleMetric> _computeFromAnswers(Map<int, int> a) {
+    // All questions must exist; if you want extra safety add defaults.
+    double _avg(List<int> xs) =>
+        xs.isEmpty ? 0 : xs.reduce((p, c) => p + c) / xs.length;
+    double _norm(double v) => (v / 5.0).clamp(0.0, 1.0);
+
+    return [
+      // Tidiness Level: Q1, Q2
+      LifestyleMetric(
+        kind: LifestyleMetricKind.tidiness,
+        value: _norm(_avg([a[1]!, a[2]!])),
+      ),
+      // Noise & Activity: Q3, Q4
+      LifestyleMetric(
+        kind: LifestyleMetricKind.noiseActivity,
+        value: _norm(_avg([a[3]!, a[4]!])),
+      ),
+      // Schedule Type: Q5, Q6
+      LifestyleMetric(
+        kind: LifestyleMetricKind.schedule,
+        value: _norm(_avg([a[5]!, a[6]!])),
+      ),
+      // Guest Frequency: Q7, Q8
+      LifestyleMetric(
+        kind: LifestyleMetricKind.guestFrequency,
+        value: _norm(_avg([a[7]!, a[8]!])),
+      ),
+      // Task Structure: Q9, Q10
+      LifestyleMetric(
+        kind: LifestyleMetricKind.taskStructure,
+        value: _norm(_avg([a[9]!, a[10]!])),
+      ),
+      // Money Attitude: Q11, Q12
+      LifestyleMetric(
+        kind: LifestyleMetricKind.moneyAttitude,
+        value: _norm(_avg([a[11]!, a[12]!])),
+      ),
+    ];
   }
 
   void _submit() {
@@ -79,25 +123,16 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
       username: _usernameCtrl.text.trim(),
       bio: _bioCtrl.text.trim(),
       avatarAsset: widget.avatarChoices[_selectedAvatarIndex!],
-      metrics: widget.metrics,
-      // If you want, you can also copy signUpData/quizAnswers into this DTO.
+      metrics: _metrics, // ⬅️ use actual metrics
     );
-
-    // Debug: see everything you're about to submit
-    debugPrint('SignUpData: '
-        '${widget.signUpData.name}, ${widget.signUpData.email}, '
-        '${widget.signUpData.nationalIdOrPassport}, ${widget.signUpData.phoneNumber}');
-    debugPrint('Quiz answers (1..5): ${widget.quizAnswers}');
-    debugPrint(
-        'CompleteProfileData: ${data.username}, ${data.bio}, ${data.avatarAsset}');
 
     widget.onSubmit?.call(data);
 
-    // Success toast (and optionally navigate)
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Profile completed!')),
     );
-    // Navigator.pop(context); // or navigate to your app home
+    // Navigate to your app home if desired
+    // Navigator.pop(context);
   }
 
   @override
@@ -158,7 +193,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // LifestyleOverview inside small card-like container
+                            // LifestyleOverview inside card
                             Text(
                               'Lifestyle Overview',
                               style: AppFonts.heading3.copyWith(
@@ -177,7 +212,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
                               ),
                               padding: const EdgeInsets.all(10),
                               child: LifestyleOverview(
-                                metrics: widget.metrics,
+                                metrics: _metrics, // ⬅️ real values
                                 barHeight: 10,
                               ),
                             ),

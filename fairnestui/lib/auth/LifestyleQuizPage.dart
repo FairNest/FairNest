@@ -5,6 +5,7 @@ import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/auth/login_page.dart';
 import 'package:fairnestui/auth/SignUpPage.dart'
     show SignUpData; // or signup_page.dart
+import 'package:fairnestui/widgets/LifestyleOverview.dart';
 
 class LifestyleQuizPage extends StatefulWidget {
   const LifestyleQuizPage({
@@ -29,6 +30,32 @@ class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
     });
   }
 
+  List<LifestyleMetric> _computeMetrics(Map<int, int> a) {
+    double _avg(List<int> xs) =>
+        xs.isEmpty ? 0 : xs.reduce((p, c) => p + c) / xs.length;
+    double _norm(double v) => (v / 5.0).clamp(0.0, 1.0);
+
+    final tidiness = _norm(_avg([a[1]!, a[2]!])); // Q1,Q2
+    final noiseActivity = _norm(_avg([a[3]!, a[4]!])); // Q3,Q4
+    final schedule = _norm(_avg([a[5]!, a[6]!])); // Q5,Q6
+    final guestFrequency = _norm(_avg([a[7]!, a[8]!])); // Q7,Q8
+    final taskStructure = _norm(_avg([a[9]!, a[10]!])); // Q9,Q10
+    final moneyAttitude = _norm(_avg([a[11]!, a[12]!])); // Q11,Q12
+
+    return [
+      LifestyleMetric(kind: LifestyleMetricKind.tidiness, value: tidiness),
+      LifestyleMetric(
+          kind: LifestyleMetricKind.noiseActivity, value: noiseActivity),
+      LifestyleMetric(kind: LifestyleMetricKind.schedule, value: schedule),
+      LifestyleMetric(
+          kind: LifestyleMetricKind.guestFrequency, value: guestFrequency),
+      LifestyleMetric(
+          kind: LifestyleMetricKind.taskStructure, value: taskStructure),
+      LifestyleMetric(
+          kind: LifestyleMetricKind.moneyAttitude, value: moneyAttitude),
+    ];
+  }
+
   void _next() {
     if (answers.length < 12) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -42,12 +69,15 @@ class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
       return;
     }
 
+    final metrics = _computeMetrics(answers);
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => CompleteProfilePage(
           signUpData: widget.signUpData,
           quizAnswers: answers,
+          metrics: metrics,
         ),
       ),
     );
