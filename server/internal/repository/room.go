@@ -9,5 +9,5 @@ type RoomRepository interface {
 	ExistsByCode(code string) (bool, error) // To check if room code already exists
 
 	FetchAllPublicRoom() ([]entities.Room, error)
-	FetchAllMyRoom(userID uint) ([]entities.Room, error)
+	FetchAllMyRoom(userId int) ([]entities.Room, error)
 }

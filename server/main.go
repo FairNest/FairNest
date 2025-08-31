@@ -137,6 +137,7 @@ func main() {
 	app.Post("/CreateRoomByUserId/:UserID", roomHandler.CreateRoomByUserId)
 
 	app.Get("/FetchAllPublicRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FetchAllPublicRoomSuitUserLifestyleByUserId)
+	app.Get("/FetchAllMyRoomByUserId/:UserID", roomHandler.FetchAllMyRoomByUserId)
 
 	//#####################################################################################
 
