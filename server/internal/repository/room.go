@@ -7,4 +7,5 @@ type RoomRepository interface {
 	////////////////////////////////////////////////////////////////
 	CreateRoomByUserId(room *entities.Room) error
 	ExistsByCode(code string) (bool, error) // To check if room code already exists
+
 }

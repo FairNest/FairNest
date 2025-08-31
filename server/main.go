@@ -134,6 +134,8 @@ func main() {
 
 	app.Post("/CreateRoomByUserId/:UserID", roomHandler.CreateRoomByUserId)
 
+	app.Get("/FetchAllRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FetchAllRoomSuitUserLifestyleByUserId)
+
 	//#####################################################################################
 
 	log.Printf("FairNest running at port:  %v", viper.GetInt("app.port"))

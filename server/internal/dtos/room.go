@@ -97,9 +97,8 @@ type CreateRoomByUserIdResponse struct {
 }
 
 type FetchAllRoomWithRoomMembersResponse struct {
-	RoomID *uint `json:"room_id" validate:"required"`
-
 	// RoomDetails
+	RoomID                 *uint   `json:"room_id" validate:"required"`
 	RoomName               *string `json:"room_name" validate:"required" `
 	RoomType               *bool   `json:"room_type" validate:"required"`
 	RoomMaxCapacity        *int    `json:"room_max_capacity" validate:"required"`
@@ -133,4 +132,19 @@ type FetchAllRoomWithRoomMembersResponse struct {
 
 	// Members
 	Members []FetchAllRoomMemberWithUserDetailsByRoomIdResponse `json:"members" validate:"required"`
+}
+
+type FetchAllRoomSuitUserLifestyleByUserIdResponse struct {
+	RoomID                 *uint   `json:"room_id" validate:"required"`
+	RoomName               *string `json:"room_name" validate:"required" `
+	RoomType               *bool   `json:"room_type" validate:"required"`
+	RoomMaxCapacity        *int    `json:"room_max_capacity" validate:"required"`
+	RoomCurrentCapacity    *int    `json:"room_current_capacity" validate:"required"`
+	RoomDescription        *string `json:"room_description" validate:"required"`
+	RoomCode               *string `json:"room_code" validate:"required"`
+	RoomCompatibilityScore *int    `json:"room_compatibility_score" validate:"required"`
+	RoomPicture            *string `json:"room_picture" validate:"required"`
+
+	// New field
+	CompatibilityPercent *float64 `json:"compatibility_percent"`
 }

@@ -8,6 +8,7 @@ import (
 	"fairnest/internal/utils/v"
 	"log"
 	"math/rand"
+	"sort"
 	"time"
 )
 
@@ -68,6 +69,63 @@ func (s roomService) FetchAllRoom() ([]entities.Room, error) {
 		roomResponses = append(roomResponses, roomResponse)
 	}
 	return roomResponses, nil
+}
+
+func (s roomService) FetchAllRoomWithRoomMembersDetails() ([]dtos.FetchAllRoomWithRoomMembersResponse, error) {
+	// Step 1: get all rooms
+	rooms, err := s.roomRepo.FetchAllRoom()
+	if err != nil {
+		return nil, err
+	}
+
+	// Step 2: build response per room
+	responses := make([]dtos.FetchAllRoomWithRoomMembersResponse, 0, len(rooms))
+	for _, r := range rooms {
+		// call RoomMemberService instead of repo
+		members, err := s.roomMemberSer.FetchAllRoomMemberWithUserDetailsByRoomId(v.UintToInt(v.UintValue(r.RoomID)))
+		if err != nil {
+			return nil, err
+		}
+
+		responses = append(responses, dtos.FetchAllRoomWithRoomMembersResponse{
+			// RoomDetails
+			RoomID:                 r.RoomID,
+			RoomName:               r.RoomName,
+			RoomType:               r.RoomType,
+			RoomMaxCapacity:        r.RoomMaxCapacity,
+			RoomCurrentCapacity:    r.RoomCurrentCapacity,
+			RoomDescription:        r.RoomDescription,
+			RoomCode:               r.RoomCode,
+			RoomCompatibilityScore: r.RoomCompatibilityScore,
+			RoomPicture:            r.RoomPicture,
+
+			// LivingSpaceDetails
+			LivingSpaceName:        r.LivingSpaceName,
+			RentCost:               r.RentCost,
+			ElectricityCostPerUnit: r.ElectricityCostPerUnit,
+			WaterCostPerUnit:       r.WaterCostPerUnit,
+			OtherUtilityDetails:    r.OtherUtilityDetails,
+
+			//// RoommateAgreements
+			QuietHoursStart: r.QuietHoursStart,
+			GuestStayOver:   r.GuestStayOver,
+			HandleCleaning:  r.HandleCleaning,
+			SharedSpace:     r.SharedSpace,
+			SplitCosts:      r.SplitCosts,
+
+			//// Personality Averages
+			AvgTidiness:       r.AvgTidiness,
+			AvgNoiseActivity:  r.AvgNoiseActivity,
+			AvgSchedule:       r.AvgSchedule,
+			AvgGuestFrequency: r.AvgGuestFrequency,
+			AvgTaskStructure:  r.AvgTaskStructure,
+			AvgMoneyAttitude:  r.AvgMoneyAttitude,
+
+			Members: members,
+		})
+	}
+
+	return responses, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,24 +245,25 @@ func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUse
 	}, nil
 }
 
-func (s roomService) FetchAllRoomWithRoomMembersDetails() ([]dtos.FetchAllRoomWithRoomMembersResponse, error) {
-	// Step 1: get all rooms
+func (s roomService) FetchAllRoomSuitUserLifestyleByUserId(userId int) ([]dtos.FetchAllRoomSuitUserLifestyleByUserIdResponse, error) {
+	// Step 1: fetch all rooms
 	rooms, err := s.roomRepo.FetchAllRoom()
 	if err != nil {
 		return nil, err
 	}
 
-	// Step 2: build response per room
-	responses := make([]dtos.FetchAllRoomWithRoomMembersResponse, 0, len(rooms))
-	for _, r := range rooms {
-		// call RoomMemberService instead of repo
-		members, err := s.roomMemberSer.FetchAllRoomMemberWithUserDetailsByRoomId(v.UintToInt(v.UintValue(r.RoomID)))
-		if err != nil {
-			return nil, err
-		}
+	// Step 2: fetch user lifestyle
+	userLifestyle, err := s.lifestyleSer.GetUserLifestyleByUserId(userId)
+	if err != nil {
+		return nil, err
+	}
 
-		responses = append(responses, dtos.FetchAllRoomWithRoomMembersResponse{
-			// RoomDetails
+	// Step 3: calculate compatibility for each room
+	responses := make([]dtos.FetchAllRoomSuitUserLifestyleByUserIdResponse, 0, len(rooms))
+	for _, r := range rooms {
+		percent := utils.CalculateCompatibility(*userLifestyle, r)
+
+		responses = append(responses, dtos.FetchAllRoomSuitUserLifestyleByUserIdResponse{
 			RoomID:                 r.RoomID,
 			RoomName:               r.RoomName,
 			RoomType:               r.RoomType,
@@ -214,32 +273,13 @@ func (s roomService) FetchAllRoomWithRoomMembersDetails() ([]dtos.FetchAllRoomWi
 			RoomCode:               r.RoomCode,
 			RoomCompatibilityScore: r.RoomCompatibilityScore,
 			RoomPicture:            r.RoomPicture,
-
-			// LivingSpaceDetails
-			LivingSpaceName:        r.LivingSpaceName,
-			RentCost:               r.RentCost,
-			ElectricityCostPerUnit: r.ElectricityCostPerUnit,
-			WaterCostPerUnit:       r.WaterCostPerUnit,
-			OtherUtilityDetails:    r.OtherUtilityDetails,
-
-			//// RoommateAgreements
-			QuietHoursStart: r.QuietHoursStart,
-			GuestStayOver:   r.GuestStayOver,
-			HandleCleaning:  r.HandleCleaning,
-			SharedSpace:     r.SharedSpace,
-			SplitCosts:      r.SplitCosts,
-
-			//// Personality Averages
-			AvgTidiness:       r.AvgTidiness,
-			AvgNoiseActivity:  r.AvgNoiseActivity,
-			AvgSchedule:       r.AvgSchedule,
-			AvgGuestFrequency: r.AvgGuestFrequency,
-			AvgTaskStructure:  r.AvgTaskStructure,
-			AvgMoneyAttitude:  r.AvgMoneyAttitude,
-
-			Members: members,
+			CompatibilityPercent:   v.Ptr(percent),
 		})
 	}
 
+	// Step 4: sort by compatibility descending
+	sort.Slice(responses, func(i, j int) bool {
+		return v.FloatValue(responses[i].CompatibilityPercent) > v.FloatValue(responses[j].CompatibilityPercent)
+	})
 	return responses, nil
 }

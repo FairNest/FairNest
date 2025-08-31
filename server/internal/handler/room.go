@@ -83,3 +83,14 @@ func (h *roomHandler) FetchAllRoomWithRoomMembersDetails(c *fiber.Ctx) error {
 
 	return c.JSON(roomsResponse)
 }
+
+func (h *roomHandler) FetchAllRoomSuitUserLifestyleByUserId(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+
+	rooms, err := h.roomSer.FetchAllRoomSuitUserLifestyleByUserId(userIDReceive)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(rooms)
+}

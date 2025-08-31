@@ -68,3 +68,10 @@ func ByteSlice(s *string) []byte {
 	}
 	return []byte(*s)
 }
+
+func FloatValue(f *float64) float64 {
+	if f == nil {
+		return 0
+	}
+	return *f
+}

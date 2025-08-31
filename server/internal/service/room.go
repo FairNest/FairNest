@@ -8,10 +8,12 @@ import (
 type RoomService interface {
 	FetchAllRoom() ([]entities.Room, error)
 
-	// ----------------------------------------------------------------------------------------
-
 	FetchAllRoomWithRoomMembersDetails() ([]dtos.FetchAllRoomWithRoomMembersResponse, error)
 	//GetRoomByRoomId(int) (*entities.Room, error)
+
+	//------------------------------------------------------------------------------------------------------
+
+	FetchAllRoomSuitUserLifestyleByUserId(int) ([]dtos.FetchAllRoomSuitUserLifestyleByUserIdResponse, error)
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 
