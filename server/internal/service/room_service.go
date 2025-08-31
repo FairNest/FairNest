@@ -70,6 +70,81 @@ func (s roomService) FetchAllRoom() ([]entities.Room, error) {
 	return roomResponses, nil
 }
 
+// ----------------------------------------------------------------------------------------
+
+//func (s *roomService) FetchAllRoomWithRoomMembers() ([]dtos.FetchAllRoomWithRoomMembersResponse, error) {
+//	// step 1: fetch all rooms
+//	rooms, err := s.roomRepo.FetchAllRoom()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	var result []dtos.FetchAllRoomWithRoomMembersResponse
+//
+//	// step 2: loop rooms and fetch members per room
+//	for _, room := range rooms {
+//		members, err := s.roomMemberSer.FetchAllRoomMemberByRoomId(v.IntValue(v.UintToIntPtr(room.RoomID)))
+//		if err != nil {
+//			return nil, err
+//		}
+//
+//		// step 3: map into response
+//		resp := dtos.FetchAllRoomWithRoomMembersResponse{
+//			RoomID:                 room.RoomID,
+//			RoomName:               room.RoomName,
+//			RoomType:               room.RoomType,
+//			RoomMaxCapacity:        room.RoomMaxCapacity,
+//			RoomCurrentCapacity:    room.RoomCurrentCapacity,
+//			RoomDescription:        room.RoomDescription,
+//			RoomCode:               room.RoomCode,
+//			RoomCompatibilityScore: room.RoomCompatibilityScore,
+//			RoomPicture:            room.RoomPicture,
+//
+//			LivingSpaceName:        room.LivingSpaceName,
+//			RentCost:               room.RentCost,
+//			ElectricityCostPerUnit: room.ElectricityCostPerUnit,
+//			WaterCostPerUnit:       room.WaterCostPerUnit,
+//			OtherUtilityDetails:    room.OtherUtilityDetails,
+//
+//			QuietHoursStart: room.QuietHoursStart,
+//			GuestStayOver:   room.GuestStayOver,
+//			HandleCleaning:  room.HandleCleaning,
+//			SharedSpace:     room.SharedSpace,
+//			SplitCosts:      room.SplitCosts,
+//
+//			AvgTidiness:       room.AvgTidiness,
+//			AvgNoiseActivity:  room.AvgNoiseActivity,
+//			AvgSchedule:       room.AvgSchedule,
+//			AvgGuestFrequency: room.AvgGuestFrequency,
+//			AvgTaskStructure:  room.AvgTaskStructure,
+//			AvgMoneyAttitude:  room.AvgMoneyAttitude,
+//
+//			Members: []dtos.RoomMembersInRoomResponse{},
+//		}
+//
+//		// step 4: map members
+//		for _, m := range members {
+//			resp.Members = append(resp.Members, dtos.RoomMembersInRoomResponse{
+//				RoomMemberID: m.RoomMemberID,
+//				UserID:       m.UserID,
+//				IsHost:       m.IsHost,
+//
+//				Username:    m.Username,
+//				Email:       m.Email,
+//				Firstname:   m.Firstname,
+//				Lastname:    m.Lastname,
+//				PhoneNumber: m.PhoneNumber,
+//				UserPicture: m.UserPicture,
+//				UserAboutMe: m.UserAboutMe,
+//			})
+//		}
+//
+//		result = append(result, resp)
+//	}
+//
+//	return result, nil
+//}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUserIdRequest) (*dtos.CreateRoomByUserIdResponse, error) {

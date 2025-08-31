@@ -91,8 +91,8 @@ type Room struct {
 
 type RoomMember struct {
 	RoomMemberID *uint `gorm:"primaryKey;autoIncrement"`
-	UserID       *uint `gorm:"not null;uniqueIndex:idx_user_room"`
 	RoomID       *uint `gorm:"not null;uniqueIndex:idx_user_room"`
+	UserID       *uint `gorm:"not null;uniqueIndex:idx_user_room"`
 	IsHost       *bool // "true = Host", "false = Member"
 
 	// Relations
