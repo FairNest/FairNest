@@ -25,8 +25,8 @@ func (h *roomHandler) FetchAllRoom(c *fiber.Ctx) error {
 
 	for _, room := range rooms {
 		roomsResponse = append(roomsResponse, dtos.RoomDataResponse{
-			RoomID: room.RoomID,
 			// RoomDetails
+			RoomID:                 room.RoomID,
 			RoomName:               room.RoomName,
 			RoomType:               room.RoomType,
 			RoomMaxCapacity:        room.RoomMaxCapacity,
@@ -117,4 +117,90 @@ func (h *roomHandler) GetMyRoomByUserId(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(room)
+}
+
+func (h *roomHandler) GetRoomDetailsByRoomId(c *fiber.Ctx) error {
+	roomIDReceive, err := strconv.Atoi(c.Params("RoomID"))
+
+	room, err := h.roomSer.GetRoomDetailsByRoomId(roomIDReceive)
+	if err != nil {
+		return err
+	}
+
+	roomResponse := dtos.GetRoomDetailsByRoomIdResponse{
+		// RoomDetails
+		RoomID:                 room.RoomID,
+		RoomName:               room.RoomName,
+		RoomType:               room.RoomType,
+		RoomMaxCapacity:        room.RoomMaxCapacity,
+		RoomCurrentCapacity:    room.RoomCurrentCapacity,
+		RoomDescription:        room.RoomDescription,
+		RoomCode:               room.RoomCode,
+		RoomCompatibilityScore: room.RoomCompatibilityScore,
+		RoomPicture:            room.RoomPicture,
+		// LivingSpaceDetails
+		LivingSpaceName:        room.LivingSpaceName,
+		RentCost:               room.RentCost,
+		ElectricityCostPerUnit: room.ElectricityCostPerUnit,
+		WaterCostPerUnit:       room.WaterCostPerUnit,
+		OtherUtilityDetails:    room.OtherUtilityDetails,
+		// RoommateAgreements
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
+		// Personality Averages
+		AvgTidiness:       room.AvgTidiness,
+		AvgNoiseActivity:  room.AvgNoiseActivity,
+		AvgSchedule:       room.AvgSchedule,
+		AvgGuestFrequency: room.AvgGuestFrequency,
+		AvgTaskStructure:  room.AvgTaskStructure,
+		AvgMoneyAttitude:  room.AvgMoneyAttitude,
+	}
+
+	return c.JSON(roomResponse)
+}
+
+func (h *roomHandler) GetRoomDetailsByRoomCode(c *fiber.Ctx) error {
+	roomCodeReceive := c.Params("RoomCode")
+
+	room, err := h.roomSer.GetRoomDetailsByRoomCode(roomCodeReceive)
+	if err != nil {
+		return err
+	}
+
+	roomResponse := dtos.GetRoomDetailsByRoomCodeResponse{
+		// RoomDetails
+		RoomID:                 room.RoomID,
+		RoomName:               room.RoomName,
+		RoomType:               room.RoomType,
+		RoomMaxCapacity:        room.RoomMaxCapacity,
+		RoomCurrentCapacity:    room.RoomCurrentCapacity,
+		RoomDescription:        room.RoomDescription,
+		RoomCode:               room.RoomCode,
+		RoomCompatibilityScore: room.RoomCompatibilityScore,
+		RoomPicture:            room.RoomPicture,
+		// LivingSpaceDetails
+		LivingSpaceName:        room.LivingSpaceName,
+		RentCost:               room.RentCost,
+		ElectricityCostPerUnit: room.ElectricityCostPerUnit,
+		WaterCostPerUnit:       room.WaterCostPerUnit,
+		OtherUtilityDetails:    room.OtherUtilityDetails,
+		// RoommateAgreements
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
+		// Personality Averages
+		AvgTidiness:       room.AvgTidiness,
+		AvgNoiseActivity:  room.AvgNoiseActivity,
+		AvgSchedule:       room.AvgSchedule,
+		AvgGuestFrequency: room.AvgGuestFrequency,
+		AvgTaskStructure:  room.AvgTaskStructure,
+		AvgMoneyAttitude:  room.AvgMoneyAttitude,
+	}
+
+	return c.JSON(roomResponse)
 }

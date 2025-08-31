@@ -10,4 +10,7 @@ type RoomRepository interface {
 
 	FetchAllPublicRoom() ([]entities.Room, error)
 	GetMyRoomByUserId(userId int) (*entities.Room, error)
+
+	GetRoomDetailsByRoomId(roomId int) (*entities.Room, error)
+	GetRoomDetailsByRoomCode(roomCode string) (*entities.Room, error)
 }

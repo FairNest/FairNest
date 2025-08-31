@@ -6,6 +6,7 @@ import (
 	"fairnest/internal/repository"
 	"fairnest/internal/utils"
 	"fairnest/internal/utils/v"
+	"github.com/gofiber/fiber/v2"
 	"log"
 	"math/rand"
 	"sort"
@@ -354,4 +355,148 @@ func (s roomService) GetMyRoomByUserId(userId int) (*dtos.GetMyRoomByUserIdRespo
 	}
 
 	return response, nil
+}
+
+func (s roomService) GetRoomDetailsByRoomId(roomId int) (*entities.Room, error) {
+	room, err := s.roomRepo.GetRoomDetailsByRoomId(roomId)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if room.RoomID == nil &&
+		room.RoomName == nil &&
+		room.RoomType == nil &&
+		room.RoomMaxCapacity == nil &&
+		room.RoomCurrentCapacity == nil &&
+		//room.RoomDescription == nil &&
+		room.RoomCode == nil &&
+		room.RoomCompatibilityScore == nil &&
+		room.RoomPicture == nil &&
+		// LivingSpaceDetails
+		room.LivingSpaceName == nil &&
+		room.RentCost == nil &&
+		room.ElectricityCostPerUnit == nil &&
+		room.WaterCostPerUnit == nil &&
+		room.OtherUtilityDetails == nil &&
+		// RoommateAgreements
+		room.QuietHoursStart == nil &&
+		room.GuestStayOver == nil &&
+		room.HandleCleaning == nil &&
+		room.SharedSpace == nil &&
+		room.SplitCosts == nil &&
+		// Personality Averages
+		room.AvgTidiness == nil &&
+		room.AvgNoiseActivity == nil &&
+		room.AvgSchedule == nil &&
+		room.AvgGuestFrequency == nil &&
+		room.AvgTaskStructure == nil &&
+		room.AvgMoneyAttitude == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "room details data is not found")
+	}
+
+	roomResponse := entities.Room{
+		RoomID:                 room.RoomID,
+		RoomName:               room.RoomName,
+		RoomType:               room.RoomType,
+		RoomMaxCapacity:        room.RoomMaxCapacity,
+		RoomCurrentCapacity:    room.RoomCurrentCapacity,
+		RoomDescription:        room.RoomDescription,
+		RoomCode:               room.RoomCode,
+		RoomCompatibilityScore: room.RoomCompatibilityScore,
+		RoomPicture:            room.RoomPicture,
+		// LivingSpaceDetails
+		LivingSpaceName:        room.LivingSpaceName,
+		RentCost:               room.RentCost,
+		ElectricityCostPerUnit: room.ElectricityCostPerUnit,
+		WaterCostPerUnit:       room.WaterCostPerUnit,
+		OtherUtilityDetails:    room.OtherUtilityDetails,
+		// RoommateAgreements
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
+		// Personality Averages
+		AvgTidiness:       room.AvgTidiness,
+		AvgNoiseActivity:  room.AvgNoiseActivity,
+		AvgSchedule:       room.AvgSchedule,
+		AvgGuestFrequency: room.AvgGuestFrequency,
+		AvgTaskStructure:  room.AvgTaskStructure,
+		AvgMoneyAttitude:  room.AvgMoneyAttitude,
+	}
+
+	return &roomResponse, nil
+}
+
+func (s roomService) GetRoomDetailsByRoomCode(roomCode string) (*entities.Room, error) {
+	room, err := s.roomRepo.GetRoomDetailsByRoomCode(roomCode)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if room.RoomID == nil &&
+		room.RoomName == nil &&
+		room.RoomType == nil &&
+		room.RoomMaxCapacity == nil &&
+		room.RoomCurrentCapacity == nil &&
+		//room.RoomDescription == nil &&
+		room.RoomCode == nil &&
+		room.RoomCompatibilityScore == nil &&
+		room.RoomPicture == nil &&
+		// LivingSpaceDetails
+		room.LivingSpaceName == nil &&
+		room.RentCost == nil &&
+		room.ElectricityCostPerUnit == nil &&
+		room.WaterCostPerUnit == nil &&
+		room.OtherUtilityDetails == nil &&
+		// RoommateAgreements
+		room.QuietHoursStart == nil &&
+		room.GuestStayOver == nil &&
+		room.HandleCleaning == nil &&
+		room.SharedSpace == nil &&
+		room.SplitCosts == nil &&
+		// Personality Averages
+		room.AvgTidiness == nil &&
+		room.AvgNoiseActivity == nil &&
+		room.AvgSchedule == nil &&
+		room.AvgGuestFrequency == nil &&
+		room.AvgTaskStructure == nil &&
+		room.AvgMoneyAttitude == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "room details data is not found")
+	}
+
+	roomResponse := entities.Room{
+		RoomID:                 room.RoomID,
+		RoomName:               room.RoomName,
+		RoomType:               room.RoomType,
+		RoomMaxCapacity:        room.RoomMaxCapacity,
+		RoomCurrentCapacity:    room.RoomCurrentCapacity,
+		RoomDescription:        room.RoomDescription,
+		RoomCode:               room.RoomCode,
+		RoomCompatibilityScore: room.RoomCompatibilityScore,
+		RoomPicture:            room.RoomPicture,
+		// LivingSpaceDetails
+		LivingSpaceName:        room.LivingSpaceName,
+		RentCost:               room.RentCost,
+		ElectricityCostPerUnit: room.ElectricityCostPerUnit,
+		WaterCostPerUnit:       room.WaterCostPerUnit,
+		OtherUtilityDetails:    room.OtherUtilityDetails,
+		// RoommateAgreements
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
+		// Personality Averages
+		AvgTidiness:       room.AvgTidiness,
+		AvgNoiseActivity:  room.AvgNoiseActivity,
+		AvgSchedule:       room.AvgSchedule,
+		AvgGuestFrequency: room.AvgGuestFrequency,
+		AvgTaskStructure:  room.AvgTaskStructure,
+		AvgMoneyAttitude:  room.AvgMoneyAttitude,
+	}
+
+	return &roomResponse, nil
 }

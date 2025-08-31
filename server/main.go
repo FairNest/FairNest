@@ -139,6 +139,9 @@ func main() {
 	app.Get("/FetchAllPublicRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FetchAllPublicRoomSuitUserLifestyleByUserId)
 	app.Get("/GetMyRoomByUserId/:UserID", roomHandler.GetMyRoomByUserId)
 
+	app.Get("/GetRoomDetailsByRoomId/:RoomID", roomHandler.GetRoomDetailsByRoomId)
+	app.Get("/GetRoomDetailsByRoomCode/:RoomCode", roomHandler.GetRoomDetailsByRoomCode)
+
 	//#####################################################################################
 
 	log.Printf("FairNest running at port:  %v", viper.GetInt("app.port"))
