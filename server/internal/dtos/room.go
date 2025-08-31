@@ -164,7 +164,7 @@ type FetchAllPublicRoomSuitUserLifestyleByUserIdResponse struct {
 	CompatibilityPercent *float64 `json:"compatibility_percent"`
 }
 
-type FetchAllMyRoomByUserIdResponse struct {
+type GetMyRoomByUserIdResponse struct {
 	RoomID                 *uint   `json:"room_id" validate:"required"`
 	RoomName               *string `json:"room_name" validate:"required" `
 	RoomType               *bool   `json:"room_type" validate:"required"`

@@ -47,16 +47,16 @@ func (r roomRepositoryDB) FetchAllPublicRoom() ([]entities.Room, error) {
 	return rooms, nil
 }
 
-func (r roomRepositoryDB) FetchAllMyRoom(userId int) ([]entities.Room, error) {
-	var rooms []entities.Room
+func (r roomRepositoryDB) GetMyRoomByUserId(userId int) (*entities.Room, error) {
+	room := entities.Room{}
 
 	result := r.db.
 		Joins("JOIN room_members ON room_members.room_id = rooms.room_id").
 		Where("room_members.user_id = ? AND room_members.is_host = ?", userId, true).
-		Find(&rooms)
+		First(&room) // <- first matching row
 
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return rooms, nil
+	return &room, nil
 }

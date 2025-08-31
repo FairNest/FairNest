@@ -323,9 +323,9 @@ func (s roomService) FetchAllPublicRoomSuitUserLifestyleByUserId(userId int) ([]
 	return responses, nil
 }
 
-func (s roomService) FetchAllMyRoomByUserId(userId int) ([]dtos.FetchAllMyRoomByUserIdResponse, error) {
-	// Step 1: fetch all rooms
-	rooms, err := s.roomRepo.FetchAllMyRoom(userId)
+func (s roomService) GetMyRoomByUserId(userId int) (*dtos.GetMyRoomByUserIdResponse, error) {
+	// Step 1: fetch room
+	room, err := s.roomRepo.GetMyRoomByUserId(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -336,28 +336,22 @@ func (s roomService) FetchAllMyRoomByUserId(userId int) ([]dtos.FetchAllMyRoomBy
 		return nil, err
 	}
 
-	// Step 3: calculate compatibility for each room
-	responses := make([]dtos.FetchAllMyRoomByUserIdResponse, 0, len(rooms))
-	for _, r := range rooms {
-		percent := utils.CalculateCompatibility(*userLifestyle, r)
+	// Step 3: calculate compatibility
+	percent := utils.CalculateCompatibility(*userLifestyle, *room)
 
-		responses = append(responses, dtos.FetchAllMyRoomByUserIdResponse{
-			RoomID:                 r.RoomID,
-			RoomName:               r.RoomName,
-			RoomType:               r.RoomType,
-			RoomMaxCapacity:        r.RoomMaxCapacity,
-			RoomCurrentCapacity:    r.RoomCurrentCapacity,
-			RoomDescription:        r.RoomDescription,
-			RoomCode:               r.RoomCode,
-			RoomCompatibilityScore: r.RoomCompatibilityScore,
-			RoomPicture:            r.RoomPicture,
-			CompatibilityPercent:   v.Ptr(percent),
-		})
+	// Step 4: build response
+	response := &dtos.GetMyRoomByUserIdResponse{
+		RoomID:                 room.RoomID,
+		RoomName:               room.RoomName,
+		RoomType:               room.RoomType,
+		RoomMaxCapacity:        room.RoomMaxCapacity,
+		RoomCurrentCapacity:    room.RoomCurrentCapacity,
+		RoomDescription:        room.RoomDescription,
+		RoomCode:               room.RoomCode,
+		RoomCompatibilityScore: room.RoomCompatibilityScore,
+		RoomPicture:            room.RoomPicture,
+		CompatibilityPercent:   v.Ptr(percent),
 	}
 
-	// Step 4: sort by compatibility descending
-	sort.Slice(responses, func(i, j int) bool {
-		return v.FloatValue(responses[i].CompatibilityPercent) > v.FloatValue(responses[j].CompatibilityPercent)
-	})
-	return responses, nil
+	return response, nil
 }
