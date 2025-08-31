@@ -74,3 +74,12 @@ func (h *roomHandler) CreateRoomByUserId(c *fiber.Ctx) error {
 
 	return c.JSON(room)
 }
+
+func (h *roomHandler) FetchAllRoomWithRoomMembersDetails(c *fiber.Ctx) error {
+	roomsResponse, err := h.roomSer.FetchAllRoomWithRoomMembersDetails()
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(roomsResponse)
+}

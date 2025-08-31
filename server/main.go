@@ -117,6 +117,7 @@ func main() {
 
 	app.Get("/FetchAllRoomMemberByRoomId/:RoomID", roomMemberHandler.FetchAllRoomMemberByRoomId)
 	app.Get("/FetchAllRoomMemberWithUserDetailsByRoomId/:RoomID", roomMemberHandler.FetchAllRoomMemberWithUserDetailsByRoomId)
+	app.Get("/FetchAllRoomWithRoomMembersDetails", roomHandler.FetchAllRoomWithRoomMembersDetails)
 
 	app.Post("/upload", storageHandler.UploadFile)
 
