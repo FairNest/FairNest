@@ -3,8 +3,13 @@ import 'package:fairnestui/components/MainButton.dart';
 import 'package:fairnestui/pages/room_creation/RoommateAgreement.dart';
 import 'package:fairnestui/widgets/app_header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
+
+// NEW: Provider + controller (use the controller's CreateLivingSetupData)
+import 'package:provider/provider.dart';
+import 'package:fairnestui/pages/room_creation/room_creation_controller.dart';
 
 class CreateLivingSetup extends StatefulWidget {
   const CreateLivingSetup({super.key, this.onSubmit});
@@ -25,6 +30,24 @@ class _CreateLivingSetupState extends State<CreateLivingSetup> {
   final _otherCtrl = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Prefill from controller so the user doesn't lose progress
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final c = context.read<RoomCreationController>();
+      final s = c.living;
+      if (s != null) {
+        _spaceNameCtrl.text = s.livingSpaceName;
+        _rentCtrl.text = s.rentCost.toString();
+        _electricCtrl.text = s.electricityCostPerUnit.toString();
+        _waterCtrl.text = s.waterCostPerUnit.toString();
+        _otherCtrl.text = s.otherUtilityDetails;
+      }
+      setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
     _spaceNameCtrl.dispose();
     _rentCtrl.dispose();
@@ -34,24 +57,32 @@ class _CreateLivingSetupState extends State<CreateLivingSetup> {
     super.dispose();
   }
 
-  void _submit() {
+  void _onNext() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    widget.onSubmit?.call(
-      CreateLivingSetupData(
-        livingSpaceName: _spaceNameCtrl.text.trim(),
-        rentCost: double.tryParse(_rentCtrl.text.trim()) ?? 0,
-        electricityCostPerUnit: double.tryParse(_electricCtrl.text.trim()) ?? 0,
-        waterCostPerUnit: double.tryParse(_waterCtrl.text.trim()) ?? 0,
-        otherUtilityDetails: _otherCtrl.text.trim(),
-      ),
+    final data = CreateLivingSetupData(
+      livingSpaceName: _spaceNameCtrl.text.trim(),
+      rentCost: double.tryParse(_rentCtrl.text.trim()) ?? 0,
+      electricityCostPerUnit: double.tryParse(_electricCtrl.text.trim()) ?? 0,
+      waterCostPerUnit: double.tryParse(_waterCtrl.text.trim()) ?? 0,
+      otherUtilityDetails: _otherCtrl.text.trim(),
+    );
+
+    // Optional external callback (kept for reuse)
+    widget.onSubmit?.call(data);
+
+    // Save into controller (single source of truth for the flow)
+    context.read<RoomCreationController>().setLiving(data);
+
+    // Go to next step
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RoommateAgreementPage()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.of(context).padding.top;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -96,11 +127,17 @@ class _CreateLivingSetupState extends State<CreateLivingSetup> {
                     const SizedBox(height: 8),
                     _Input(
                       controller: _rentCtrl,
-                      keyboardType: TextInputType.number,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        // Allow digits and a single dot
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                      ],
                       hint: 'Enter the Rent Cost',
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty)
+                        if (v == null || v.trim().isEmpty) {
                           return 'Please enter rent cost';
+                        }
                         final d = double.tryParse(v);
                         if (d == null || d < 0) return 'Enter a valid number';
                         return null;
@@ -113,7 +150,11 @@ class _CreateLivingSetupState extends State<CreateLivingSetup> {
                     const SizedBox(height: 8),
                     _Input(
                       controller: _electricCtrl,
-                      keyboardType: TextInputType.number,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                      ],
                       hint: 'Enter the Electricity Cost',
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
@@ -131,7 +172,11 @@ class _CreateLivingSetupState extends State<CreateLivingSetup> {
                     const SizedBox(height: 8),
                     _Input(
                       controller: _waterCtrl,
-                      keyboardType: TextInputType.number,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                      ],
                       hint: 'Enter the Water Cost',
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
@@ -156,7 +201,6 @@ class _CreateLivingSetupState extends State<CreateLivingSetup> {
                     const SizedBox(height: 24),
 
                     // Next
-// Next
                     MainButton(
                       text: 'Next',
                       backgroundColor:
@@ -165,13 +209,7 @@ class _CreateLivingSetupState extends State<CreateLivingSetup> {
                       width: double.infinity,
                       height: 52,
                       borderRadius: 12,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => RoommateAgreementPage()),
-                        );
-                      },
+                      onPressed: _onNext,
                     ),
                   ],
                 ),
@@ -182,24 +220,6 @@ class _CreateLivingSetupState extends State<CreateLivingSetup> {
       ),
     );
   }
-}
-
-/* ========= Data model ========= */
-
-class CreateLivingSetupData {
-  final String livingSpaceName;
-  final double rentCost;
-  final double electricityCostPerUnit;
-  final double waterCostPerUnit;
-  final String otherUtilityDetails;
-
-  CreateLivingSetupData({
-    required this.livingSpaceName,
-    required this.rentCost,
-    required this.electricityCostPerUnit,
-    required this.waterCostPerUnit,
-    required this.otherUtilityDetails,
-  });
 }
 
 /* ========= UI Bits ========= */
@@ -229,6 +249,7 @@ class _Input extends StatelessWidget {
     this.validator,
     this.keyboardType,
     this.maxLines = 1,
+    this.inputFormatters,
   });
 
   final TextEditingController controller;
@@ -236,6 +257,7 @@ class _Input extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
   final int maxLines;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -243,6 +265,7 @@ class _Input extends StatelessWidget {
       controller: controller,
       validator: validator,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       maxLines: maxLines,
       style: const TextStyle(
         fontFamily: 'Krub',

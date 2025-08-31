@@ -1,58 +1,27 @@
-import 'dart:math';
+// generate_invite_code_page.dart
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:fairnestui/components/MainButton.dart';
 
-class GenerateInviteCodePage extends StatefulWidget {
+class GenerateInviteCodePage extends StatelessWidget {
   const GenerateInviteCodePage({
     super.key,
+    required this.roomCode,
     this.onCreateRoom,
   });
 
-  /// Callback when the “Create a Room” button is pressed.
-  /// You’ll likely navigate to the actual room after persisting.
+  /// The invite code returned from the backend (room_code).
+  final String? roomCode;
+
+  /// Optional callback when the “See your Room” button is pressed.
   final void Function(String inviteCode)? onCreateRoom;
 
-  @override
-  State<GenerateInviteCodePage> createState() => _GenerateInviteCodePageState();
-}
-
-class _GenerateInviteCodePageState extends State<GenerateInviteCodePage> {
-  late final TextEditingController _codeCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _codeCtrl = TextEditingController(text: _generateInviteCode());
-  }
-
-  @override
-  void dispose() {
-    _codeCtrl.dispose();
-    super.dispose();
-  }
-
-  /// Generates a pretty unique code:
-  ///   - 4 chars from base36 timestamp
-  ///   - 5 chars from secure random (A–Z, 0–9 without confusing chars)
-  /// Example:  "XDRWQA11" style
-  String _generateInviteCode() {
-    final nowPart =
-        DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase();
-    final timeChunk =
-        nowPart.substring(max(0, nowPart.length - 4)); // last 4 chars
-    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0,1,O,I
-    final rand = Random.secure();
-    final randPart =
-        List.generate(5, (_) => alphabet[rand.nextInt(alphabet.length)]).join();
-    return (timeChunk + randPart);
-  }
-
-  void _copy() async {
-    await Clipboard.setData(ClipboardData(text: _codeCtrl.text));
-    if (!mounted) return;
+  Future<void> _copy(BuildContext context) async {
+    final code = roomCode ?? '';
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Invite code copied')),
     );
@@ -61,12 +30,13 @@ class _GenerateInviteCodePageState extends State<GenerateInviteCodePage> {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final code = (roomCode ?? '').trim();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // Header (purple with back + centered title)
+          // Header
           Container(
             width: double.infinity,
             height: top + 69,
@@ -108,7 +78,7 @@ class _GenerateInviteCodePageState extends State<GenerateInviteCodePage> {
 
                   // Code field (read-only)
                   TextField(
-                    controller: _codeCtrl,
+                    controller: TextEditingController(text: code),
                     readOnly: true,
                     style: const TextStyle(
                       fontFamily: 'Krub',
@@ -118,6 +88,7 @@ class _GenerateInviteCodePageState extends State<GenerateInviteCodePage> {
                       letterSpacing: 1.0,
                     ),
                     decoration: InputDecoration(
+                      hintText: 'No code returned',
                       filled: true,
                       fillColor: const Color(0xFFECE9E6),
                       contentPadding: const EdgeInsets.symmetric(
@@ -142,7 +113,7 @@ class _GenerateInviteCodePageState extends State<GenerateInviteCodePage> {
 
                   const SizedBox(height: 16),
 
-                  // Copy button (pink)
+                  // Copy button
                   MainButton(
                     text: 'Copy Code',
                     backgroundColor: AppColors.secondary,
@@ -150,7 +121,7 @@ class _GenerateInviteCodePageState extends State<GenerateInviteCodePage> {
                     width: double.infinity,
                     height: 52,
                     borderRadius: 12,
-                    onPressed: _copy,
+                    onPressed: code.isEmpty ? null : () => _copy(context),
                   ),
 
                   const SizedBox(height: 24),
@@ -158,7 +129,7 @@ class _GenerateInviteCodePageState extends State<GenerateInviteCodePage> {
                   const SizedBox(height: 12),
                   const Center(
                     child: Text(
-                      "Now let’s create your room!",
+                      "Now let’s see your room!",
                       style: TextStyle(
                         fontFamily: 'Krub',
                         fontSize: 12,
@@ -168,15 +139,16 @@ class _GenerateInviteCodePageState extends State<GenerateInviteCodePage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Create a Room (gold)
+                  // See your Room
                   MainButton(
-                    text: 'Create a Room',
+                    text: 'See your Room',
                     backgroundColor: const Color(0xFFD8A85B),
                     textColor: Colors.black,
                     width: double.infinity,
                     height: 52,
                     borderRadius: 12,
-                    onPressed: () => widget.onCreateRoom?.call(_codeCtrl.text),
+                    onPressed:
+                        code.isEmpty ? null : () => onCreateRoom?.call(code),
                   ),
                 ],
               ),

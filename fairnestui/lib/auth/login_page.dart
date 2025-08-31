@@ -1,4 +1,5 @@
 import 'package:fairnestui/auth/SignUpPage.dart';
+import 'package:fairnestui/services/user_service.dart';
 import 'package:fairnestui/shell/app_shell.dart' show AppShell;
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
@@ -47,6 +48,9 @@ class _LoginPageState extends State<LoginPage> {
         'user_id': result['user_id'],
         'email': result['email'],
       });
+
+      final userId = await UserService.getUserIdFromToken();
+      print("User ID from token: $userId");
 
       if (mounted) {
         // Call the original onSubmit callback if provided
@@ -171,9 +175,6 @@ class _LoginPageState extends State<LoginPage> {
                             validator: (v) {
                               if (v == null || v.isEmpty) {
                                 return 'Password is required';
-                              }
-                              if (v.length < 6) {
-                                return 'Password must be at least 6 characters';
                               }
                               return null;
                             },

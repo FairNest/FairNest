@@ -1,25 +1,48 @@
 import 'package:fairnestui/pages/room_creation/CreateLivingSetup.dart';
 import 'package:fairnestui/widgets/app_header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
+import 'package:fairnestui/pages/room_creation/room_creation_controller.dart'
+    show CreateRoomData, GroupType;
 
-class CreateRoomdetails extends StatefulWidget {
-  const CreateRoomdetails({super.key, this.onSubmit});
+// NEW: Provider + controller
+import 'package:provider/provider.dart';
+import 'package:fairnestui/pages/room_creation/room_creation_controller.dart';
+
+class CreateRoomDetails extends StatefulWidget {
+  const CreateRoomDetails({super.key, this.onSubmit});
 
   final void Function(CreateRoomData data)? onSubmit;
 
   @override
-  State<CreateRoomdetails> createState() => _CreateRoomdetailsState();
+  State<CreateRoomDetails> createState() => _CreateRoomDetailsState();
 }
 
-class _CreateRoomdetailsState extends State<CreateRoomdetails> {
+class _CreateRoomDetailsState extends State<CreateRoomDetails> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _roommatesCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
 
   GroupType _type = GroupType.private;
+
+  @override
+  void initState() {
+    super.initState();
+    // Prefill from controller if user navigated back
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final c = context.read<RoomCreationController>();
+      if (c.roomName != null) _nameCtrl.text = c.roomName!;
+      if (c.roommateCount != null && c.roommateCount! > 0) {
+        _roommatesCtrl.text = c.roommateCount!.toString();
+      }
+      if (c.roomDescription != null) _descCtrl.text = c.roomDescription!;
+      if (c.groupType != null) _type = c.groupType!;
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
@@ -29,25 +52,31 @@ class _CreateRoomdetailsState extends State<CreateRoomdetails> {
     super.dispose();
   }
 
-  void _submit() {
+  void _onNext() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final count = int.tryParse(_roommatesCtrl.text.trim()) ?? 0;
+    final data = CreateRoomData(
+      name: _nameCtrl.text.trim(),
+      type: _type,
+      roommateCount: int.tryParse(_roommatesCtrl.text.trim()) ?? 0,
+      description: _descCtrl.text.trim(),
+    );
 
-    widget.onSubmit?.call(
-      CreateRoomData(
-        name: _nameCtrl.text.trim(),
-        type: _type,
-        roommateCount: count,
-        description: _descCtrl.text.trim(),
-      ),
+    // Optional external callback (kept for reusability)
+    widget.onSubmit?.call(data);
+
+    // Save to controller (single source of truth for the flow)
+    context.read<RoomCreationController>().setDetails(data);
+
+    // Go to the next step
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CreateLivingSetup()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.of(context).padding.top;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -121,13 +150,16 @@ class _CreateRoomdetailsState extends State<CreateRoomdetails> {
                       controller: _roommatesCtrl,
                       hint: 'Enter number',
                       keyboardType: TextInputType.number,
+                      // Keep input digits only and avoid leading zeros if you want
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
                           return 'Please enter a number';
                         }
                         final n = int.tryParse(v);
-                        if (n == null || n <= 0)
+                        if (n == null || n <= 0) {
                           return 'Enter a valid positive number';
+                        }
                         return null;
                       },
                     ),
@@ -149,21 +181,14 @@ class _CreateRoomdetailsState extends State<CreateRoomdetails> {
                       height: 52,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              AppColors.accent, // gold-ish like mock
+                          backgroundColor: AppColors.accent, // gold-ish
                           foregroundColor: Colors.black,
                           elevation: 5,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => CreateLivingSetup()),
-                          );
-                        },
+                        onPressed: _onNext,
                         child: Text(
                           'Next',
                           style:
@@ -183,22 +208,6 @@ class _CreateRoomdetailsState extends State<CreateRoomdetails> {
 }
 
 /* ===================== Models & Enums ===================== */
-
-enum GroupType { private, public }
-
-class CreateRoomData {
-  final String name;
-  final GroupType type;
-  final int roommateCount;
-  final String description;
-
-  CreateRoomData({
-    required this.name,
-    required this.type,
-    required this.roommateCount,
-    required this.description,
-  });
-}
 
 /* ===================== UI Bits ===================== */
 
@@ -231,6 +240,7 @@ class _Input extends StatelessWidget {
     this.validator,
     this.keyboardType,
     this.maxLines = 1,
+    this.inputFormatters,
   });
 
   final TextEditingController controller;
@@ -238,6 +248,7 @@ class _Input extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
   final int maxLines;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -245,6 +256,7 @@ class _Input extends StatelessWidget {
       controller: controller,
       validator: validator,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       maxLines: maxLines,
       style: const TextStyle(
         fontFamily: 'Krub',
@@ -294,7 +306,7 @@ class _SegmentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final border = const Color(0xFF645A80);
+    const border = Color(0xFF645A80);
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),

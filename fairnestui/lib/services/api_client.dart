@@ -10,56 +10,51 @@ class ApiClient {
   static void initialize() {
     if (_isInitialized) return;
 
-    _dio = Dio(BaseOptions(
-      baseUrl: 'http://localhost:8652',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    ));
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: 'http://10.0.2.2:8652', // Android emulator -> host machine
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        headers: {
+          // Do NOT set Content-Type globally; let per-request logic decide.
+          'Accept': 'application/json',
+        },
+      ),
+    );
 
-    // Add token interceptor
+    // Interceptors
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Add token to headers for authenticated requests
+          // Attach bearer token if present
           final token = await StorageService.getToken();
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
 
+          // Auto content-type selection if caller didn't set one
+          _applySmartContentType(options);
+
           if (kDebugMode) {
-            print('📤 ${options.method} ${options.uri}');
-            print('Headers: ${options.headers}');
-            if (options.data != null) {
-              print('Body: ${options.data}');
-            }
+            _prettyLogRequest(options);
           }
 
           handler.next(options);
         },
         onResponse: (response, handler) {
           if (kDebugMode) {
-            print('📥 ${response.statusCode} ${response.requestOptions.uri}');
-            print('Response: ${response.data}');
+            _prettyLogResponse(response);
           }
           handler.next(response);
         },
-        onError: (error, handler) {
+        onError: (error, handler) async {
           if (kDebugMode) {
-            print(
-                '❌ ${error.requestOptions.method} ${error.requestOptions.uri}');
-            print('Error: ${error.message}');
-            if (error.response != null) {
-              print('Response: ${error.response?.data}');
-            }
+            _prettyLogError(error);
           }
 
-          // Handle token expiration
+          // Token expiry handling
           if (error.response?.statusCode == 401) {
-            _handleTokenExpiration();
+            await _handleTokenExpiration();
           }
 
           handler.next(error);
@@ -70,7 +65,7 @@ class ApiClient {
     _isInitialized = true;
   }
 
-  /// Get the configured Dio instance
+  /// Ensure the Dio instance is initialized.
   static Dio get instance {
     if (!_isInitialized) {
       initialize();
@@ -81,14 +76,14 @@ class ApiClient {
   /// Handle token expiration by clearing stored data
   static Future<void> _handleTokenExpiration() async {
     if (kDebugMode) {
-      print('Token expired, clearing stored data');
+      print('🔐 Token expired → clearing stored credentials');
     }
     await StorageService.clearAll();
-    // You might want to navigate to login page here
-    // NavigationService.navigateToLogin(); // If you have a navigation service
+    // Optionally: navigate to login screen via your own NavigationService
   }
 
-  /// Make authenticated GET request
+  // ------------ Public HTTP helpers ------------
+
   static Future<Response> get(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -101,48 +96,102 @@ class ApiClient {
     );
   }
 
-  /// Make authenticated POST request
   static Future<Response> post(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
+    final effective = _withSmartContentType(data, options);
     return await instance.post(
       path,
       data: data,
       queryParameters: queryParameters,
-      options: options,
+      options: effective,
     );
   }
 
-  /// Make authenticated PUT request
   static Future<Response> put(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
+    final effective = _withSmartContentType(data, options);
     return await instance.put(
       path,
       data: data,
       queryParameters: queryParameters,
-      options: options,
+      options: effective,
     );
   }
 
-  /// Make authenticated DELETE request
   static Future<Response> delete(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
+    final effective = _withSmartContentType(data, options);
     return await instance.delete(
       path,
       data: data,
       queryParameters: queryParameters,
-      options: options,
+      options: effective,
     );
+  }
+
+  // ------------ Private helpers ------------
+
+  /// If caller didn't set a contentType, pick a sensible default:
+  /// - multipart/form-data for FormData
+  /// - application/json otherwise
+  static Options _withSmartContentType(dynamic data, Options? options) {
+    final o = (options ?? Options()).copyWith();
+    if (o.contentType == null) {
+      if (data is FormData) {
+        o.contentType = Headers.multipartFormDataContentType;
+      } else {
+        o.contentType = Headers.jsonContentType;
+      }
+    }
+    return o;
+  }
+
+  static void _applySmartContentType(RequestOptions options) {
+    if (options.contentType != null) return; // caller already decided
+    if (options.data is FormData) {
+      options.contentType = Headers.multipartFormDataContentType;
+    } else {
+      options.contentType = Headers.jsonContentType;
+    }
+  }
+
+  // ------------ Logging ------------
+
+  static void _prettyLogRequest(RequestOptions options) {
+    print('📤 ${options.method} ${options.uri}');
+    print('Headers: ${options.headers}');
+    final data = options.data;
+    if (data is FormData) {
+      final fields = data.fields.map((e) => '${e.key}=${e.value}').join(', ');
+      final files = data.files.map((e) => e.key).join(', ');
+      print('Body: FormData{ fields: {$fields}, files: [$files] }');
+    } else {
+      print('Body: ${data ?? '(no body)'}');
+    }
+  }
+
+  static void _prettyLogResponse(Response response) {
+    print('📥 ${response.statusCode} ${response.requestOptions.uri}');
+    print('Response: ${response.data}');
+  }
+
+  static void _prettyLogError(DioException error) {
+    print('❌ ${error.requestOptions.method} ${error.requestOptions.uri}');
+    print('Error: ${error.message}');
+    if (error.response != null) {
+      print('Response: ${error.response?.data}');
+    }
   }
 }

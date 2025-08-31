@@ -1,10 +1,19 @@
-// lib/profile/complete_profile_page.dart
+import 'package:fairnestui/auth/login_page.dart';
+import 'package:fairnestui/pages/FindRoommate/GroupCheckPage.dart';
+import 'package:fairnestui/pages/FindRoommate/GroupHomePage.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+
 import 'package:fairnestui/widgets/LifestyleOverview.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:fairnestui/components/MainButton.dart';
+
+// Keep your existing import style to match your project:
 import 'package:fairnestui/auth/SignUpPage.dart' show SignUpData;
+
+// ✅ API client
+import 'package:fairnestui/services/api_client.dart';
 
 class CompleteProfilePage extends StatefulWidget {
   const CompleteProfilePage({
@@ -45,6 +54,8 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
   // The metrics actually rendered on this page.
   late final List<LifestyleMetric> _metrics;
 
+  bool _submitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -70,46 +81,67 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
 
   // === Mapping Q1..Q12 (1..5) -> 6 Lifestyle metrics (0..1) ===
   List<LifestyleMetric> _computeFromAnswers(Map<int, int> a) {
-    // All questions must exist; if you want extra safety add defaults.
-    double _avg(List<int> xs) =>
+    double avg(List<double> xs) =>
         xs.isEmpty ? 0 : xs.reduce((p, c) => p + c) / xs.length;
-    double _norm(double v) => (v / 5.0).clamp(0.0, 1.0);
+
+    double g(int k) => (a[k] ?? 0).toDouble();
+
+    double norm(double v) => (v / 5.0).clamp(0.0, 1.0);
 
     return [
-      // Tidiness Level: Q1, Q2
       LifestyleMetric(
         kind: LifestyleMetricKind.tidiness,
-        value: _norm(_avg([a[1]!, a[2]!])),
+        value: norm(avg([g(1), g(2)])),
       ),
-      // Noise & Activity: Q3, Q4
       LifestyleMetric(
         kind: LifestyleMetricKind.noiseActivity,
-        value: _norm(_avg([a[3]!, a[4]!])),
+        value: norm(avg([g(3), g(4)])),
       ),
-      // Schedule Type: Q5, Q6
       LifestyleMetric(
         kind: LifestyleMetricKind.schedule,
-        value: _norm(_avg([a[5]!, a[6]!])),
+        value: norm(avg([g(5), g(6)])),
       ),
-      // Guest Frequency: Q7, Q8
       LifestyleMetric(
         kind: LifestyleMetricKind.guestFrequency,
-        value: _norm(_avg([a[7]!, a[8]!])),
+        value: norm(avg([g(7), g(8)])),
       ),
-      // Task Structure: Q9, Q10
       LifestyleMetric(
         kind: LifestyleMetricKind.taskStructure,
-        value: _norm(_avg([a[9]!, a[10]!])),
+        value: norm(avg([g(9), g(10)])),
       ),
-      // Money Attitude: Q11, Q12
       LifestyleMetric(
         kind: LifestyleMetricKind.moneyAttitude,
-        value: _norm(_avg([a[11]!, a[12]!])),
+        value: norm(avg([g(11), g(12)])),
       ),
     ];
   }
 
-  void _submit() {
+  // Map asset (bird.png, etc.) → CDN
+  String _avatarAssetToCdn(String assetPath) {
+    final file = assetPath.split('/').last.toLowerCase();
+    const base = 'https://minio.bocchikitsunei.com/fairnest';
+    switch (file) {
+      case 'bird.png':
+        return '$base/bird.png';
+      case 'char.png':
+        return '$base/char.png';
+      case 'poke.png':
+        return '$base/poke.png';
+      case 'pikachu.png':
+        return '$base/pikachu.png';
+      default:
+        return '$base/$file';
+    }
+  }
+
+  ({String first, String last}) _splitName(String fullName) {
+    final parts = fullName.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty) return (first: '', last: '');
+    if (parts.length == 1) return (first: parts.first, last: '');
+    return (first: parts.first, last: parts.sublist(1).join(' '));
+  }
+
+  Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     if (_selectedAvatarIndex == null) {
@@ -119,20 +151,122 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
       return;
     }
 
-    final data = CompleteProfileData(
-      username: _usernameCtrl.text.trim(),
-      bio: _bioCtrl.text.trim(),
-      avatarAsset: widget.avatarChoices[_selectedAvatarIndex!],
-      metrics: _metrics, // ⬅️ use actual metrics
-    );
+    setState(() => _submitting = true);
 
-    widget.onSubmit?.call(data);
+    try {
+      // Ensure client is ready
+      ApiClient.initialize();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile completed!')),
-    );
-    // Navigate to your app home if desired
-    // Navigator.pop(context);
+      final username = _usernameCtrl.text.trim();
+      final bio = _bioCtrl.text.trim();
+      final avatarAsset = widget.avatarChoices[_selectedAvatarIndex!];
+      final userPictureUrl = _avatarAssetToCdn(avatarAsset);
+
+      final (first: firstname, last: lastname) =
+          _splitName(widget.signUpData.name);
+
+      // Build multipart/form-data exactly as backend expects.
+      // We send empty strings "" for the three fields you requested,
+      // and "true" string for the boolean (Go can parse it to bool).
+      final form = FormData.fromMap({
+        "username": username,
+        "password": widget.signUpData.password,
+        "email": widget.signUpData.email,
+        "firstname": firstname,
+        "lastname": lastname,
+        "phone_number": widget.signUpData.phoneNumber,
+        "user_picture": userPictureUrl,
+        "user_about_me": bio,
+
+        // Forced empties / boolean
+        "bank_account_number": "1234567890",
+        "user_verification_picture": "",
+        "user_identity_document_number": "1234567891231",
+        "user_identity_document_type": "true",
+
+        // Raw answers (1..5)
+        "q1": widget.quizAnswers[1],
+        "q2": widget.quizAnswers[2],
+        "q3": widget.quizAnswers[3],
+        "q4": widget.quizAnswers[4],
+        "q5": widget.quizAnswers[5],
+        "q6": widget.quizAnswers[6],
+        "q7": widget.quizAnswers[7],
+        "q8": widget.quizAnswers[8],
+        "q9": widget.quizAnswers[9],
+        "q10": widget.quizAnswers[10],
+        "q11": widget.quizAnswers[11],
+        "q12": widget.quizAnswers[12],
+
+        // Metrics (0..1). Numbers are fine in FormData; Dio will encode correctly.
+        "user_tidiness": _metrics
+            .firstWhere((m) => m.kind == LifestyleMetricKind.tidiness)
+            .value,
+        "user_noise_activity": _metrics
+            .firstWhere((m) => m.kind == LifestyleMetricKind.noiseActivity)
+            .value,
+        "user_schedule": _metrics
+            .firstWhere((m) => m.kind == LifestyleMetricKind.schedule)
+            .value,
+        "user_guest_frequency": _metrics
+            .firstWhere((m) => m.kind == LifestyleMetricKind.guestFrequency)
+            .value,
+        "user_task_structure": _metrics
+            .firstWhere((m) => m.kind == LifestyleMetricKind.taskStructure)
+            .value,
+        "user_money_attitude": _metrics
+            .firstWhere((m) => m.kind == LifestyleMetricKind.moneyAttitude)
+            .value,
+      });
+
+      final resp = await ApiClient.post(
+        '/Register',
+        data: form,
+        // Options not needed; Dio sets multipart headers for FormData.
+      );
+
+      // If your API returns a token, you can store it here:
+      // await StorageService.setToken(resp.data['token']);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile completed & registered!')),
+      );
+
+      // Optional navigation:
+      // if (!mounted) return;
+      // Navigator.pushReplacementNamed(context, '/home');
+
+      // Also call the original onSubmit (for local state/analytics)
+      widget.onSubmit?.call(
+        CompleteProfileData(
+          username: username,
+          bio: bio,
+          avatarAsset: avatarAsset,
+          metrics: _metrics,
+        ),
+      );
+
+      if (resp.statusCode != null &&
+          resp.statusCode! >= 200 &&
+          resp.statusCode! < 300) {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      }
+    } on DioException catch (e) {
+      final msg = e.response?.data?.toString() ?? e.message ?? 'Unknown error';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Register failed: $msg')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Register failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -264,13 +398,15 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
 
                             // Main button (AppColors.primary)
                             MainButton(
-                              text: "Let's Get Started!",
+                              text: _submitting
+                                  ? "Submitting..."
+                                  : "Let's Get Started!",
                               backgroundColor: AppColors.primary,
                               textColor: const Color.fromARGB(255, 0, 0, 0),
                               width: double.infinity,
                               height: 52,
                               borderRadius: 12,
-                              onPressed: _submit,
+                              onPressed: _submitting ? null : _submit,
                             ),
                           ],
                         ),

@@ -308,16 +308,7 @@ class _EditHousePageState extends State<EditHousePage> {
                           width: double.infinity,
                           height: 52,
                           borderRadius: 12,
-                          onPressed: () {
-                            _submit();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const GenerateInviteCodePage(),
-                              ),
-                            );
-                          },
+                          onPressed: () {},
                         ),
                       ],
                     ),

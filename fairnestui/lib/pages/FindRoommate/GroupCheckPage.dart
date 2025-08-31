@@ -1,5 +1,6 @@
 import 'package:fairnestui/pages/FindRoommate/GroupHomePage.dart';
 import 'package:fairnestui/pages/room_creation/CreateRoomDetails.dart';
+import 'package:fairnestui/pages/room_creation/create_room_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 
@@ -33,8 +34,7 @@ class GroupCheckPage extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const CreateRoomdetails()),
+                      MaterialPageRoute(builder: (_) => const CreateRoomFlow()),
                     );
                   },
                 ),

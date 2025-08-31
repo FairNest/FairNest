@@ -1,4 +1,5 @@
 // roommate_agreement_page.dart
+import 'dart:convert';
 import 'package:fairnestui/pages/room_creation/GenerateInviteCode.dart';
 import 'package:fairnestui/widgets/app_header.dart';
 import 'package:flutter/material.dart';
@@ -6,10 +7,12 @@ import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:fairnestui/components/MainButton.dart';
 
-class RoommateAgreementPage extends StatefulWidget {
-  const RoommateAgreementPage({super.key, this.onSubmit});
+// Provider + controller
+import 'package:provider/provider.dart';
+import 'package:fairnestui/pages/room_creation/room_creation_controller.dart';
 
-  final void Function(RoommateAgreementData data)? onSubmit;
+class RoommateAgreementPage extends StatefulWidget {
+  const RoommateAgreementPage({super.key});
 
   @override
   State<RoommateAgreementPage> createState() => _RoommateAgreementPageState();
@@ -24,26 +27,112 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
   SplitCostsOption? _splitCosts;
   PaymentDeadlineOption? _paymentDeadline;
 
-  // For “Custom” quiet hours
+  // “Custom” quiet hours
   String? _quietHoursCustom;
+  final TextEditingController _quietHoursCustomCtrl = TextEditingController();
 
-  void _submit() {
-    final data = RoommateAgreementData(
+  @override
+  void initState() {
+    super.initState();
+    // Prefill from controller so the user doesn't lose progress when navigating back
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final c = context.read<RoomCreationController>();
+      setState(() {
+        _quietHours = c.quietHours;
+        _quietHoursCustom = c.quietHoursCustom;
+        _quietHoursCustomCtrl.text = c.quietHoursCustom ?? '';
+        _guestPolicy = c.guestPolicy;
+        _cleaningMethod = c.cleaningMethod;
+        _responsibilities
+          ..clear()
+          ..addAll(c.responsibilities);
+        _splitCosts = c.splitCosts;
+        _paymentDeadline = c.paymentDeadline;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _quietHoursCustomCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onCreateRoom() async {
+    final controller = context.read<RoomCreationController>();
+
+    // Save this step into controller
+    controller.setAgreement(
       quietHours: _quietHours,
       quietHoursCustom: _quietHoursCustom,
       guestPolicy: _guestPolicy,
       cleaningMethod: _cleaningMethod,
-      responsibilities: _responsibilities.toList(),
+      responsibilities: _responsibilities,
       splitCosts: _splitCosts,
       paymentDeadline: _paymentDeadline,
     );
-    widget.onSubmit?.call(data);
+
+    if (!controller.isComplete) {
+      controller.debugPrintState();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please complete all steps first.')),
+      );
+      return;
+    }
+
+    // Loading overlay (modal, not dismissible)
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const _BlockingLoader(),
+    );
+
+    try {
+      final res = await controller.submitRoom(); // <-- posts to backend
+      if (!mounted) return;
+
+      // Close loader
+      Navigator.of(context, rootNavigator: true).pop();
+
+      // Parse server response -> extract room_code
+      String? roomCode;
+      try {
+        final payload = res.data
+            as Map<String, dynamic>; // ✅ Use res.data (already parsed JSON)
+        roomCode = payload['room_code']?.toString();
+      } catch (_) {
+        // ignore JSON errors; handled below
+      }
+
+      if (roomCode == null || roomCode.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Created, but no room_code returned.')),
+        );
+      }
+
+      // Navigate to invite page and pass the code
+      // Make sure GenerateInviteCodePage accepts `roomCode` in its constructor.
+      // ignore: use_build_context_synchronously
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GenerateInviteCodePage(
+            roomCode: roomCode, // may be null if backend didn’t return one
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      // Close loader
+      Navigator.of(context, rootNavigator: true).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create room: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.of(context).padding.top;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -57,7 +146,6 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
           // Body
           Expanded(
             child: SingleChildScrollView(
-              // Only vertical padding so the section bars can span full width
               padding: const EdgeInsets.only(top: 16, bottom: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -119,9 +207,7 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
                                     padding: const EdgeInsets.fromLTRB(
                                         16, 6, 16, 12),
                                     child: TextField(
-                                      controller: TextEditingController(
-                                        text: _quietHoursCustom ?? '',
-                                      ),
+                                      controller: _quietHoursCustomCtrl,
                                       decoration: const InputDecoration(
                                         hintText: 'e.g. 9 PM – 7 AM',
                                         filled: true,
@@ -136,7 +222,8 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
                                           borderSide: BorderSide.none,
                                         ),
                                       ),
-                                      onChanged: (t) => _quietHoursCustom = t,
+                                      onChanged: (t) =>
+                                          _quietHoursCustom = t.trim(),
                                     ),
                                   );
                                 }
@@ -145,16 +232,20 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
                               onChanged: (v) {
                                 setState(() {
                                   _quietHours = v;
-                                  if (v != QuietHoursOption.custom)
+                                  if (v != QuietHoursOption.custom) {
                                     _quietHoursCustom = null;
+                                    _quietHoursCustomCtrl.clear();
+                                  }
                                 });
                               },
                             );
                             if (sel != null) {
                               setState(() {
                                 _quietHours = sel;
-                                if (sel != QuietHoursOption.custom)
+                                if (sel != QuietHoursOption.custom) {
                                   _quietHoursCustom = null;
+                                  _quietHoursCustomCtrl.clear();
+                                }
                               });
                             }
                           },
@@ -299,21 +390,16 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
                           },
                         ),
                         const SizedBox(height: 24),
+
+                        // Create Room (save + submit + navigate)
                         MainButton(
-                          text: 'Next',
+                          text: 'Create Room',
                           backgroundColor: const Color(0xFFD8A85B),
                           textColor: Colors.black,
                           width: double.infinity,
                           height: 52,
                           borderRadius: 12,
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      GenerateInviteCodePage()),
-                            );
-                          },
+                          onPressed: _onCreateRoom,
                         ),
                       ],
                     ),
@@ -328,29 +414,21 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
   }
 }
 
-/* ===================== Data Model ===================== */
+/* ===================== Small blocking loader ===================== */
 
-class RoommateAgreementData {
-  final QuietHoursOption? quietHours;
-  final String? quietHoursCustom;
+class _BlockingLoader extends StatelessWidget {
+  const _BlockingLoader();
 
-  final GuestPolicyOption? guestPolicy;
-
-  final CleaningMethodOption? cleaningMethod;
-  final List<ResponsibilityOption> responsibilities;
-
-  final SplitCostsOption? splitCosts;
-  final PaymentDeadlineOption? paymentDeadline;
-
-  RoommateAgreementData({
-    required this.quietHours,
-    required this.quietHoursCustom,
-    required this.guestPolicy,
-    required this.cleaningMethod,
-    required this.responsibilities,
-    required this.splitCosts,
-    required this.paymentDeadline,
-  });
+  @override
+  Widget build(BuildContext context) {
+    // Ensure back button doesn't dismiss the dialog while loading
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
 }
 
 /* ===================== Enums & Labels ===================== */
@@ -388,7 +466,7 @@ const guestPolicyLabels = <GuestPolicyOption, String>{
 
 const cleaningMethodLabels = <CleaningMethodOption, String>{
   CleaningMethodOption.weekly: 'Weekly rotation',
-  CleaningMethodOption.biweekly: 'Bi‑weekly rotation',
+  CleaningMethodOption.biweekly: 'Bi-weekly rotation',
   CleaningMethodOption.assigned: 'Assigned to specific people',
   CleaningMethodOption.flexible: 'Flexible',
 };
@@ -420,15 +498,15 @@ class _SectionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity, // full span
+      width: double.infinity,
       height: 53,
       child: ColoredBox(
-        color: AppColors.secondary, // pink
+        color: AppColors.secondary,
         child: Center(
           child: Text(
             label,
             style: AppFonts.heading1.copyWith(
-              color: const Color(0xFFB84B6A), // requested color
+              color: const Color(0xFFB84B6A),
             ),
             textAlign: TextAlign.center,
           ),
@@ -456,7 +534,6 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
-/// Dropdown-looking tile
 class _SelectTile extends StatelessWidget {
   const _SelectTile({required this.valueText, required this.onTap});
 

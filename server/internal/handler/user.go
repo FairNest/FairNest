@@ -5,9 +5,10 @@ import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/service"
 	"fairnest/internal/utils"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
 	"strings"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type userHandler struct {
@@ -238,37 +239,37 @@ func (h *userHandler) Register(c *fiber.Ctx) error {
 	//if err != nil {
 	//	return fiber.NewError(fiber.StatusBadRequest, "User picture file not found")
 	//}
-
+	//
 	//// Call upload service to upload the user picture file
 	//userPictureFileURL, err := h.uploadSer.UploadFile(userPictureFile)
 	//if err != nil {
 	//	return fiber.NewError(fiber.StatusInternalServerError, "Failed to upload user picture file")
 	//}
-
-	// Check if a user verification picture file is uploaded
-	userVerificationPictureFile, err := c.FormFile("user_verification_picture")
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "User picture file not found")
-	}
-
-	// Call upload service to upload the user verification picture file
-	userVerificationPictureFileURL, err := h.uploadSer.UploadFile(userVerificationPictureFile)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to upload user verification picture file")
-	}
-
-	// Set the uploaded file URL in the registration request
+	//
+	//// Check if a user verification picture file is uploaded
+	//userVerificationPictureFile, err := c.FormFile("user_verification_picture")
+	//if err != nil {
+	//	return fiber.NewError(fiber.StatusBadRequest, "User picture file not found")
+	//}
+	//
+	//// Call upload service to upload the user verification picture file
+	//userVerificationPictureFileURL, err := h.uploadSer.UploadFile(userVerificationPictureFile)
+	//if err != nil {
+	//	return fiber.NewError(fiber.StatusInternalServerError, "Failed to upload user verification picture file")
+	//}
+	//
+	////Set the uploaded file URL in the registration request
 	//request.UserPicture = userPictureFileURL
-	request.UserVerificationPicture = userVerificationPictureFileURL
-
-	// Check if user_pic field is empty or nil
-	if request.UserPicture == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "User picture is required")
-	}
-
-	if request.UserVerificationPicture == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "User verification picture is required")
-	}
+	//request.UserVerificationPicture = userVerificationPictureFileURL
+	//
+	//// Check if user_pic field is empty or nil
+	//if request.UserPicture == nil {
+	//	return fiber.NewError(fiber.StatusBadRequest, "User picture is required")
+	//}
+	//
+	//if request.UserVerificationPicture == nil {
+	//	return fiber.NewError(fiber.StatusBadRequest, "User verification picture is required")
+	//}
 
 	response, err := h.userSer.Register(request)
 	if err != nil {
