@@ -23,12 +23,12 @@ func (r userRepositoryDB) FetchAllUser() ([]entities.User, error) {
 }
 
 func (r userRepositoryDB) GetUserByUserId(userId int) (*entities.User, error) {
-	users := entities.User{}
-	result := r.db.Where("user_id = ?", userId).Find(&users)
+	user := entities.User{}
+	result := r.db.Where("user_id = ?", userId).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &users, nil
+	return &user, nil
 }
 
 func (r userRepositoryDB) GetUserByToken(userId int) (*entities.User, error) {
