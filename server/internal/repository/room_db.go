@@ -39,8 +39,12 @@ func (r roomRepositoryDB) ExistsByCode(code string) (bool, error) {
 }
 
 func (r roomRepositoryDB) FetchAllPublicRoom() ([]entities.Room, error) {
-	rooms := []entities.Room{}
-	result := r.db.Where("room_type = ?", true).Find(&rooms)
+	var rooms []entities.Room
+	result := r.db.
+		Where("room_type = ?", true).
+		Where("room_max_capacity > room_current_capacity").
+		Find(&rooms)
+
 	if result.Error != nil {
 		return nil, result.Error
 	}
