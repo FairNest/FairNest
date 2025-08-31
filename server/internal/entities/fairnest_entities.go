@@ -55,7 +55,7 @@ type Room struct {
 
 	// RoomDetails
 	RoomName               *string
-	RoomType               *bool // "true = Private", "false = Public"
+	RoomType               *bool // "true = Public", "false = Private"
 	RoomMaxCapacity        *int
 	RoomCurrentCapacity    *int
 	RoomDescription        *string
