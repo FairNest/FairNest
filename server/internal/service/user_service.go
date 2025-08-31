@@ -18,16 +18,16 @@ import (
 )
 
 type userService struct {
-	userRepo      repository.UserRepository
-	jwtSecret     string
-	lifestyleRepo repository.LifestyleRepository
+	userRepo     repository.UserRepository
+	jwtSecret    string
+	lifestyleSer LifestyleService
 }
 
-func NewUserService(userRepo repository.UserRepository, jwtSecret string, lifestyleRepo repository.LifestyleRepository) userService {
+func NewUserService(userRepo repository.UserRepository, jwtSecret string, lifestyleSer LifestyleService) userService {
 	return userService{
-		userRepo:      userRepo,
-		jwtSecret:     jwtSecret,
-		lifestyleRepo: lifestyleRepo,
+		userRepo:     userRepo,
+		jwtSecret:    jwtSecret,
+		lifestyleSer: lifestyleSer,
 	}
 }
 
@@ -183,20 +183,10 @@ func (s userService) GetProfileOfCurrentUserByUserId(userId int) (*dtos.ProfileO
 		return nil, fiber.NewError(fiber.StatusNotFound, "user profile data is not found")
 	}
 
-	userLifestyle, err := s.lifestyleRepo.GetUserLifestyleByUserId(userId)
+	userLifestyle, err := s.lifestyleSer.GetUserLifestyleByUserId(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
-	}
-	if userLifestyle.LifestyleID == nil &&
-		userLifestyle.UserID == nil &&
-		userLifestyle.UserTidiness == nil &&
-		userLifestyle.UserNoiseActivity == nil &&
-		userLifestyle.UserSchedule == nil &&
-		userLifestyle.UserGuestFrequency == nil &&
-		userLifestyle.UserTaskStructure == nil &&
-		userLifestyle.UserMoneyAttitude == nil {
-		return nil, fiber.NewError(fiber.StatusNotFound, "user lifestyle data is not found")
 	}
 
 	userResponse := dtos.ProfileOfCurrentUserByUserIdResponse{
@@ -341,7 +331,8 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		UserMoneyAttitude:  request.UserMoneyAttitude,
 	}
 
-	if err := s.lifestyleRepo.CreateLifestyle(&lifestyle); err != nil {
+	_, err = s.lifestyleSer.CreateLifestyle(v.IntValue(v.UintToIntPtr(user.UserID)), &lifestyle)
+	if err != nil {
 		return nil, err
 	}
 

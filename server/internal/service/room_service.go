@@ -6,23 +6,22 @@ import (
 	"fairnest/internal/repository"
 	"fairnest/internal/utils"
 	"fairnest/internal/utils/v"
-	"github.com/gofiber/fiber/v2"
 	"log"
 	"math/rand"
 	"time"
 )
 
 type roomService struct {
-	roomRepo       repository.RoomRepository
-	roomMemberRepo repository.RoomMemberRepository
-	lifestyleRepo  repository.LifestyleRepository
+	roomRepo      repository.RoomRepository
+	roomMemberSer RoomMemberService
+	lifestyleSer  LifestyleService
 }
 
-func NewRoomService(roomRepo repository.RoomRepository, roomMemberRepo repository.RoomMemberRepository, lifestyleRepo repository.LifestyleRepository) roomService {
+func NewRoomService(roomRepo repository.RoomRepository, roomMemberSer RoomMemberService, lifestyleSer LifestyleService) roomService {
 	return roomService{
-		roomRepo:       roomRepo,
-		roomMemberRepo: roomMemberRepo,
-		lifestyleRepo:  lifestyleRepo,
+		roomRepo:      roomRepo,
+		roomMemberSer: roomMemberSer,
+		lifestyleSer:  lifestyleSer,
 	}
 }
 
@@ -105,20 +104,10 @@ func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUse
 		}
 	}
 	// Get user personality to set initial avg personality of the room
-	hostLifestyle, err := s.lifestyleRepo.GetUserLifestyleByUserId(userId)
+	hostLifestyle, err := s.lifestyleSer.GetUserLifestyleByUserId(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
-	}
-	if hostLifestyle.LifestyleID == nil &&
-		hostLifestyle.UserID == nil &&
-		hostLifestyle.UserTidiness == nil &&
-		hostLifestyle.UserNoiseActivity == nil &&
-		hostLifestyle.UserSchedule == nil &&
-		hostLifestyle.UserGuestFrequency == nil &&
-		hostLifestyle.UserTaskStructure == nil &&
-		hostLifestyle.UserMoneyAttitude == nil {
-		return nil, fiber.NewError(fiber.StatusNotFound, "host lifestyle data is not found")
 	}
 
 	room := entities.Room{
@@ -158,13 +147,8 @@ func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUse
 		return nil, err
 	}
 
-	roomMember := entities.RoomMember{
-		RoomID: room.RoomID,
-		UserID: v.UintPtr(userId),
-		IsHost: v.Ptr(true),
-	}
-
-	if err := s.roomMemberRepo.CreateRoomMember(&roomMember); err != nil {
+	_, err = s.roomMemberSer.CreateRoomMemberByRoomIdAndUserId(v.IntValue(v.UintToIntPtr(room.RoomID)), userId)
+	if err != nil {
 		return nil, err
 	}
 

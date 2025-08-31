@@ -1,11 +1,11 @@
 package service
 
 import (
-	"log"
-
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
+	"fairnest/internal/utils/v"
 	"github.com/gofiber/fiber/v2"
+	"log"
 )
 
 type roomMemberService struct {
@@ -39,4 +39,23 @@ func (s roomMemberService) GetRoomMemberByRoomId(roomId int) (*entities.RoomMemb
 		IsHost:       roomMember.IsHost,
 	}
 	return &roomMemberResponse, nil
+}
+
+func (s roomMemberService) CreateRoomMemberByRoomIdAndUserId(roomId int, userId int) (*entities.RoomMember, error) {
+
+	roomMember := entities.RoomMember{
+		RoomID: v.UintPtr(roomId),
+		UserID: v.UintPtr(userId),
+		IsHost: v.Ptr(true),
+	}
+
+	if err := s.roomMemberRepo.CreateRoomMemberByRoomIdAndUserId(&roomMember); err != nil {
+		return nil, err
+	}
+
+	return &entities.RoomMember{
+		RoomID: roomMember.RoomID,
+		UserID: roomMember.UserID,
+		IsHost: roomMember.IsHost,
+	}, nil
 }

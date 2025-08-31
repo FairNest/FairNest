@@ -22,7 +22,7 @@ func (r roomMemberRepositoryDB) GetRoomMemberByRoomId(roomId int) (*entities.Roo
 	return &roomMembers, nil
 }
 
-func (r roomMemberRepositoryDB) CreateRoomMember(roomMember *entities.RoomMember) error {
+func (r roomMemberRepositoryDB) CreateRoomMemberByRoomIdAndUserId(roomMember *entities.RoomMember) error {
 	result := r.db.Create(roomMember)
 	if result.Error != nil {
 		return result.Error
