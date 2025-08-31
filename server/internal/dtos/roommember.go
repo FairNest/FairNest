@@ -22,3 +22,8 @@ type FetchAllRoomMemberWithUserDetailsByRoomIdResponse struct {
 	UserPicture *string `json:"user_picture" validate:"required"`
 	UserAboutMe *string `json:"user_about_me" validate:"required"`
 }
+
+type UserRoomCheck struct {
+	UserExists bool
+	HasRoom    bool
+}

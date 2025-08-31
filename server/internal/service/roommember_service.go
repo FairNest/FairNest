@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
@@ -108,4 +109,19 @@ func (s roomMemberService) CreateRoomMemberByRoomIdAndUserId(roomId int, userId 
 		UserID: roomMember.UserID,
 		IsHost: roomMember.IsHost,
 	}, nil
+}
+
+func (s roomMemberService) CheckUserHasRoomOrNot(userId int) (bool, error) {
+	res, err := s.roomMemberRepo.CheckUserHasRoomOrNot(userId)
+	if err != nil {
+		return false, err
+	}
+
+	// If user doesn't exist at all → explicit error
+	if !res.UserExists {
+		return false, errors.New("user not found")
+	}
+
+	// Otherwise return room membership flag
+	return res.HasRoom, nil
 }

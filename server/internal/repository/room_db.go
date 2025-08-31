@@ -67,7 +67,7 @@ func (r roomRepositoryDB) GetMyRoomByUserId(userId int) (*entities.Room, error) 
 
 func (r roomRepositoryDB) GetRoomDetailsByRoomId(roomId int) (*entities.Room, error) {
 	room := entities.Room{}
-	result := r.db.Where("room_id = ?", roomId).First(&room)
+	result := r.db.Select("1").Where("room_id = ?", roomId).First(&room)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -76,7 +76,7 @@ func (r roomRepositoryDB) GetRoomDetailsByRoomId(roomId int) (*entities.Room, er
 
 func (r roomRepositoryDB) GetRoomDetailsByRoomCode(roomCode string) (*entities.Room, error) {
 	room := entities.Room{}
-	result := r.db.Where("room_code = ?", roomCode).First(&room)
+	result := r.db.Select("1").Where("room_code = ?", roomCode).First(&room)
 	if result.Error != nil {
 		return nil, result.Error
 	}

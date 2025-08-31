@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 )
 
@@ -10,4 +11,5 @@ type RoomMemberRepository interface {
 	/////////////////////////////////////////////////////////////////
 
 	CreateRoomMemberByRoomIdAndUserId(roomMember *entities.RoomMember) error
+	CheckUserHasRoomOrNot(userId int) (*dtos.UserRoomCheck, error)
 }

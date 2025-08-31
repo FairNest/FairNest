@@ -396,3 +396,46 @@ func (s userService) Login(request dtos.LoginRequest, jwtSecret string) (*dtos.L
 func (s userService) FetchAllUserByUserId(userIDs []uint) ([]entities.User, error) {
 	return s.userRepo.FetchAllUserByUserId(userIDs)
 }
+
+func (s userService) GetFindUserByUserId(userId int) (*entities.User, error) {
+	user, err := s.userRepo.GetFindUserByUserId(userId)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if user.UserID == nil &&
+		user.Username == nil &&
+		user.Password == nil &&
+		user.Email == nil &&
+		user.Firstname == nil &&
+		user.Lastname == nil &&
+		user.PhoneNumber == nil &&
+		user.UserPicture == nil &&
+		user.UserAboutMe == nil &&
+		user.BankAccountNumber == nil &&
+		user.RoommateScore == nil &&
+		user.UserVerificationPicture == nil &&
+		user.UserIdentityDocumentNumber == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "user data is not found")
+	}
+
+	userResponse := entities.User{
+		UserID:                     user.UserID,
+		Username:                   user.Username,
+		Password:                   user.Password,
+		Email:                      user.Email,
+		Firstname:                  user.Firstname,
+		Lastname:                   user.Lastname,
+		PhoneNumber:                user.PhoneNumber,
+		UserPicture:                user.UserPicture,
+		UserAboutMe:                user.UserAboutMe,
+		BankAccountNumber:          user.BankAccountNumber,
+		RoommateScore:              user.RoommateScore,
+		UserVerificationPicture:    user.UserVerificationPicture,
+		UserIdentityDocumentNumber: user.UserIdentityDocumentNumber,
+		UserIdentityDocumentType:   user.UserIdentityDocumentType,
+	}
+	return &userResponse, nil
+
+}
