@@ -212,6 +212,9 @@ type GetRoomDetailsByRoomIdResponse struct {
 	AvgGuestFrequency *float64 `json:"avg_guest_frequency" validate:"required"`
 	AvgTaskStructure  *float64 `json:"avg_task_structure" validate:"required"`
 	AvgMoneyAttitude  *float64 `json:"avg_money_attitude" validate:"required"`
+
+	// Members
+	Members []FetchAllRoomMemberWithUserDetailsResponse `json:"members" validate:"required"`
 }
 
 type GetRoomDetailsByRoomCodeResponse struct {
@@ -247,4 +250,7 @@ type GetRoomDetailsByRoomCodeResponse struct {
 	AvgGuestFrequency *float64 `json:"avg_guest_frequency" validate:"required"`
 	AvgTaskStructure  *float64 `json:"avg_task_structure" validate:"required"`
 	AvgMoneyAttitude  *float64 `json:"avg_money_attitude" validate:"required"`
+
+	// Members
+	Members []FetchAllRoomMemberWithUserDetailsResponse `json:"members" validate:"required"`
 }

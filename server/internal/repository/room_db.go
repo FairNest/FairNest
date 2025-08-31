@@ -67,18 +67,26 @@ func (r roomRepositoryDB) GetMyRoomByUserId(userId int) (*entities.Room, error) 
 
 func (r roomRepositoryDB) GetRoomDetailsByRoomId(roomId int) (*entities.Room, error) {
 	room := entities.Room{}
-	result := r.db.Where("room_id = ?", roomId).First(&room)
-	if result.Error != nil {
-		return nil, result.Error
+	err := r.db.
+		Preload("RoomMembers.User").
+		Where("room_id = ?", roomId).
+		First(&room).Error
+
+	if err != nil {
+		return nil, err
 	}
 	return &room, nil
 }
 
 func (r roomRepositoryDB) GetRoomDetailsByRoomCode(roomCode string) (*entities.Room, error) {
 	room := entities.Room{}
-	result := r.db.Where("room_code = ?", roomCode).First(&room)
-	if result.Error != nil {
-		return nil, result.Error
+	err := r.db.
+		Preload("RoomMembers.User").
+		Where("room_code = ?", roomCode).
+		First(&room).Error
+
+	if err != nil {
+		return nil, err
 	}
 	return &room, nil
 }

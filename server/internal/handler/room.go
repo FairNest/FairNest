@@ -120,87 +120,29 @@ func (h *roomHandler) GetMyRoomByUserId(c *fiber.Ctx) error {
 }
 
 func (h *roomHandler) GetRoomDetailsByRoomId(c *fiber.Ctx) error {
-	roomIDReceive, err := strconv.Atoi(c.Params("RoomID"))
-
-	room, err := h.roomSer.GetRoomDetailsByRoomId(roomIDReceive)
+	roomIdReceive, err := strconv.Atoi(c.Params("roomId"))
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
 	}
 
-	roomResponse := dtos.GetRoomDetailsByRoomIdResponse{
-		// RoomDetails
-		RoomID:                 room.RoomID,
-		RoomName:               room.RoomName,
-		RoomType:               room.RoomType,
-		RoomMaxCapacity:        room.RoomMaxCapacity,
-		RoomCurrentCapacity:    room.RoomCurrentCapacity,
-		RoomDescription:        room.RoomDescription,
-		RoomCode:               room.RoomCode,
-		RoomCompatibilityScore: room.RoomCompatibilityScore,
-		RoomPicture:            room.RoomPicture,
-		// LivingSpaceDetails
-		LivingSpaceName:        room.LivingSpaceName,
-		RentCost:               room.RentCost,
-		ElectricityCostPerUnit: room.ElectricityCostPerUnit,
-		WaterCostPerUnit:       room.WaterCostPerUnit,
-		OtherUtilityDetails:    room.OtherUtilityDetails,
-		// RoommateAgreements
-		QuietHoursStart: room.QuietHoursStart,
-		GuestStayOver:   room.GuestStayOver,
-		HandleCleaning:  room.HandleCleaning,
-		SharedSpace:     room.SharedSpace,
-		SplitCosts:      room.SplitCosts,
-		// Personality Averages
-		AvgTidiness:       room.AvgTidiness,
-		AvgNoiseActivity:  room.AvgNoiseActivity,
-		AvgSchedule:       room.AvgSchedule,
-		AvgGuestFrequency: room.AvgGuestFrequency,
-		AvgTaskStructure:  room.AvgTaskStructure,
-		AvgMoneyAttitude:  room.AvgMoneyAttitude,
+	room, err := h.roomSer.GetRoomDetailsByRoomId(roomIdReceive)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(roomResponse)
+	return c.JSON(room)
 }
 
 func (h *roomHandler) GetRoomDetailsByRoomCode(c *fiber.Ctx) error {
 	roomCodeReceive := c.Params("RoomCode")
+	if roomCodeReceive == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid room code")
+	}
 
 	room, err := h.roomSer.GetRoomDetailsByRoomCode(roomCodeReceive)
 	if err != nil {
-		return err
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	roomResponse := dtos.GetRoomDetailsByRoomCodeResponse{
-		// RoomDetails
-		RoomID:                 room.RoomID,
-		RoomName:               room.RoomName,
-		RoomType:               room.RoomType,
-		RoomMaxCapacity:        room.RoomMaxCapacity,
-		RoomCurrentCapacity:    room.RoomCurrentCapacity,
-		RoomDescription:        room.RoomDescription,
-		RoomCode:               room.RoomCode,
-		RoomCompatibilityScore: room.RoomCompatibilityScore,
-		RoomPicture:            room.RoomPicture,
-		// LivingSpaceDetails
-		LivingSpaceName:        room.LivingSpaceName,
-		RentCost:               room.RentCost,
-		ElectricityCostPerUnit: room.ElectricityCostPerUnit,
-		WaterCostPerUnit:       room.WaterCostPerUnit,
-		OtherUtilityDetails:    room.OtherUtilityDetails,
-		// RoommateAgreements
-		QuietHoursStart: room.QuietHoursStart,
-		GuestStayOver:   room.GuestStayOver,
-		HandleCleaning:  room.HandleCleaning,
-		SharedSpace:     room.SharedSpace,
-		SplitCosts:      room.SplitCosts,
-		// Personality Averages
-		AvgTidiness:       room.AvgTidiness,
-		AvgNoiseActivity:  room.AvgNoiseActivity,
-		AvgSchedule:       room.AvgSchedule,
-		AvgGuestFrequency: room.AvgGuestFrequency,
-		AvgTaskStructure:  room.AvgTaskStructure,
-		AvgMoneyAttitude:  room.AvgMoneyAttitude,
-	}
-
-	return c.JSON(roomResponse)
+	return c.JSON(room)
 }
