@@ -10,11 +10,13 @@ import (
 
 type roomMemberService struct {
 	roomMemberRepo repository.RoomMemberRepository
+	userSer        UserService
 }
 
-func NewRoomMemberService(roomMemberRepo repository.RoomMemberRepository) roomMemberService {
+func NewRoomMemberService(roomMemberRepo repository.RoomMemberRepository, userSer UserService) roomMemberService {
 	return roomMemberService{
 		roomMemberRepo: roomMemberRepo,
+		userSer:        userSer,
 	}
 }
 
@@ -41,30 +43,50 @@ func (s roomMemberService) FetchAllRoomMemberByRoomId(roomId int) ([]entities.Ro
 // --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 func (s roomMemberService) FetchAllRoomMemberWithUserDetailsByRoomId(roomId int) ([]dtos.FetchAllRoomMemberWithUserDetailsByRoomIdResponse, error) {
-	roomMembers, err := s.roomMemberRepo.FetchAllRoomMemberWithUserDetailsByRoomId(roomId)
+	members, err := s.roomMemberRepo.FetchAllRoomMemberByRoomId(roomId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	roomMemberResponses := []dtos.FetchAllRoomMemberWithUserDetailsByRoomIdResponse{}
-	for _, roomMember := range roomMembers {
-		roomMemberResponse := dtos.FetchAllRoomMemberWithUserDetailsByRoomIdResponse{
-			RoomMemberID: roomMember.RoomMemberID,
-			RoomID:       roomMember.RoomID,
-			UserID:       roomMember.UserID,
-			IsHost:       roomMember.IsHost,
-			Username:     roomMember.Username,
-			Email:        roomMember.Email,
-			Firstname:    roomMember.Firstname,
-			Lastname:     roomMember.Lastname,
-			PhoneNumber:  roomMember.PhoneNumber,
-			UserPicture:  roomMember.UserPicture,
-			UserAboutMe:  roomMember.UserAboutMe,
-		}
-		roomMemberResponses = append(roomMemberResponses, roomMemberResponse)
+	// Step 2: collect user IDs
+	userIDs := make([]uint, 0, len(members))
+	for _, m := range members {
+		userIDs = append(userIDs, v.UintValue(m.UserID))
 	}
-	return roomMemberResponses, nil
+
+	// Step 3: fetch users via UserService
+	users, err := s.userSer.FetchAllUserByUserId(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Step 4: build map
+	userMap := make(map[uint]entities.User)
+	for _, u := range users {
+		userMap[v.UintValue(u.UserID)] = u
+	}
+
+	// Step 5: merge into DTO
+	responses := make([]dtos.FetchAllRoomMemberWithUserDetailsByRoomIdResponse, 0, len(members))
+	for _, m := range members {
+		u := userMap[v.UintValue(m.UserID)]
+		responses = append(responses, dtos.FetchAllRoomMemberWithUserDetailsByRoomIdResponse{
+			RoomMemberID: m.RoomMemberID,
+			RoomID:       m.RoomID,
+			UserID:       m.UserID,
+			IsHost:       m.IsHost,
+			Username:     u.Username,
+			Email:        u.Email,
+			Firstname:    u.Firstname,
+			Lastname:     u.Lastname,
+			PhoneNumber:  u.PhoneNumber,
+			UserPicture:  u.UserPicture,
+			UserAboutMe:  u.UserAboutMe,
+		})
+	}
+
+	return responses, nil
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

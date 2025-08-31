@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 	"gorm.io/gorm"
 )
@@ -21,29 +20,6 @@ func (r roomMemberRepositoryDB) FetchAllRoomMemberByRoomId(roomId int) ([]entiti
 		return nil, result.Error
 	}
 	return roomMembers, nil
-}
-
-// ------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-func (r roomMemberRepositoryDB) FetchAllRoomMemberWithUserDetailsByRoomId(roomId int) ([]dtos.FetchAllRoomMemberWithUserDetailsByRoomIdResponse, error) {
-	var roomMembers []dtos.FetchAllRoomMemberWithUserDetailsByRoomIdResponse
-	err := r.db.Table("room_members").
-		Select(`
-			room_members.room_member_id,
-			room_members.room_id,
-			room_members.user_id,
-			room_members.is_host,
-			users.username,
-			users.email,
-			users.firstname,
-			users.lastname,
-			users.phone_number,
-			users.user_picture,
-			users.user_about_me`).
-		Joins("LEFT JOIN users ON room_members.user_id = users.user_id").
-		Where("room_members.room_id = ?", roomId).
-		Scan(&roomMembers).Error
-	return roomMembers, err
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

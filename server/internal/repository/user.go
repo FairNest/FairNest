@@ -20,4 +20,6 @@ type UserRepository interface {
 	GetUserByEmail(email string) (*entities.User, error)                                           //Login
 	GetUserByUsername(username string) (*entities.User, error)                                     //Login
 	GetUserByUserIdentityDocumentNumber(userIdentityDocumentNumber string) (*entities.User, error) //Login
+
+	FetchAllUserByUserId(userIDs []uint) ([]entities.User, error)
 }

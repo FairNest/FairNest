@@ -392,3 +392,7 @@ func (s userService) Login(request dtos.LoginRequest, jwtSecret string) (*dtos.L
 		Token:  &jwtToken,
 	}, nil
 }
+
+func (s userService) FetchAllUserByUserId(userIDs []uint) ([]entities.User, error) {
+	return s.userRepo.FetchAllUserByUserId(userIDs)
+}
