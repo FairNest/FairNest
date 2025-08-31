@@ -104,7 +104,7 @@ class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                "Hi ${widget.signUpData.name.isNotEmpty ? widget.signUpData.name : 'there'}! "
+                "Hi ${widget.signUpData.firstname.isNotEmpty ? widget.signUpData.firstname : 'there'}! "
                 "This short quiz helps us understand your lifestyle preferences so we can match you better.",
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 13, color: Colors.black87),

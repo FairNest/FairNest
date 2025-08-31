@@ -66,7 +66,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
     _metrics = widget.metrics ?? _computeFromAnswers(widget.quizAnswers);
 
     debugPrint('SignUpData: '
-        '${widget.signUpData.name}, ${widget.signUpData.email}, '
+        '${widget.signUpData.firstname}, ${widget.signUpData.email}, '
         '${widget.signUpData.nationalIdOrPassport}, ${widget.signUpData.phoneNumber}');
     debugPrint('Quiz answers (1..5): ${widget.quizAnswers}');
     debugPrint('Computed/received metrics: $_metrics');
@@ -162,9 +162,6 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
       final avatarAsset = widget.avatarChoices[_selectedAvatarIndex!];
       final userPictureUrl = _avatarAssetToCdn(avatarAsset);
 
-      final (first: firstname, last: lastname) =
-          _splitName(widget.signUpData.name);
-
       // Build multipart/form-data exactly as backend expects.
       // We send empty strings "" for the three fields you requested,
       // and "true" string for the boolean (Go can parse it to bool).
@@ -172,8 +169,8 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
         "username": username,
         "password": widget.signUpData.password,
         "email": widget.signUpData.email,
-        "firstname": firstname,
-        "lastname": lastname,
+        "firstname": widget.signUpData.firstname,
+        "lastname": widget.signUpData.lastname,
         "phone_number": widget.signUpData.phoneNumber,
         "user_picture": userPictureUrl,
         "user_about_me": bio,
