@@ -1,4 +1,5 @@
 import 'package:fairnestui/auth/SignUpPage.dart';
+import 'package:fairnestui/pages/FindRoommate/GroupCheckPage.dart';
 import 'package:fairnestui/services/user_service.dart';
 import 'package:fairnestui/shell/app_shell.dart' show AppShell;
 import 'package:flutter/material.dart';
@@ -60,8 +61,7 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                const AppShell(initialIndex: 0), // start on dashboard tab
+            builder: (_) => const GroupCheckPage(), // start on dashboard tab
           ),
         );
 

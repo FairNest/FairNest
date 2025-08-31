@@ -24,7 +24,8 @@ class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers for the required fields
-  final _nameCtrl = TextEditingController();
+  final _firstnameCtrl = TextEditingController();
+  final _lastnameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _nationalIdCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
@@ -37,7 +38,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   void dispose() {
-    _nameCtrl.dispose();
+    _firstnameCtrl.dispose();
+    _lastnameCtrl.dispose();
     _emailCtrl.dispose();
     _nationalIdCtrl.dispose();
     _phoneCtrl.dispose();
@@ -66,7 +68,8 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     final data = SignUpData(
-      name: _nameCtrl.text.trim(),
+      firstname: _firstnameCtrl.text.trim(),
+      lastname: _lastnameCtrl.text.trim(),
       email: _emailCtrl.text.trim(),
       nationalIdOrPassport: _nationalIdCtrl.text.trim(),
       phoneNumber: _phoneCtrl.text.trim(),
@@ -131,11 +134,22 @@ class _SignUpPageState extends State<SignUpPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Name
-                            const _FieldLabel('Name'),
+                            const _FieldLabel('First Name'),
                             const SizedBox(height: 10),
                             _Input(
-                              controller: _nameCtrl,
-                              hint: 'Your Name',
+                              controller: _firstnameCtrl,
+                              hint: 'Your First Name',
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Name is required'
+                                  : null,
+                            ),
+                            const SizedBox(height: 18),
+
+                            const _FieldLabel('Last Name'),
+                            const SizedBox(height: 10),
+                            _Input(
+                              controller: _lastnameCtrl,
+                              hint: 'Your Last Name',
                               validator: (v) => (v == null || v.trim().isEmpty)
                                   ? 'Name is required'
                                   : null,
@@ -325,14 +339,16 @@ class _SignUpPageState extends State<SignUpPage> {
 
 /// Data you’ll receive on submit (simplified to match current fields)
 class SignUpData {
-  final String name;
+  final String firstname;
+  final String lastname;
   final String email;
   final String nationalIdOrPassport;
   final String phoneNumber;
   final String password;
 
   SignUpData({
-    required this.name,
+    required this.firstname,
+    required this.lastname,
     required this.email,
     required this.nationalIdOrPassport,
     required this.phoneNumber,

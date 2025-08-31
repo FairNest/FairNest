@@ -1,3 +1,4 @@
+import 'package:fairnestui/auth/welcome_page.dart';
 import 'package:fairnestui/pages/FindRoommate/GroupCheckPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const GroupCheckPage(),
+      home: const WelcomePage(),
     );
   }
 }
