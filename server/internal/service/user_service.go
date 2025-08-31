@@ -331,7 +331,7 @@ func (s userService) Register(request dtos.RegisterRequest) (*dtos.UserResponse,
 		UserMoneyAttitude:  request.UserMoneyAttitude,
 	}
 
-	_, err = s.lifestyleSer.CreateLifestyle(v.IntValue(v.UintToIntPtr(user.UserID)), &lifestyle)
+	_, err = s.lifestyleSer.CreateLifestyleByUserId(v.IntValue(v.UintToIntPtr(user.UserID)), &lifestyle)
 	if err != nil {
 		return nil, err
 	}

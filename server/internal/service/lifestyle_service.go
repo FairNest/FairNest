@@ -130,7 +130,7 @@ func (s lifestyleService) CreateLifestyleByUserId(userId int, request *entities.
 		UserMoneyAttitude:  request.UserMoneyAttitude,
 	}
 
-	if err := s.lifestyleRepo.CreateLifestyle(&lifestyle); err != nil {
+	if err := s.lifestyleRepo.CreateLifestyleByUserId(&lifestyle); err != nil {
 		return nil, err
 	}
 
