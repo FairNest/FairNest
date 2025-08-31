@@ -107,15 +107,15 @@ func main() {
 	//Endpoint ###########################################################################
 
 	// Endpoints for test
-	app.Get("/FetchUsers", userHandler.FetchUsers)
+	app.Get("/FetchAllUser", userHandler.FetchAllUser)
 	app.Get("/GetUserByUserId/:UserID", userHandler.GetUserByUserId)
 	app.Get("/GetUserByToken", userHandler.GetUserByToken) //%
 
-	app.Get("/FetchRooms", roomHandler.FetchRooms)
+	app.Get("/FetchAllRoom", roomHandler.FetchAllRoom)
 
 	app.Get("/GetLifestyleByUserId/:UserID", lifestyleHandler.GetLifestyleByUserId)
 
-	app.Get("/GetRoomMemberByRoomId/:RoomID", roomMemberHandler.GetRoomMemberByRoomId)
+	app.Get("/FetchAllRoomMemberByRoomId/:RoomID", roomMemberHandler.FetchAllRoomMemberByRoomId)
 
 	app.Post("/upload", storageHandler.UploadFile)
 

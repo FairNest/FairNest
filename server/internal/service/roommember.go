@@ -5,7 +5,7 @@ import (
 )
 
 type RoomMemberService interface {
-	GetRoomMemberByRoomId(int) (*entities.RoomMember, error)
+	FetchAllRoomMemberByRoomId(int) (*entities.RoomMember, error)
 	/////////////////////////////////////////////////////////////////
 	CreateRoomMemberByRoomIdAndUserId(int, int) (*entities.RoomMember, error)
 }

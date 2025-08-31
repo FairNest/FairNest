@@ -5,7 +5,7 @@ import (
 )
 
 type TemplateService interface {
-	FetchUsers() ([]entities.User, error)
+	FetchAllUser() ([]entities.User, error)
 	GetUserByUserId(int) (*entities.User, error)
 	GetUserByToken(int) (*entities.User, error)
 

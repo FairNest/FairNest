@@ -25,7 +25,7 @@ func NewRoomService(roomRepo repository.RoomRepository, roomMemberSer RoomMember
 	}
 }
 
-func (s roomService) FetchRooms() ([]entities.Room, error) {
+func (s roomService) FetchAllRoom() ([]entities.Room, error) {
 	rooms, err := s.roomRepo.FetchAllRoom()
 	if err != nil {
 		log.Println(err)

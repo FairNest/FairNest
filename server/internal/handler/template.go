@@ -14,10 +14,10 @@ func NewTemplateHandler(userSer service.UserService) templateHandler {
 	return templateHandler{userSer: userSer}
 }
 
-func (h *templateHandler) FetchUsers(c *fiber.Ctx) error {
+func (h *templateHandler) FetchAllUser(c *fiber.Ctx) error {
 	usersResponse := make([]dtos.UserDataResponse, 0)
 
-	users, err := h.userSer.FetchUsers()
+	users, err := h.userSer.FetchAllUser()
 	if err != nil {
 		return err
 	}

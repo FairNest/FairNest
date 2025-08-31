@@ -15,10 +15,10 @@ func NewRoomMemberHandler(roomMemberSer service.RoomMemberService) roomMemberHan
 	return roomMemberHandler{roomMemberSer: roomMemberSer}
 }
 
-func (h *roomMemberHandler) GetRoomMemberByRoomId(c *fiber.Ctx) error {
+func (h *roomMemberHandler) FetchAllRoomMemberByRoomId(c *fiber.Ctx) error {
 	roomIDReceive, err := strconv.Atoi(c.Params("RoomID"))
 
-	roomMember, err := h.roomMemberSer.GetRoomMemberByRoomId(roomIDReceive)
+	roomMember, err := h.roomMemberSer.FetchAllRoomMemberByRoomId(roomIDReceive)
 	if err != nil {
 		return err
 	}

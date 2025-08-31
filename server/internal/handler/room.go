@@ -15,10 +15,10 @@ func NewRoomHandler(roomSer service.RoomService) roomHandler {
 	return roomHandler{roomSer: roomSer}
 }
 
-func (h *roomHandler) FetchRooms(c *fiber.Ctx) error {
+func (h *roomHandler) FetchAllRoom(c *fiber.Ctx) error {
 	roomsResponse := make([]dtos.RoomDataResponse, 0)
 
-	rooms, err := h.roomSer.FetchRooms()
+	rooms, err := h.roomSer.FetchAllRoom()
 	if err != nil {
 		return err
 	}

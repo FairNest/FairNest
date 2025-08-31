@@ -13,7 +13,7 @@ func NewRoomMemberRepositoryDB(db *gorm.DB) roomMemberRepositoryDB {
 	return roomMemberRepositoryDB{db: db}
 }
 
-func (r roomMemberRepositoryDB) GetRoomMemberByRoomId(roomId int) (*entities.RoomMember, error) {
+func (r roomMemberRepositoryDB) FetchAllRoomMemberByRoomId(roomId int) (*entities.RoomMember, error) {
 	roomMembers := entities.RoomMember{}
 	result := r.db.Where("room_id = ?", roomId).Find(&roomMembers)
 	if result.Error != nil {

@@ -31,7 +31,7 @@ func NewUserService(userRepo repository.UserRepository, jwtSecret string, lifest
 	}
 }
 
-func (s userService) FetchUsers() ([]entities.User, error) {
+func (s userService) FetchAllUser() ([]entities.User, error) {
 	users, err := s.userRepo.FetchAllUser()
 	if err != nil {
 		log.Println(err)

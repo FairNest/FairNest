@@ -6,7 +6,7 @@ import (
 )
 
 type RoomService interface {
-	FetchRooms() ([]entities.Room, error)
+	FetchAllRoom() ([]entities.Room, error)
 	//GetRoomByRoomId(int) (*entities.Room, error)
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////

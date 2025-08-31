@@ -18,8 +18,8 @@ func NewRoomMemberService(roomMemberRepo repository.RoomMemberRepository) roomMe
 	}
 }
 
-func (s roomMemberService) GetRoomMemberByRoomId(roomId int) (*entities.RoomMember, error) {
-	roomMember, err := s.roomMemberRepo.GetRoomMemberByRoomId(roomId)
+func (s roomMemberService) FetchAllRoomMemberByRoomId(roomId int) (*entities.RoomMember, error) {
+	roomMember, err := s.roomMemberRepo.FetchAllRoomMemberByRoomId(roomId)
 	if err != nil {
 		log.Println(err)
 		return nil, err

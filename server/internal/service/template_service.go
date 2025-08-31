@@ -16,7 +16,7 @@ func NewTemplateService(userRepo repository.UserRepository) templateService {
 	}
 }
 
-func (s templateService) FetchUsers() ([]entities.User, error) {
+func (s templateService) FetchAllUser() ([]entities.User, error) {
 	users, err := s.userRepo.FetchAllUser()
 	if err != nil {
 		log.Println(err)
