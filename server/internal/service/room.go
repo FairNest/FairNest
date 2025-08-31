@@ -9,13 +9,12 @@ type RoomService interface {
 	FetchAllRoom() ([]entities.Room, error)
 
 	FetchAllRoomWithRoomMembersDetails() ([]dtos.FetchAllRoomWithRoomMembersResponse, error)
-	//GetRoomByRoomId(int) (*entities.Room, error)
-
-	//------------------------------------------------------------------------------------------------------
-
 	FetchAllRoomSuitUserLifestyleByUserId(int) ([]dtos.FetchAllRoomSuitUserLifestyleByUserIdResponse, error)
+	//GetRoomByRoomId(int) (*entities.Room, error)
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	CreateRoomByUserId(int, dtos.CreateRoomByUserIdRequest) (*dtos.CreateRoomByUserIdResponse, error)
+
+	FetchAllPublicRoomSuitUserLifestyleByUserId(int) ([]dtos.FetchAllPublicRoomSuitUserLifestyleByUserIdResponse, error)
 }

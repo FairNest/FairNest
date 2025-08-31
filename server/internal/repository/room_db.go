@@ -37,3 +37,26 @@ func (r roomRepositoryDB) ExistsByCode(code string) (bool, error) {
 	err := r.db.Model(&entities.Room{}).Where("room_code = ?", code).Count(&count).Error
 	return count > 0, err
 }
+
+func (r roomRepositoryDB) FetchAllPublicRoom() ([]entities.Room, error) {
+	rooms := []entities.Room{}
+	result := r.db.Where("room_type = ?", true).Find(&rooms)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return rooms, nil
+}
+
+func (r roomRepositoryDB) FetchAllMyRoom(userID uint) ([]entities.Room, error) {
+	var rooms []entities.Room
+
+	result := r.db.
+		Joins("JOIN room_members ON room_members.room_id = rooms.room_id").
+		Where("room_members.user_id = ? AND room_members.is_host = ?", userID, true).
+		Find(&rooms)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return rooms, nil
+}

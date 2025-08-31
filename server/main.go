@@ -119,6 +119,8 @@ func main() {
 	app.Get("/FetchAllRoomMemberWithUserDetailsByRoomId/:RoomID", roomMemberHandler.FetchAllRoomMemberWithUserDetailsByRoomId)
 	app.Get("/FetchAllRoomWithRoomMembersDetails", roomHandler.FetchAllRoomWithRoomMembersDetails)
 
+	app.Get("/FetchAllRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FetchAllRoomSuitUserLifestyleByUserId)
+
 	app.Post("/upload", storageHandler.UploadFile)
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -134,7 +136,7 @@ func main() {
 
 	app.Post("/CreateRoomByUserId/:UserID", roomHandler.CreateRoomByUserId)
 
-	app.Get("/FetchAllRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FetchAllRoomSuitUserLifestyleByUserId)
+	app.Get("/FetchAllPublicRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FetchAllPublicRoomSuitUserLifestyleByUserId)
 
 	//#####################################################################################
 
