@@ -5,10 +5,9 @@ import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/service"
 	"fairnest/internal/utils"
+	"github.com/gofiber/fiber/v2"
 	"strconv"
 	"strings"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 type userHandler struct {
