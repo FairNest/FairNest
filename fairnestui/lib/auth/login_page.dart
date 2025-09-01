@@ -7,6 +7,7 @@ import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/components/MainButton.dart';
 import 'package:fairnestui/services/auth_service.dart';
 import 'package:fairnestui/services/storage_service.dart';
+import 'package:fairnestui/services/api_client.dart'; // <-- NEW
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, this.onTapRegister, this.onSubmit});
@@ -38,37 +39,56 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
+      // 1) Login
       final result = await AuthService.login(
         email: _emailCtrl.text.trim(),
         password: _pwCtrl.text,
       );
 
-      // Store token and user data
+      // 2) Persist auth
       await StorageService.saveToken(result['token']);
       await StorageService.saveUserData({
         'user_id': result['user_id'],
         'email': result['email'],
       });
 
+      // 3) Extract user id (from JWT or whatever UserService implements)
       final userId = await UserService.getUserIdFromToken();
-      print("User ID from token: $userId");
-
       if (mounted) {
-        // Call the original onSubmit callback if provided
-        widget.onSubmit?.call(_emailCtrl.text.trim(), _pwCtrl.text);
+        debugPrint("User ID from token: $userId");
+      }
 
-        // Navigate to home or dashboard
+      // 4) Check whether the user already has a room
+      bool hasRoom = false;
+      try {
+        final resp = await ApiClient.get('/CheckUserHasRoomOrNot/$userId');
+        // Expecting: { "has_room": true/false }
+        final data = resp.data;
+        if (data is Map && data.containsKey('has_room')) {
+          final v = data['has_room'];
+          hasRoom = v == true || v == 'true' || v == 1;
+        }
+      } catch (e) {
+        // If the check fails, default to onboarding (GroupCheckPage)
+        debugPrint('⚠️ has_room check failed: $e');
+      }
+
+      // 5) Optional external callback
+      widget.onSubmit?.call(_emailCtrl.text.trim(), _pwCtrl.text);
+
+      // 6) Navigate based on hasRoom
+      if (mounted) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => const GroupCheckPage(), // start on dashboard tab
+            builder: (_) => hasRoom ? const AppShell() : const GroupCheckPage(),
           ),
         );
 
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login successful!'),
+          SnackBar(
+            content:
+                Text(hasRoom ? 'Welcome back!' : 'Let’s set up your room.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -97,21 +117,23 @@ class _LoginPageState extends State<LoginPage> {
         child: Stack(
           children: [
             Positioned.fill(
-                child: Image.asset(
-              'assets/images/log-in-bg.png',
-              fit: BoxFit.fill,
-            )),
+              child: Image.asset(
+                'assets/images/log-in-bg.png',
+                fit: BoxFit.fill,
+              ),
+            ),
             Column(
               children: [
                 const SizedBox(height: 210),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
                   child: Text(
                     "Log In",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF645A80),
-                        fontSize: 22),
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF645A80),
+                      fontSize: 22,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -190,7 +212,7 @@ class _LoginPageState extends State<LoginPage> {
                             width: double.infinity,
                             height: 52,
                             borderRadius: 12,
-                            onPressed: _isLoading ? null : () => _handleLogin(),
+                            onPressed: _isLoading ? null : _handleLogin,
                           ),
 
                           const SizedBox(height: 20),
