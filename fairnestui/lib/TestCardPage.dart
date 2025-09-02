@@ -1,57 +1,92 @@
+import 'package:fairnestui/components/MainButton.dart';
+import 'package:fairnestui/pages/Chores/EditChorePage.dart';
+import 'package:fairnestui/pages/Finance/EditFinancePage.dart';
 import 'package:flutter/material.dart';
-import 'package:fairnestui/components/SecondaryButton.dart';
-import 'package:fairnestui/theme/app_fonts.dart';
+import 'package:fairnestui/theme/app_colors.dart';
 
-// Import your dialogs (adjust the paths if your folder structure is different)
-import 'package:fairnestui/util/ConfirmDialog.dart';
-import 'package:fairnestui/util/VoteSubmittedDialog.dart';
+class UiTestEditPages extends StatelessWidget {
+  const UiTestEditPages({super.key});
 
-const _bg = Color(0xFFECE9E6);
-const _accent = Color(0xFF645A80);
-
-class TestConfirmVotePage extends StatelessWidget {
-  const TestConfirmVotePage({super.key});
-
-  void _openAcceptance(BuildContext context) {
-    showConfirmDialog(
+  Future<void> _openEditChore(BuildContext context) async {
+    final result = await Navigator.push(
       context,
-      action: "accept",
-      name: "George",
+      MaterialPageRoute(
+        builder: (_) => EditChorePage(
+          title: 'Weekly Kitchen Cleanup',
+          taskType: 'Chore',
+          dateTime: DateTime.now().add(const Duration(days: 1, hours: 10)),
+          assignees: const ['Ayu', 'Bima'],
+          category: 'Cleaning',
+          recurrence: 'Weekly',
+          autoRotate: true,
+        ),
+      ),
     );
+
+    if (context.mounted && result != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Chore result: ${result['action']}')),
+      );
+    }
   }
 
-  void _openRejection(BuildContext context) {
-    showConfirmDialog(
+  Future<void> _openEditFinance(BuildContext context) async {
+    final result = await Navigator.push(
       context,
-      action: "reject",
-      name: "George",
+      MaterialPageRoute(
+        builder: (_) => EditFinancePage(
+          title: 'Groceries - Weekend',
+          taskType: 'Finance',
+          dateTime: DateTime.now().add(const Duration(days: 2, hours: 18)),
+          participants: const ['Ayu', 'Bima', 'Chai'],
+          category: 'Groceries',
+          totalAmount: 120.50,
+          splitType: 'Custom',
+          customSplits: const {'Ayu': 40.00, 'Bima': 40.50, 'Chai': 40.00},
+          paidBy: const ['Ayu'],
+        ),
+      ),
     );
+
+    if (context.mounted && result != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Finance result: ${result['action']}')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: _accent,
-        foregroundColor: Colors.white,
-        title: Text("Confirm & Vote Test", style: AppFonts.heading3),
+        title: const Text(
+          'UI Test: Edit Pages',
+          style: TextStyle(fontFamily: 'Krub', fontWeight: FontWeight.w700),
+        ),
+        backgroundColor: AppColors.accent,
+        centerTitle: true,
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SecondaryButton(
-              text: "Test Acceptance Flow",
-              width: 240,
-              onPressed: () => _openAcceptance(context),
+            MainButton(
+              text: 'Open Edit Chore (Sample)',
+              onPressed: () => _openEditChore(context),
+              backgroundColor: AppColors.primary,
+              textColor: Colors.black,
+              width: double.infinity,
+              height: 56,
             ),
-            const SizedBox(height: 20),
-            SecondaryButton(
-              text: "Test Rejection Flow",
-              width: 240,
-              backgroundColor: Colors.red.shade400,
-              onPressed: () => _openRejection(context),
+            const SizedBox(height: 16),
+            MainButton(
+              text: 'Open Edit Finance (Sample)',
+              onPressed: () => _openEditFinance(context),
+              backgroundColor: AppColors.primary,
+              textColor: Colors.black,
+              width: double.infinity,
+              height: 56,
             ),
           ],
         ),

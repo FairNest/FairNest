@@ -1,6 +1,8 @@
 // lib/shell/app_shell.dart
 import 'package:fairnestui/pages/Compatibility/CompatibilityPage.dart';
 import 'package:fairnestui/pages/Home/RoomDashboardPage.dart';
+import 'package:fairnestui/pages/Chores/AddChorePage.dart';
+import 'package:fairnestui/pages/Finance/AddFinancePage.dart';
 import 'package:flutter/material.dart';
 
 // your custom bottom nav
@@ -76,14 +78,36 @@ class _AppShellState extends State<AppShell> {
               ),
               const SizedBox(height: 12),
               ListTile(
-                leading: const Icon(Icons.receipt_long_rounded),
-                title: const Text('Add Bill'),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
                 leading: const Icon(Icons.cleaning_services_rounded),
                 title: const Text('Add Chore'),
-                onTap: () => Navigator.pop(context),
+                onTap: () async {
+                  Navigator.pop(context); // close the sheet
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AddChorePage()),
+                  );
+
+                  if (result != null) {
+                    // TODO: handle the created chore data (e.g., call API / state update)
+                    // print(result);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.receipt_long_rounded),
+                title: const Text('Add Finance'),
+                onTap: () async {
+                  Navigator.pop(context); // close the sheet
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AddFinancePage()),
+                  );
+
+                  if (result != null) {
+                    // TODO: handle the created chore data (e.g., call API / state update)
+                    // print(result);
+                  }
+                },
               ),
             ],
           ),

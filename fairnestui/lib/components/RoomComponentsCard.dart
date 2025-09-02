@@ -10,6 +10,7 @@ class RoomComponentsCard extends StatelessWidget {
     required this.memberCount,
     required this.memberMax,
     required this.compatibilityPct, // 0–100
+    this.imageUrl, // 🔑 added for room_picture
     this.userIconAsset = 'assets/images/User Account.png',
     this.compatIconAsset = 'assets/images/Heart Puzzle.png',
     this.width = 381,
@@ -22,6 +23,8 @@ class RoomComponentsCard extends StatelessWidget {
   final int memberCount;
   final int memberMax;
   final num compatibilityPct;
+  final String? imageUrl; // new optional image URL
+
   final String userIconAsset;
   final String compatIconAsset;
 
@@ -65,11 +68,30 @@ class RoomComponentsCard extends StatelessWidget {
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Picture area uses remaining width; fixed height 110; square corners
+                      // Picture area (network image or fallback box)
                       SizedBox(
                         width: imageW,
                         height: 110,
-                        child: Container(color: const Color(0xFFD9D9D9)),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: imageUrl != null && imageUrl!.isNotEmpty
+                              ? Image.network(
+                                  imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: Colors.grey[400],
+                                    alignment: Alignment.center,
+                                    child: const Icon(Icons.image_not_supported,
+                                        color: Colors.white70),
+                                  ),
+                                )
+                              : Container(
+                                  color: Colors.grey[400],
+                                  alignment: Alignment.center,
+                                  child: const Icon(Icons.image,
+                                      color: Colors.white70),
+                                ),
+                        ),
                       ),
                       const SizedBox(width: 10),
 
