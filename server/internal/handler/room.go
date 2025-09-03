@@ -3,8 +3,9 @@ package handler
 import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/service"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type roomHandler struct {
@@ -145,4 +146,42 @@ func (h *roomHandler) GetRoomDetailsByRoomCode(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(room)
+}
+
+func (h *roomHandler) GetHouseRulesByRoomId(c *fiber.Ctx) error {
+	roomId, err := strconv.Atoi(c.Params("RoomID"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
+	}
+
+	rules, err := h.roomSer.GetHouseRulesByRoomId(roomId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(rules)
+}
+
+func (h *roomHandler) PatchEditHouseRulesByRoomId(c *fiber.Ctx) error {
+	roomId, err := strconv.Atoi(c.Params("RoomID"))
+	if err != nil || roomId <= 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
+	}
+
+	var req dtos.PatchEditHouseRulesByRoomIdRequest
+	if err := c.BodyParser(&req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	if req.QuietHoursStart == nil && req.GuestStayOver == nil &&
+		req.HandleCleaning == nil && req.SharedSpace == nil &&
+		req.SplitCosts == nil {
+		return fiber.NewError(fiber.StatusBadRequest, "no fields provided")
+	}
+
+	updated, err := h.roomSer.PatchEditHouseRulesByRoomId(roomId, req)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(updated)
 }

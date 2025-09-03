@@ -6,6 +6,7 @@ import (
 	"fairnest/internal/repository"
 	"fairnest/internal/utils"
 	"fairnest/internal/utils/v"
+	"fmt"
 	"log"
 	"math/rand"
 	"sort"
@@ -465,5 +466,69 @@ func (s roomService) GetRoomDetailsByRoomCode(roomCode string) (*dtos.GetRoomDet
 		AvgMoneyAttitude:  room.AvgMoneyAttitude,
 		// Members with user details
 		Members: members,
+	}, nil
+}
+
+func (s roomService) GetHouseRulesByRoomId(roomId int) (dtos.HouseRulesResponse, error) {
+	// Use existing repo method – no new repo code needed
+	room, err := s.roomRepo.GetRoomDetailsByRoomId(roomId)
+	if err != nil {
+		return dtos.HouseRulesResponse{}, err
+	}
+	if room == nil {
+		return dtos.HouseRulesResponse{}, fmt.Errorf("room not found")
+	}
+
+	return dtos.HouseRulesResponse{
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
+	}, nil
+}
+
+func (s roomService) PatchEditHouseRulesByRoomId(roomId int, req dtos.PatchEditHouseRulesByRoomIdRequest) (dtos.HouseRulesResponse, error) {
+
+	updates := map[string]interface{}{}
+	if req.QuietHoursStart != nil {
+		updates["quiet_hours_start"] = req.QuietHoursStart
+	}
+	if req.GuestStayOver != nil {
+		updates["guest_stay_over"] = req.GuestStayOver
+	}
+	if req.HandleCleaning != nil {
+		updates["handle_cleaning"] = req.HandleCleaning
+	}
+	if req.SharedSpace != nil {
+		updates["shared_space"] = req.SharedSpace
+	}
+	if req.SplitCosts != nil {
+		updates["split_costs"] = req.SplitCosts
+	}
+
+	if len(updates) == 0 {
+		return dtos.HouseRulesResponse{}, fmt.Errorf("no fields to update")
+	}
+
+	if err := s.roomRepo.UpdateHouseRulesByRoomId(roomId, updates); err != nil {
+		return dtos.HouseRulesResponse{}, err
+	}
+
+	// Fetch updated room to return canonical response
+	room, err := s.roomRepo.GetRoomDetailsByRoomId(roomId)
+	if err != nil || room == nil {
+		if err == nil {
+			err = fmt.Errorf("room not found after update")
+		}
+		return dtos.HouseRulesResponse{}, err
+	}
+
+	return dtos.HouseRulesResponse{
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
 	}, nil
 }

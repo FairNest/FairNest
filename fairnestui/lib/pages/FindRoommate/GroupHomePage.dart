@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:fairnestui/pages/FindRoommate/RequestJoinRoomPage.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/widgets/app_header.dart';
@@ -239,11 +240,36 @@ class _MyRoomTabState extends State<_MyRoomTab> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             children: [
               if (hasError)
-                Text("❌ Failed to load your room: ${snap.error}",
-                    style: const TextStyle(color: Colors.red)),
-              if (!hasError && room == null)
-                const Text("You don't have a room yet."),
-              if (room != null)
+                Builder(
+                  builder: (_) {
+                    final err = snap.error;
+
+                    // Default generic error text
+                    Widget genericError() => Text(
+                          "❌ Failed to load your room: $err",
+                          style: const TextStyle(color: Colors.red),
+                        );
+
+                    if (err is DioException) {
+                      final status = err.response?.statusCode;
+                      final data = err.response?.data;
+                      // Try to read message as string or from a map
+                      final msg = data is String
+                          ? data.trim()
+                          : (data is Map && data['message'] != null
+                              ? data['message'].toString().trim()
+                              : data?.toString().trim());
+
+                      if (status == 500 && msg == 'record not found') {
+                        return const Text("You don't have a room yet.");
+                      }
+                    }
+                    return genericError();
+                  },
+                ),
+
+              // When no error and room exists, show the card
+              if (!hasError && room != null)
                 RoomComponentsCard(
                   title: room["name"] ?? "-",
                   description: room["desc"] ?? "-",
@@ -268,6 +294,10 @@ class _MyRoomTabState extends State<_MyRoomTab> {
                     );
                   },
                 ),
+
+              // Silence the old "room == null" branch; we only show message on 500/not-found
+              if (!hasError && room == null) const SizedBox.shrink(),
+
               const SizedBox(height: 600),
             ],
           ),

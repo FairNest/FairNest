@@ -14,8 +14,7 @@ import 'package:fairnestui/pages/room_creation/RoommateAgreement.dart'
         GuestPolicyOption,
         CleaningMethodOption,
         ResponsibilityOption,
-        SplitCostsOption,
-        PaymentDeadlineOption;
+        SplitCostsOption;
 
 /// Living setup model (your fields)
 ///
@@ -79,7 +78,6 @@ class RoomCreationController extends ChangeNotifier {
   CleaningMethodOption? _cleaningMethod;
   final Set<ResponsibilityOption> _responsibilities = {};
   SplitCostsOption? _splitCosts;
-  PaymentDeadlineOption? _paymentDeadline;
 
   // ================================ Getters ==================================
   String? get roomName => _roomName;
@@ -96,7 +94,6 @@ class RoomCreationController extends ChangeNotifier {
   List<ResponsibilityOption> get responsibilities =>
       _responsibilities.toList(growable: false);
   SplitCostsOption? get splitCosts => _splitCosts;
-  PaymentDeadlineOption? get paymentDeadline => _paymentDeadline;
 
   // ============================== Status flags ===============================
   bool get hasDetails =>
@@ -108,8 +105,7 @@ class RoomCreationController extends ChangeNotifier {
       _quietHours != null &&
       _guestPolicy != null &&
       _cleaningMethod != null &&
-      _splitCosts != null &&
-      _paymentDeadline != null;
+      _splitCosts != null;
 
   bool get isComplete => hasDetails && hasLiving && hasAgreement;
   // =============================== Debug utils ===============================
@@ -156,7 +152,6 @@ class RoomCreationController extends ChangeNotifier {
     if (_cleaningMethod == null) missing.add("cleaningMethod");
     if (_responsibilities.isEmpty) missing.add("responsibilities");
     if (_splitCosts == null) missing.add("splitCosts");
-    if (_paymentDeadline == null) missing.add("paymentDeadline");
 
     return missing;
   }
@@ -175,7 +170,6 @@ class RoomCreationController extends ChangeNotifier {
     print("CleaningMethod: $_cleaningMethod");
     print("Responsibilities: $_responsibilities");
     print("SplitCosts: $_splitCosts");
-    print("PaymentDeadline: $_paymentDeadline");
     print("Missing fields: ${debugMissingFields()}");
     print("===================================");
   }
@@ -202,7 +196,6 @@ class RoomCreationController extends ChangeNotifier {
     required CleaningMethodOption? cleaningMethod,
     required Iterable<ResponsibilityOption> responsibilities,
     required SplitCostsOption? splitCosts,
-    required PaymentDeadlineOption? paymentDeadline,
   }) {
     _quietHours = quietHours;
     _quietHoursCustom = quietHoursCustom;
@@ -212,7 +205,6 @@ class RoomCreationController extends ChangeNotifier {
       ..clear()
       ..addAll(responsibilities);
     _splitCosts = splitCosts;
-    _paymentDeadline = paymentDeadline;
     notifyListeners();
   }
 
@@ -392,7 +384,6 @@ class RoomCreationController extends ChangeNotifier {
     _cleaningMethod = null;
     _responsibilities.clear();
     _splitCosts = null;
-    _paymentDeadline = null;
 
     notifyListeners();
   }

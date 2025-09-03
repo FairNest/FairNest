@@ -25,7 +25,6 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
   CleaningMethodOption? _cleaningMethod;
   final Set<ResponsibilityOption> _responsibilities = {};
   SplitCostsOption? _splitCosts;
-  PaymentDeadlineOption? _paymentDeadline;
 
   // “Custom” quiet hours
   String? _quietHoursCustom;
@@ -47,7 +46,6 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
           ..clear()
           ..addAll(c.responsibilities);
         _splitCosts = c.splitCosts;
-        _paymentDeadline = c.paymentDeadline;
       });
     });
   }
@@ -69,7 +67,6 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
       cleaningMethod: _cleaningMethod,
       responsibilities: _responsibilities,
       splitCosts: _splitCosts,
-      paymentDeadline: _paymentDeadline,
     );
 
     if (!controller.isComplete) {
@@ -369,26 +366,6 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
                             if (sel != null) setState(() => _splitCosts = sel);
                           },
                         ),
-                        const SizedBox(height: 14),
-                        const _FieldLabel('Payment deadline'),
-                        _SelectTile(
-                          valueText: _paymentDeadline == null
-                              ? null
-                              : paymentDeadlineLabels[_paymentDeadline]!,
-                          onTap: () async {
-                            final sel =
-                                await _showRadioSelector<PaymentDeadlineOption>(
-                              context: context,
-                              title: 'Payment Deadline',
-                              options: paymentDeadlineLabels,
-                              selected: _paymentDeadline,
-                              onChanged: (v) =>
-                                  setState(() => _paymentDeadline = v),
-                            );
-                            if (sel != null)
-                              setState(() => _paymentDeadline = sel);
-                          },
-                        ),
                         const SizedBox(height: 24),
 
                         // Create Room (save + submit + navigate)
@@ -448,8 +425,6 @@ enum ResponsibilityOption { kitchen, livingRoom, bathroom, trash }
 
 enum SplitCostsOption { equal, custom }
 
-enum PaymentDeadlineOption { fifth, tenth, endOfMonth }
-
 const quietHoursLabels = <QuietHoursOption, String>{
   QuietHoursOption.tenToSeven: '10 PM – 7 AM',
   QuietHoursOption.elevenToSix: '11 PM – 6 AM',
@@ -482,13 +457,6 @@ const splitCostsLabels = <SplitCostsOption, String>{
   SplitCostsOption.equal: 'Equal split',
   SplitCostsOption.custom: 'Custom',
 };
-
-const paymentDeadlineLabels = <PaymentDeadlineOption, String>{
-  PaymentDeadlineOption.fifth: '5th of each month',
-  PaymentDeadlineOption.tenth: '10th of each month',
-  PaymentDeadlineOption.endOfMonth: 'End of month',
-};
-
 /* ===================== UI Bits ===================== */
 
 class _SectionBar extends StatelessWidget {

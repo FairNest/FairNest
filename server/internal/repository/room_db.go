@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fairnest/internal/entities"
+
 	"gorm.io/gorm"
 )
 
@@ -89,4 +90,19 @@ func (r roomRepositoryDB) GetRoomDetailsByRoomCode(roomCode string) (*entities.R
 		return nil, err
 	}
 	return &room, nil
+}
+
+func (r roomRepositoryDB) GetRoomById(roomId int) (*entities.Room, error) {
+	var room entities.Room
+	if err := r.db.First(&room, roomId).Error; err != nil {
+		return nil, err
+	}
+	return &room, nil
+}
+
+func (r roomRepositoryDB) UpdateHouseRulesByRoomId(roomId int, updates map[string]interface{}) error {
+	// Only update columns present in 'updates'
+	return r.db.Model(&entities.Room{}).
+		Where("room_id = ?", roomId).
+		Updates(updates).Error
 }

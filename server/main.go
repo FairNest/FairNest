@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/minio/minio-go/v7"
@@ -11,10 +12,11 @@ import (
 	"fairnest/internal/handler"
 	"fairnest/internal/repository"
 	"fairnest/internal/service"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/minio/minio-go/v7/pkg/credentials"
 
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
@@ -143,6 +145,9 @@ func main() {
 	app.Get("/GetRoomDetailsByRoomCode/:RoomCode", roomHandler.GetRoomDetailsByRoomCode)
 
 	app.Get("/CheckUserHasRoomOrNot/:UserID", roomMemberHandler.CheckUserHasRoomOrNot)
+
+	app.Get("/GetHouseRulesByRoomId/:RoomID", roomHandler.GetHouseRulesByRoomId)
+	app.Patch("/PatchEditHouseRulesByRoomId/:RoomID", roomHandler.PatchEditHouseRulesByRoomId)
 
 	//#####################################################################################
 
