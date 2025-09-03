@@ -61,7 +61,6 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
         onTapSettings: () {},
       ),
       body: Padding(
-        // tip: leave a bit more bottom padding so content never feels cramped above the nav
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
