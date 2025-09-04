@@ -220,7 +220,7 @@ class MonthlySnapshotCard extends StatelessWidget {
         children: [
           buildTile(paid, 'Paid', const Color(0xFFE2BDD1)),
           SizedBox(width: gap),
-          buildTile(owed, 'Owed', AppColors.accent),
+          buildTile(owed, 'Owes You', AppColors.accent),
           SizedBox(width: gap),
           buildTile(youOwe, 'You Owe', const Color(0xFF9DCDAA)),
         ],

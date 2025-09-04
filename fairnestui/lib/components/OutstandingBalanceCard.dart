@@ -1,11 +1,15 @@
-// ADD near your other imports
-import 'package:fairnestui/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:fairnestui/theme/app_colors.dart';
 
-// ----------------- enum for status -----------------
+// existing reminder dialog
+import 'package:fairnestui/util/reminderDialog.dart' show showReminderDialog;
+
+// ✅ add this import (adjust the path to where you saved it)
+import 'package:fairnestui/util/paymentSentDialog.dart'
+    show showPaymentSentDialog;
+
 enum BalanceStatus { owedToYou, youOwe, settled }
 
-// ----------------- Outstanding Balance Card -----------------
 class OutstandingBalanceCard extends StatelessWidget {
   const OutstandingBalanceCard({
     super.key,
@@ -14,11 +18,11 @@ class OutstandingBalanceCard extends StatelessWidget {
     this.currency = 'THB',
     this.avatar,
     required this.status,
-
-    // sizing
     this.width = 140,
     this.avatarSize = 56,
     this.badgeHeight = 34,
+    this.onTap,
+    this.qrData,
   });
 
   final String name;
@@ -31,6 +35,9 @@ class OutstandingBalanceCard extends StatelessWidget {
   final double avatarSize;
   final double badgeHeight;
 
+  final VoidCallback? onTap;
+  final String? qrData;
+
   Color get _badgeColor {
     switch (status) {
       case BalanceStatus.owedToYou:
@@ -42,7 +49,6 @@ class OutstandingBalanceCard extends StatelessWidget {
     }
   }
 
-  // Keep text readable on the light badges
   Color get _badgeTextColor => AppColors.textPurple;
 
   @override
@@ -66,7 +72,6 @@ class OutstandingBalanceCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // avatar
             CircleAvatar(
               radius: avatarSize / 2,
               backgroundColor: Colors.grey.shade300,
@@ -76,8 +81,6 @@ class OutstandingBalanceCard extends StatelessWidget {
                   : null,
             ),
             const SizedBox(height: 8),
-
-            // name
             Text(
               name,
               maxLines: 1,
@@ -89,25 +92,193 @@ class OutstandingBalanceCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // amount badge (color varies by status)
-            Container(
-              height: badgeHeight,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: _badgeColor,
+            // amount badge (tap target)
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.textPurple, width: 1.5),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                '${_fmt(amount)} $currency',
-                style: TextStyle(
-                  color: _badgeTextColor,
-                  fontWeight: FontWeight.w900,
+                onTap: onTap ?? () => _handleTap(context),
+                child: Container(
+                  height: badgeHeight,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: _badgeColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.textPurple, width: 1.5),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${_fmt(amount)} $currency',
+                    style: TextStyle(
+                      color: _badgeTextColor,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ---------- Actions ----------
+  Future<void> _handleTap(BuildContext context) async {
+    switch (status) {
+      case BalanceStatus.owedToYou:
+        await showReminderDialog(context, name: name);
+        break;
+      case BalanceStatus.youOwe:
+        await _showQrSheet(context);
+        break;
+      case BalanceStatus.settled:
+        await _showInfoSheet(context);
+        break;
+    }
+  }
+
+  Future<void> _showQrSheet(BuildContext context) async {
+    // keep a handle to the parent context for showing the dialog after closing the sheet
+    final rootContext = context;
+
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetCtx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Pay ${_fmt(amount)} $currency',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: AppColors.textPurple,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // QR placeholder—swap with a real QR later
+                Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border:
+                        Border.all(color: AppColors.textPurple.withOpacity(.6)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    qrData ?? 'QR CODE',
+                    style: const TextStyle(
+                      color: AppColors.textPurple,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+                const Text(
+                  'Scan this code with your banking app to settle.',
+                  style: TextStyle(
+                    color: AppColors.textPurple,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(sheetCtx),
+                        child: const Text('Close'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: Colors.black,
+                        ),
+                        onPressed: () {
+                          // 1) close the sheet
+                          Navigator.pop(sheetCtx);
+                          // 2) then show your Payment Sent dialog
+                          Future.microtask(() {
+                            showPaymentSentDialog(
+                              rootContext,
+                              payer: 'You', // or your current user
+                              receiver: name, // the roommate you're paying
+                              amount: '${_fmt(amount)} $currency',
+                            );
+                          });
+                        },
+                        child: const Text('Mark as Paid'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showInfoSheet(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text(
+                'All settled!',
+                style: TextStyle(
+                  color: AppColors.textPurple,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 12),
+              Text(
+                'No action needed for this roommate.',
+                style: TextStyle(color: AppColors.textPurple),
+              ),
+              SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );

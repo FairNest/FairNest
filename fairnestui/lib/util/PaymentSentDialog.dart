@@ -67,7 +67,7 @@ Future<void> showPaymentSentDialog(
                 SecondaryButton(
                   text: 'Okay',
                   backgroundColor: const Color(0xFFE7AC66),
-                  textColor: Colors.white,
+                  textColor: Colors.black,
                   width: double.infinity,
                   height: 44,
                   onPressed: () => Navigator.of(context).pop(),
