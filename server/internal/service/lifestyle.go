@@ -9,4 +9,6 @@ type LifestyleService interface {
 	///////////////////////////////////////////////////////////////////////////
 	CreateLifestyleByUserId(userId int, request *entities.Lifestyle) (*entities.Lifestyle, error)
 	GetUserLifestyleByUserId(int) (*entities.Lifestyle, error)
+
+	GetUserOverallLifestyleByUserId(int) (*entities.Lifestyle, error)
 }

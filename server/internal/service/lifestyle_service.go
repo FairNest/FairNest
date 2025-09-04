@@ -156,3 +156,34 @@ func (s lifestyleService) CreateLifestyleByUserId(userId int, request *entities.
 		UserMoneyAttitude:  lifestyle.UserMoneyAttitude,
 	}, nil
 }
+
+func (s lifestyleService) GetUserOverallLifestyleByUserId(userId int) (*entities.Lifestyle, error) {
+	lifestyle, err := s.lifestyleRepo.GetUserOverallLifestyleByUserId(userId)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if lifestyle.LifestyleID == nil &&
+		lifestyle.UserID == nil &&
+		lifestyle.UserTidiness == nil &&
+		lifestyle.UserNoiseActivity == nil &&
+		lifestyle.UserSchedule == nil &&
+		lifestyle.UserGuestFrequency == nil &&
+		lifestyle.UserTaskStructure == nil &&
+		lifestyle.UserMoneyAttitude == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "user overall lifestyle data is not found")
+	}
+
+	lifestyleResponse := entities.Lifestyle{
+		LifestyleID:        lifestyle.LifestyleID,
+		UserID:             lifestyle.UserID,
+		UserTidiness:       lifestyle.UserTidiness,
+		UserNoiseActivity:  lifestyle.UserNoiseActivity,
+		UserSchedule:       lifestyle.UserSchedule,
+		UserGuestFrequency: lifestyle.UserGuestFrequency,
+		UserTaskStructure:  lifestyle.UserTaskStructure,
+		UserMoneyAttitude:  lifestyle.UserMoneyAttitude,
+	}
+	return &lifestyleResponse, nil
+}

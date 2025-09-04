@@ -40,3 +40,12 @@ func (r lifestyleRepositoryDB) GetUserLifestyleByUserId(userId int) (*entities.L
 	}
 	return &lifestyles, nil
 }
+
+func (r lifestyleRepositoryDB) GetUserOverallLifestyleByUserId(userId int) (*entities.Lifestyle, error) {
+	lifestyles := entities.Lifestyle{}
+	result := r.db.Where("user_id = ?", userId).Find(&lifestyles)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &lifestyles, nil
+}

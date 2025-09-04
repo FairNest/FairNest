@@ -149,7 +149,15 @@ func main() {
 	app.Get("/GetHouseRulesByRoomId/:RoomID", roomHandler.GetHouseRulesByRoomId)
 	app.Patch("/PatchEditHouseRulesByRoomId/:RoomID", roomHandler.PatchEditHouseRulesByRoomId)
 
+	app.Get("/GetRoomOverallLifestyleByRoomId/:RoomID", roomHandler.GetRoomOverallLifestyleByRoomId)
+	app.Get("/GetUserOverallLifestyleByUserId/:UserID", lifestyleHandler.GetUserOverallLifestyleByUserId)
+
 	//#####################################################################################
+
+	//// Print all routes before starting
+	//for _, r := range app.GetRoutes() {
+	//	fmt.Printf("%s\t%s\n", r.Method, r.Path)
+	//}
 
 	log.Printf("FairNest running at port:  %v", viper.GetInt("app.port"))
 	app.Listen(fmt.Sprintf(":%v", viper.GetInt("app.port")))

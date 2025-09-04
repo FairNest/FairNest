@@ -191,3 +191,24 @@ func (h *roomHandler) PatchEditHouseRulesByRoomId(c *fiber.Ctx) error {
 
 	return c.JSON(roomResponse)
 }
+
+func (h *roomHandler) GetRoomOverallLifestyleByRoomId(c *fiber.Ctx) error {
+	roomIDReceive, err := strconv.Atoi(c.Params("RoomID"))
+
+	room, err := h.roomSer.GetRoomOverallLifestyleByRoomId(roomIDReceive)
+	if err != nil {
+		return err
+	}
+
+	roomResponse := dtos.GetRoomOverallLifestyleByRoomIdResponse{
+		RoomID:            room.RoomID,
+		AvgTidiness:       room.AvgTidiness,
+		AvgNoiseActivity:  room.AvgNoiseActivity,
+		AvgSchedule:       room.AvgSchedule,
+		AvgGuestFrequency: room.AvgGuestFrequency,
+		AvgTaskStructure:  room.AvgTaskStructure,
+		AvgMoneyAttitude:  room.AvgMoneyAttitude,
+	}
+
+	return c.JSON(roomResponse)
+}

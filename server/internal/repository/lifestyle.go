@@ -7,4 +7,6 @@ type LifestyleRepository interface {
 	/////////////////////////////////////////////////////////////////
 	CreateLifestyleByUserId(lifestyle *entities.Lifestyle) error
 	GetUserLifestyleByUserId(int) (*entities.Lifestyle, error)
+
+	GetUserOverallLifestyleByUserId(int) (*entities.Lifestyle, error)
 }

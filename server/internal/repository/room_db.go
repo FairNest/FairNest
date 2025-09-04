@@ -108,3 +108,12 @@ func (r roomRepositoryDB) PatchEditHouseRulesByRoomId(room *entities.Room) error
 
 	return nil
 }
+
+func (r roomRepositoryDB) GetRoomOverallLifestyleByRoomId(roomId int) (*entities.Room, error) {
+	room := entities.Room{}
+	result := r.db.Where("room_id = ?", roomId).First(&room)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &room, nil
+}

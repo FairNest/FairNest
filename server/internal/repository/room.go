@@ -16,4 +16,6 @@ type RoomRepository interface {
 
 	GetHouseRulesByRoomId(roomId int) (*entities.Room, error)
 	PatchEditHouseRulesByRoomId(room *entities.Room) error
+
+	GetRoomOverallLifestyleByRoomId(roomId int) (*entities.Room, error)
 }

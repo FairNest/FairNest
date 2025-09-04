@@ -513,3 +513,32 @@ func (s roomService) PatchEditHouseRulesByRoomId(roomId int, req dtos.PatchEditH
 
 	return room, nil
 }
+
+func (s roomService) GetRoomOverallLifestyleByRoomId(roomId int) (*entities.Room, error) {
+	room, err := s.roomRepo.GetRoomOverallLifestyleByRoomId(roomId)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if room.RoomID == nil &&
+		room.AvgTidiness == nil &&
+		room.AvgNoiseActivity == nil &&
+		room.AvgSchedule == nil &&
+		room.AvgGuestFrequency == nil &&
+		room.AvgTaskStructure == nil &&
+		room.AvgMoneyAttitude == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "room overall lifestyle data is not found")
+	}
+
+	roomResponse := entities.Room{
+		RoomID:            room.RoomID,
+		AvgTidiness:       room.AvgTidiness,
+		AvgNoiseActivity:  room.AvgNoiseActivity,
+		AvgSchedule:       room.AvgSchedule,
+		AvgGuestFrequency: room.AvgGuestFrequency,
+		AvgTaskStructure:  room.AvgTaskStructure,
+		AvgMoneyAttitude:  room.AvgMoneyAttitude,
+	}
+	return &roomResponse, nil
+}
