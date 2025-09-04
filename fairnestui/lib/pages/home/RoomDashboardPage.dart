@@ -190,7 +190,7 @@ class _RoomDashContent extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                 child: Text(
-                  "Overall Room Status",
+                  "Today Room Status",
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

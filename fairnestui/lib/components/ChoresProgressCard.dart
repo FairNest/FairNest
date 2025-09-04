@@ -126,7 +126,7 @@ class ChoresProgressCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                '$completedShown/$totalTasks Tasks Complete This Week',
+                '$completedShown/$totalTasks Tasks Completed',
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
