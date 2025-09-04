@@ -4,7 +4,6 @@ import 'package:fairnestui/theme/app_colors.dart';
 // existing reminder dialog
 import 'package:fairnestui/util/reminderDialog.dart' show showReminderDialog;
 
-// ✅ add this import (adjust the path to where you saved it)
 import 'package:fairnestui/util/paymentSentDialog.dart'
     show showPaymentSentDialog;
 

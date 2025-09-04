@@ -6,7 +6,8 @@ import 'package:fairnestui/theme/app_fonts.dart';
 class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
   const RoomHeaderAppBar({
     super.key,
-    this.avatarImage,
+    this.avatarImage =
+        const AssetImage('assets/images/poke.png'), // 👈 default profile image
     this.avatarColor,
     required this.scoreText,
     required this.progress, // 0..1 (real value)
@@ -15,7 +16,7 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.height = 88,
   });
 
-  final ImageProvider? avatarImage; // AssetImage / NetworkImage
+  final ImageProvider avatarImage; // ✅ no longer nullable, always has a value
   final Color? avatarColor; // ring/bg color behind avatar
   final String scoreText; // e.g., "78 Points"
   final double progress; // 0..1 (real value)
@@ -42,10 +43,8 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
                 radius: 24,
                 backgroundColor:
                     avatarColor ?? AppColors.textOrange.withOpacity(0.6),
-                backgroundImage: avatarImage,
-                child: avatarImage == null
-                    ? const Icon(Icons.person, color: Colors.white)
-                    : null,
+                backgroundImage:
+                    avatarImage, // ✅ always shows Pikachu (or overridden)
               ),
               const SizedBox(width: 12),
 

@@ -36,7 +36,6 @@ class _ChorespageState extends State<Chorespage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: RoomHeaderAppBar(
-        avatarImage: const AssetImage('assets/images/sample_face.jpg'),
         scoreText: '50 Points',
         progress: 0.5,
         onTapNotifications: () {},

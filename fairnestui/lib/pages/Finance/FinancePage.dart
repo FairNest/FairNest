@@ -26,7 +26,6 @@ class _FinancepageState extends State<Financepage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: RoomHeaderAppBar(
-        avatarImage: const AssetImage('assets/images/sample_face.jpg'),
         scoreText: '50 Points',
         progress: 0.5,
         onTapNotifications: () {},

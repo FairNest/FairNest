@@ -40,11 +40,11 @@ class Roommateoverviewcard extends StatelessWidget {
         badgeLabel = "Owes You";
         break;
       case FinanceStatus.youOwe:
-        badgeColor = const Color(0xFF4A9AF0); // blue
+        badgeColor = const Color(0xFF9DCDAA); // blue
         badgeLabel = "You Owe";
         break;
       case FinanceStatus.allSettled:
-        badgeColor = const Color(0xFF49B67A); // green
+        badgeColor = AppColors.textPurple; // green
         badgeLabel = "All Settled";
         break;
     }

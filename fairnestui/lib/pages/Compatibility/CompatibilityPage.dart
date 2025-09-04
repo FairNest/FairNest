@@ -68,7 +68,6 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: RoomHeaderAppBar(
-        avatarImage: const AssetImage('assets/images/sample_face.jpg'),
         scoreText: '78 Points',
         progress: 0.78,
         onTapNotifications: () {},
