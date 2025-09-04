@@ -1,3 +1,4 @@
+import 'package:fairnestui/components/ChoresTaskCard.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -108,7 +109,10 @@ class _AllTasksContent extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: const [
-          _EmptyArea(label: 'All Tasks page — add your content here'),
+          // _EmptyArea(label: 'All Tasks page — add your content here'),
+          ChoresTaskCard(
+            paidByImage: AssetImage('assets/images/char.png'),
+          ),
         ],
       ),
     );
@@ -123,7 +127,9 @@ class _MyTasksContent extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: const [
-          _EmptyArea(label: 'My Tasks page — add your content here'),
+          ChoresTaskCard(
+            paidByImage: AssetImage('assets/images/char.png'),
+          ),
         ],
       ),
     );
