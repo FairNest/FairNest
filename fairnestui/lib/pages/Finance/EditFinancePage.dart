@@ -8,7 +8,6 @@ class EditFinancePage extends StatefulWidget {
     super.key,
     // Prefilled values
     required this.title,
-    required this.taskType, // e.g., 'Finance'
     required this.dateTime,
     required this.participants, // Assign To
     required this.category,
@@ -19,7 +18,6 @@ class EditFinancePage extends StatefulWidget {
   });
 
   final String title;
-  final String? taskType;
   final DateTime? dateTime;
   final List<String> participants;
   final String? category;
@@ -38,7 +36,6 @@ class _EditFinancePageState extends State<EditFinancePage> {
   // Form state
   late final TextEditingController _titleCtrl =
       TextEditingController(text: widget.title);
-  String? _taskType;
   DateTime? _dateTime;
   late final List<String> _participants = [...widget.participants];
   String? _category;
@@ -49,7 +46,6 @@ class _EditFinancePageState extends State<EditFinancePage> {
   late final List<String> _paidBy = [...widget.paidBy];
 
   // Sample data
-  final _taskTypes = const ['Finance', 'Bill', 'Note', 'Reminder'];
   final _roommates = const ['Ayu', 'Bima', 'Chai', 'Dewi', 'Eka'];
   final _categories = const [
     'Bill',
@@ -250,7 +246,6 @@ class _EditFinancePageState extends State<EditFinancePage> {
 
   bool get _canSave =>
       _titleCtrl.text.trim().isNotEmpty &&
-      (_taskType ?? widget.taskType) != null &&
       (_dateTime ?? widget.dateTime) != null &&
       _participants.isNotEmpty &&
       (_category ?? widget.category) != null &&
@@ -400,7 +395,6 @@ class _EditFinancePageState extends State<EditFinancePage> {
 
     final payload = {
       'title': _titleCtrl.text.trim(),
-      'taskType': _taskType ?? widget.taskType,
       'dateTime': (_dateTime ?? widget.dateTime)?.toIso8601String(),
       'participants': _participants,
       'category': _category ?? widget.category,
@@ -422,7 +416,6 @@ class _EditFinancePageState extends State<EditFinancePage> {
   @override
   void initState() {
     super.initState();
-    _taskType = widget.taskType;
     _dateTime = widget.dateTime;
     _category = widget.category;
     _splitType = widget.splitType;
@@ -499,20 +492,6 @@ class _EditFinancePageState extends State<EditFinancePage> {
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'Please enter a title'
                     : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Task Type
-              Text('Task Type', style: _labelStyle),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _taskType,
-                items: _taskTypes
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) => setState(() => _taskType = v),
-                decoration: _fieldDecoration('Select Task Type'),
-                validator: (v) => v == null ? 'Select a task type' : null,
               ),
               const SizedBox(height: 16),
 
