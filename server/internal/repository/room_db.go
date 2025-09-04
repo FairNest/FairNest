@@ -92,17 +92,28 @@ func (r roomRepositoryDB) GetRoomDetailsByRoomCode(roomCode string) (*entities.R
 	return &room, nil
 }
 
-func (r roomRepositoryDB) GetRoomById(roomId int) (*entities.Room, error) {
-	var room entities.Room
+func (r roomRepositoryDB) GetHouseRulesByRoomId(roomId int) (*entities.Room, error) {
+	room := entities.Room{}
 	if err := r.db.First(&room, roomId).Error; err != nil {
 		return nil, err
 	}
 	return &room, nil
 }
 
-func (r roomRepositoryDB) UpdateHouseRulesByRoomId(roomId int, updates map[string]interface{}) error {
-	// Only update columns present in 'updates'
-	return r.db.Model(&entities.Room{}).
-		Where("room_id = ?", roomId).
-		Updates(updates).Error
+func (r roomRepositoryDB) PatchEditHouseRulesByRoomId(room *entities.Room) error {
+	result := r.db.Updates(room)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (r roomRepositoryDB) GetRoomOverallLifestyleByRoomId(roomId int) (*entities.Room, error) {
+	room := entities.Room{}
+	result := r.db.Where("room_id = ?", roomId).First(&room)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &room, nil
 }

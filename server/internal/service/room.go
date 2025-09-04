@@ -22,6 +22,8 @@ type RoomService interface {
 	GetRoomDetailsByRoomId(int) (*dtos.GetRoomDetailsByRoomIdResponse, error)
 	GetRoomDetailsByRoomCode(string) (*dtos.GetRoomDetailsByRoomCodeResponse, error)
 
-	GetHouseRulesByRoomId(int) (dtos.HouseRulesResponse, error)
-	PatchEditHouseRulesByRoomId(int, dtos.PatchEditHouseRulesByRoomIdRequest) (dtos.HouseRulesResponse, error)
+	GetHouseRulesByRoomId(int) (*entities.Room, error)
+	PatchEditHouseRulesByRoomId(int, dtos.PatchEditHouseRulesByRoomIdRequest) (*entities.Room, error)
+
+	GetRoomOverallLifestyleByRoomId(int) (*entities.Room, error)
 }

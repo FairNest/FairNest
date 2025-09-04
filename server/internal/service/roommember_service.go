@@ -51,9 +51,9 @@ func (s roomMemberService) FetchAllRoomMemberWithUserDetailsByRoomId(roomId int)
 	}
 
 	// Step 2: collect user IDs
-	userIDs := make([]uint, 0, len(members))
+	userIDs := make([]int, 0, len(members))
 	for _, m := range members {
-		userIDs = append(userIDs, v.UintValue(m.UserID))
+		userIDs = append(userIDs, v.UintToInt(v.UintValue(m.UserID)))
 	}
 
 	// Step 3: fetch users via UserService
@@ -63,15 +63,15 @@ func (s roomMemberService) FetchAllRoomMemberWithUserDetailsByRoomId(roomId int)
 	}
 
 	// Step 4: build map
-	userMap := make(map[uint]entities.User)
+	userMap := make(map[int]entities.User)
 	for _, u := range users {
-		userMap[v.UintValue(u.UserID)] = u
+		userMap[v.UintToInt(v.UintValue(u.UserID))] = u
 	}
 
 	// Step 5: merge into DTO
 	responses := make([]dtos.FetchAllRoomMemberWithUserDetailsByRoomIdResponse, 0, len(members))
 	for _, m := range members {
-		u := userMap[v.UintValue(m.UserID)]
+		u := userMap[v.UintToInt(v.UintValue(m.UserID))]
 		responses = append(responses, dtos.FetchAllRoomMemberWithUserDetailsByRoomIdResponse{
 			RoomMemberID: m.RoomMemberID,
 			RoomID:       m.RoomID,

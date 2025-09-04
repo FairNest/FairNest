@@ -169,7 +169,7 @@ func (s userService) GetCurrentUser(userId int) (*entities.User, error) {
 	return &userResponse, nil
 }
 
-func (s userService) GetProfileOfCurrentUserByUserId(userId int) (*dtos.ProfileOfCurrentUserByUserIdResponse, error) {
+func (s userService) GetProfileOfCurrentUserByUserId(userId int) (*dtos.GetProfileOfCurrentUserByUserIdResponse, error) {
 	user, err := s.userRepo.GetProfileOfCurrentUserByUserId(userId)
 	if err != nil {
 		log.Println(err)
@@ -189,7 +189,7 @@ func (s userService) GetProfileOfCurrentUserByUserId(userId int) (*dtos.ProfileO
 		return nil, err
 	}
 
-	userResponse := dtos.ProfileOfCurrentUserByUserIdResponse{
+	userResponse := dtos.GetProfileOfCurrentUserByUserIdResponse{
 		UserID:             user.UserID,
 		Username:           user.Username,
 		Firstname:          user.Firstname,
@@ -231,7 +231,7 @@ func (s userService) GetEditUserProfileByUserId(userId int) (*entities.User, err
 	return &userResponse, nil
 }
 
-func (s userService) PatchEditUserProfileByUserId(userId int, req dtos.EditUserProfileByUserIdRequest) (*entities.User, error) {
+func (s userService) PatchEditUserProfileByUserId(userId int, req dtos.PatchEditUserProfileByUserIdRequest) (*entities.User, error) {
 	user := &entities.User{
 		UserID:      v.UintPtr(userId),
 		Username:    req.Username,
@@ -393,8 +393,8 @@ func (s userService) Login(request dtos.LoginRequest, jwtSecret string) (*dtos.L
 	}, nil
 }
 
-func (s userService) FetchAllUserByUserId(userIDs []uint) ([]entities.User, error) {
-	return s.userRepo.FetchAllUserByUserId(userIDs)
+func (s userService) FetchAllUserByUserId(userIds []int) ([]entities.User, error) {
+	return s.userRepo.FetchAllUserByUserId(userIds)
 }
 
 func (s userService) GetFindUserByUserId(userId int) (*entities.User, error) {

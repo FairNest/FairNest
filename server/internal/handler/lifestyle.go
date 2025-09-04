@@ -23,7 +23,7 @@ func (h *lifestyleHandler) GetLifestyleByUserId(c *fiber.Ctx) error {
 		return err
 	}
 
-	lifestyleResponse := dtos.LifestyleByUserIdResponse{
+	lifestyleResponse := dtos.GetLifestyleByUserIdResponse{
 		LifestyleID:        lifestyle.LifestyleID,
 		UserID:             lifestyle.UserID,
 		Q1:                 lifestyle.Q1,
@@ -38,6 +38,28 @@ func (h *lifestyleHandler) GetLifestyleByUserId(c *fiber.Ctx) error {
 		Q10:                lifestyle.Q10,
 		Q11:                lifestyle.Q11,
 		Q12:                lifestyle.Q12,
+		UserTidiness:       lifestyle.UserTidiness,
+		UserNoiseActivity:  lifestyle.UserNoiseActivity,
+		UserSchedule:       lifestyle.UserSchedule,
+		UserGuestFrequency: lifestyle.UserGuestFrequency,
+		UserTaskStructure:  lifestyle.UserTaskStructure,
+		UserMoneyAttitude:  lifestyle.UserMoneyAttitude,
+	}
+
+	return c.JSON(lifestyleResponse)
+}
+
+func (h *lifestyleHandler) GetUserOverallLifestyleByUserId(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+
+	lifestyle, err := h.lifestyleSer.GetUserOverallLifestyleByUserId(userIDReceive)
+	if err != nil {
+		return err
+	}
+
+	lifestyleResponse := dtos.GetUserOverallLifestyleByUserIdResponse{
+		LifestyleID:        lifestyle.LifestyleID,
+		UserID:             lifestyle.UserID,
 		UserTidiness:       lifestyle.UserTidiness,
 		UserNoiseActivity:  lifestyle.UserNoiseActivity,
 		UserSchedule:       lifestyle.UserSchedule,

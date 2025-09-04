@@ -113,7 +113,7 @@ func (r userRepositoryDB) GetUserByUserIdentityDocumentNumber(userIdentityDocume
 	return &user, nil
 }
 
-func (r userRepositoryDB) FetchAllUserByUserId(userIds []uint) ([]entities.User, error) {
+func (r userRepositoryDB) FetchAllUserByUserId(userIds []int) ([]entities.User, error) {
 	var users []entities.User
 	err := r.db.Where("user_id IN ?", userIds).Find(&users).Error
 	return users, err

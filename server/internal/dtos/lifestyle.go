@@ -1,6 +1,6 @@
 package dtos
 
-type LifestyleByUserIdResponse struct {
+type GetLifestyleByUserIdResponse struct {
 	LifestyleID *uint `json:"lifestyle_id" validate:"required" `
 	UserID      *uint `json:"user_id" validate:"required"`
 	Q1          *int  `json:"q1" validate:"required"`
@@ -15,6 +15,19 @@ type LifestyleByUserIdResponse struct {
 	Q10         *int  `json:"q10" validate:"required"`
 	Q11         *int  `json:"q11" validate:"required"`
 	Q12         *int  `json:"q12" validate:"required"`
+
+	// Personality Traits
+	UserTidiness       *float64 `json:"user_tidiness" validate:"required"`
+	UserNoiseActivity  *float64 `json:"user_noise_activity" validate:"required"`
+	UserSchedule       *float64 `json:"user_schedule" validate:"required"`
+	UserGuestFrequency *float64 `json:"user_guest_frequency" validate:"required"`
+	UserTaskStructure  *float64 `json:"user_task_structure" validate:"required"`
+	UserMoneyAttitude  *float64 `json:"user_money_attitude" validate:"required"`
+}
+
+type GetUserOverallLifestyleByUserIdResponse struct {
+	LifestyleID *uint `json:"lifestyle_id" validate:"required" `
+	UserID      *uint `json:"user_id" validate:"required"`
 
 	// Personality Traits
 	UserTidiness       *float64 `json:"user_tidiness" validate:"required"`
