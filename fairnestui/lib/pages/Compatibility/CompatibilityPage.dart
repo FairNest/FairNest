@@ -1,4 +1,5 @@
 // lib/room/compatibility_page.dart
+import 'package:fairnestui/components/RoommateCompatibilityCard.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -68,8 +69,8 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: RoomHeaderAppBar(
-        scoreText: '78 Points',
-        progress: 0.78,
+        scoreText: '50 Points',
+        progress: 0.50,
         onTapNotifications: () {},
         onTapSettings: () {},
       ),
@@ -155,26 +156,22 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
               Text('Roommate Compatibility',
                   style: AppFonts.heading3.copyWith(color: AppColors.textDark)),
               const SizedBox(height: 8),
-
-              RoommateCompatibilityCard(
-                avatarAsset: 'assets/images/sample_face.jpg',
+              Roommatecompatibilitycard(
+                avatarImage: const AssetImage('assets/images/char.png'),
                 name: 'Max',
-                matchPercent: 88,
-                traits: const ['Likes Quiet Time', 'Initiates Settlement'],
-                paragraphs: const [
+                compatibilityPercent: 72,
+                traits: const ['Very Good Match'],
+                insights: const [
                   'You and Max share a strong co-living rhythm. Keep up the great streak by maintaining consistent chore completion and clear communication.',
-                  'George has completed 4 tasks on time this month, while Max completed 1. Consider adjusting the chore rotation or offering help for heavier loads.',
                 ],
               ),
-              const SizedBox(height: 14),
-
-              RoommateCompatibilityCard(
-                avatarAsset: 'assets/images/fairnest.png',
+              Roommatecompatibilitycard(
+                avatarImage: const AssetImage('assets/images/pikachu.png'),
                 name: 'Lando',
-                matchPercent: 67,
-                traits: const ["Dislikes George's guest preferences"],
-                paragraphs: const [
-                  'You’re mostly in sync, but small differences in guest preferences may cause tension. Consider aligning on quiet hours or visitor expectations.',
+                compatibilityPercent: 68,
+                traits: const ['A good match'],
+                insights: const [
+                  "You're mostly in sync, but small differences in guest preferences may cause tension. Consider aligning on quiet hours or visitor expectations.",
                 ],
               ),
               const SizedBox(height: 8),
@@ -287,173 +284,6 @@ class _Dots extends StatelessWidget {
           ),
         );
       }),
-    );
-  }
-}
-
-/* =================== Roommate Compatibility Card =================== */
-
-class RoommateCompatibilityCard extends StatelessWidget {
-  const RoommateCompatibilityCard({
-    super.key,
-    required this.avatarAsset,
-    required this.name,
-    required this.matchPercent,
-    required this.traits,
-    required this.paragraphs,
-  });
-
-  final String avatarAsset;
-  final String name;
-  final int matchPercent;
-  final List<String> traits;
-  final List<String> paragraphs;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE3B989), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row: avatar + name on left, two info panels on right
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Avatar + name (column)
-              Column(
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.white,
-                    backgroundImage: AssetImage(avatarAsset),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(name,
-                      style: AppFonts.heading3
-                          .copyWith(color: AppColors.textDark)),
-                ],
-              ),
-              const SizedBox(width: 12),
-
-              // Info panels
-              Expanded(
-                child: Row(
-                  children: [
-                    // Percent pill panel
-                    Expanded(
-                      flex: 1,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFECE4F8),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: const Color(0xFF8A7FB0), width: 1),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('$matchPercent%',
-                                style: AppFonts.heading3
-                                    .copyWith(color: AppColors.textPurple)),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Compatibility\nMatch',
-                              textAlign: TextAlign.center,
-                              style: AppFonts.body1.copyWith(
-                                fontSize: 11,
-                                color: AppColors.textPurple,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-
-                    // Traits panel
-                    Expanded(
-                      flex: 2,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE2D7F1),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: const Color(0xFF8A7FB0), width: 1),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: traits
-                              .map(
-                                (t) => Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 2.5),
-                                  child: Text(
-                                    '• $t',
-                                    style: AppFonts.heading3.copyWith(
-                                      fontSize: 13,
-                                      color: AppColors.textPurple,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Bullet paragraphs underneath
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: paragraphs
-                .map(
-                  (p) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('• ',
-                            style: TextStyle(
-                              height: 1.4,
-                              color: Colors.black87,
-                            )),
-                        Expanded(
-                          child: Text(
-                            p,
-                            style: AppFonts.body1.copyWith(fontSize: 12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
-      ),
     );
   }
 }

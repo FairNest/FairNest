@@ -33,10 +33,39 @@ class _DateStripState extends State<DateStrip> {
   static const _lavenderDark = Color.fromARGB(255, 84, 67, 129);
   static const _purple = Color(0xFF645A80);
 
+  // ---- Helpers (no intl needed) ----
+  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+  static bool _isSameDate(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+  static int _daysBetween(DateTime start, DateTime end) =>
+      _dateOnly(end).difference(_dateOnly(start)).inDays;
+
+  DateTime get _today => _dateOnly(DateTime.now());
+
+  /// Earliest date shown (today or startDate, whichever is later)
+  DateTime get _effectiveStart {
+    final start = _dateOnly(widget.startDate);
+    return start.isBefore(_today) ? _today : start;
+  }
+
+  /// Remaining number of days to show from effectiveStart
+  int get _remainingDays {
+    final skipped = _daysBetween(_dateOnly(widget.startDate), _effectiveStart)
+        .clamp(0, widget.days);
+    return (widget.days - skipped).clamp(0, widget.days);
+  }
+
+  /// If selected is in the past, clamp it to effectiveStart (today)
+  DateTime get _selectedClamped => widget.selectedDate.isBefore(_effectiveStart)
+      ? _effectiveStart
+      : _dateOnly(widget.selectedDate);
+
   @override
   void didUpdateWidget(covariant DateStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedDate != widget.selectedDate) {
+    if (oldWidget.selectedDate != widget.selectedDate ||
+        oldWidget.startDate != widget.startDate ||
+        oldWidget.days != widget.days) {
       _scrollToSelected();
     }
   }
@@ -48,8 +77,11 @@ class _DateStripState extends State<DateStrip> {
   }
 
   void _scrollToSelected() {
-    final idx = _daysBetween(widget.startDate, _dateOnly(widget.selectedDate));
-    if (idx < 0 || idx >= widget.days || !_controller.hasClients) return;
+    if (!_controller.hasClients) return;
+    final idx = _daysBetween(_effectiveStart, _selectedClamped);
+    final itemCount = _remainingDays;
+    if (idx < 0 || idx >= itemCount) return;
+
     final target = idx * (widget.itemWidth + widget.spacing) - 16;
     _controller.animateTo(
       target.clamp(0, _controller.position.maxScrollExtent),
@@ -60,12 +92,14 @@ class _DateStripState extends State<DateStrip> {
 
   @override
   Widget build(BuildContext context) {
-    final monthName = _monthName(widget.selectedDate.month);
+    final selectedForUi = _selectedClamped;
+    final monthName = _monthName(selectedForUi.month);
+    final itemCount = _remainingDays;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Month label
+        // Month label (based on clamped selection)
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
@@ -78,20 +112,20 @@ class _DateStripState extends State<DateStrip> {
           ),
         ),
 
-        // Horizontal scroller
+        // Horizontal scroller (today/effectiveStart onward only)
         SizedBox(
           height: widget.itemHeight,
           child: ListView.separated(
             controller: _controller,
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            itemCount: widget.days,
+            itemCount: itemCount,
             separatorBuilder: (_, __) => SizedBox(width: widget.spacing),
             itemBuilder: (context, i) {
-              final date = _dateOnly(widget.startDate.add(Duration(days: i)));
-              final isSelected = _isSameDate(date, widget.selectedDate);
+              final date = _dateOnly(_effectiveStart.add(Duration(days: i)));
+              final isSelected = _isSameDate(date, selectedForUi);
 
-              // text turns white when selected, otherwise purple
+              // text turns light when selected, otherwise purple
               final fg = isSelected
                   ? const Color.fromARGB(255, 230, 229, 229)
                   : _purple;
@@ -113,7 +147,6 @@ class _DateStripState extends State<DateStrip> {
     );
   }
 
-  // Helpers (no intl needed)
   static String _monthName(int m) => const [
         '',
         'January',
@@ -132,12 +165,6 @@ class _DateStripState extends State<DateStrip> {
 
   static String _weekdayShort(int w) =>
       const ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][w];
-
-  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
-  static bool _isSameDate(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-  static int _daysBetween(DateTime start, DateTime end) =>
-      _dateOnly(end).difference(_dateOnly(start)).inDays;
 }
 
 class _DateChip extends StatelessWidget {
