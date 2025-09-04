@@ -21,7 +21,7 @@ type UserService interface {
 	Register(request dtos.RegisterRequest) (*dtos.UserResponse, error)
 	Login(request dtos.LoginRequest, jwtSecret string) (*dtos.LoginResponse, error)
 
-	FetchAllUserByUserId(userIDs []uint) ([]entities.User, error)
+	FetchAllUserByUserId(userIds []int) ([]entities.User, error)
 
 	GetFindUserByUserId(userId int) (*entities.User, error)
 }

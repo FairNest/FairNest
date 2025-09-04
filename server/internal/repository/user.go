@@ -21,6 +21,6 @@ type UserRepository interface {
 	GetUserByUsername(username string) (*entities.User, error)                                     //Login
 	GetUserByUserIdentityDocumentNumber(userIdentityDocumentNumber string) (*entities.User, error) //Login
 
-	FetchAllUserByUserId(userIds []uint) ([]entities.User, error)
+	FetchAllUserByUserId(userIds []int) ([]entities.User, error)
 	GetFindUserByUserId(userId int) (*entities.User, error)
 }
