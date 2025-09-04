@@ -1,3 +1,4 @@
+import 'package:fairnestui/pages/Settings/SettingPage.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -81,7 +82,13 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
                 color: AppColors.textPurple.withOpacity(0.8),
               ),
               IconButton(
-                onPressed: onTapSettings,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SettingsPage()),
+                  );
+                },
                 icon: const Icon(Icons.settings_rounded),
                 color: AppColors.textPurple.withOpacity(0.8),
               ),

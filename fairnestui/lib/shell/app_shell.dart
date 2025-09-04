@@ -1,4 +1,5 @@
 // lib/shell/app_shell.dart
+import 'package:fairnestui/pages/Chores/ChoresPage.dart';
 import 'package:fairnestui/pages/Compatibility/CompatibilityPage.dart';
 import 'package:fairnestui/pages/Home/RoomDashboardPage.dart';
 import 'package:fairnestui/pages/Chores/AddChorePage.dart';
@@ -9,14 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:fairnestui/widgets/app_bottom_nav.dart';
 
 // your real pages
-
-// temporary placeholders (replace when you have real pages)
-class _ListPage extends StatelessWidget {
-  const _ListPage();
-  @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text('List Page')));
-}
 
 class _CashPage extends StatelessWidget {
   const _CashPage();
@@ -40,7 +33,7 @@ class _AppShellState extends State<AppShell> {
   // 0 Home, 1 List, 2 Add (center), 3 Cash, 4 User
   late final List<Widget> _tabs = const [
     RoomDashboardPage(), // 0
-    _ListPage(), // 1
+    Chorespage(), // 1
     SizedBox.shrink(), // 2 (center Add handled separately)
     _CashPage(), // 3
     CompatibilityPage(), // 4

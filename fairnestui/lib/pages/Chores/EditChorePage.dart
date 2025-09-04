@@ -8,7 +8,6 @@ class EditChorePage extends StatefulWidget {
     super.key,
     // prefilled values
     required this.title,
-    required this.taskType,
     required this.dateTime,
     required this.assignees,
     required this.category,
@@ -17,7 +16,6 @@ class EditChorePage extends StatefulWidget {
   });
 
   final String title;
-  final String? taskType;
   final DateTime? dateTime;
   final List<String> assignees;
   final String? category;
@@ -34,15 +32,12 @@ class _EditChorePageState extends State<EditChorePage> {
   // form state
   late final TextEditingController _titleCtrl =
       TextEditingController(text: widget.title);
-  String? _taskType;
   DateTime? _dateTime;
   late final List<String> _assignees = [...widget.assignees];
   String? _category;
   String? _recurrence;
   String? _autoRotate; // "Yes"/"No"
 
-  // sample data
-  final _taskTypes = const ['Chore', 'Bill', 'Note', 'Reminder'];
   final _roommates = const ['Ayu', 'Bima', 'Chai', 'Dewi', 'Eka'];
   final _categories = const [
     'Cleaning',
@@ -235,7 +230,6 @@ class _EditChorePageState extends State<EditChorePage> {
 
   bool get _canSave =>
       _titleCtrl.text.trim().isNotEmpty &&
-      (_taskType ?? widget.taskType) != null &&
       (_dateTime ?? widget.dateTime) != null &&
       (_category ?? widget.category) != null &&
       (_recurrence ?? widget.recurrence) != null &&
@@ -246,7 +240,6 @@ class _EditChorePageState extends State<EditChorePage> {
 
     final payload = {
       'title': _titleCtrl.text.trim(),
-      'taskType': _taskType ?? widget.taskType,
       'dateTime': (_dateTime ?? widget.dateTime)?.toIso8601String(),
       'assignees': _assignees,
       'category': _category ?? widget.category,
@@ -265,7 +258,6 @@ class _EditChorePageState extends State<EditChorePage> {
   @override
   void initState() {
     super.initState();
-    _taskType = widget.taskType;
     _dateTime = widget.dateTime;
     _category = widget.category;
     _recurrence = widget.recurrence;
@@ -338,20 +330,6 @@ class _EditChorePageState extends State<EditChorePage> {
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'Please enter a title'
                     : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Task Type
-              Text('Task Type', style: _labelStyle),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _taskType,
-                items: _taskTypes
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) => setState(() => _taskType = v),
-                decoration: _fieldDecoration('Select Task Type'),
-                validator: (v) => v == null ? 'Select a task type' : null,
               ),
               const SizedBox(height: 16),
 

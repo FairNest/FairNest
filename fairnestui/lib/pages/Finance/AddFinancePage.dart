@@ -14,7 +14,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
 
   // form fields
   final _titleCtrl = TextEditingController();
-  String? _taskType;
   DateTime? _dateTime;
   final List<String> _participants = []; // Assign To
   String? _category;
@@ -26,7 +25,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
   Map<String, double> _customSplits = {};
 
   // sample data
-  final _taskTypes = const ['Finance', 'Bill', 'Note', 'Reminder'];
   final _roommates = const ['Ayu', 'Bima', 'Chai', 'Dewi', 'Eka'];
   final _categories = const [
     'Bill',
@@ -224,7 +222,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
 
   bool get _canCreate =>
       _titleCtrl.text.trim().isNotEmpty &&
-      _taskType != null &&
       _dateTime != null &&
       _participants.isNotEmpty &&
       _category != null &&
@@ -371,7 +368,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
 
     final payload = {
       'title': _titleCtrl.text.trim(),
-      'taskType': _taskType,
       'dateTime': _dateTime?.toIso8601String(),
       'participants': _participants,
       'category': _category,
@@ -457,20 +453,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'Please enter a title'
                     : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Task Type
-              Text('Task Type', style: _labelStyle),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _taskType,
-                items: _taskTypes
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) => setState(() => _taskType = v),
-                decoration: _fieldDecoration('Select Task Type'),
-                validator: (v) => v == null ? 'Select a task type' : null,
               ),
               const SizedBox(height: 16),
 

@@ -44,7 +44,7 @@ class HouseRulesDialog extends StatelessWidget {
                           // More bold
                           style: AppFonts.heading2.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
+                            color: AppColors.textPurple,
                             letterSpacing: 0.2,
                           ),
                         ),
@@ -99,7 +99,6 @@ class HouseRulesDialog extends StatelessWidget {
                           _RuleSection(
                             title: 'Shared Expenses',
                             value: 'Equal Split',
-                            extra: 'Payment deadline: 5th of each month',
                           ),
                         ],
                       ),

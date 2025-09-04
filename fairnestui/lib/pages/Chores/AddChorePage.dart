@@ -13,7 +13,6 @@ class _AddChorePageState extends State<AddChorePage> {
 
   // form fields
   final _titleCtrl = TextEditingController();
-  String? _taskType;
   DateTime? _dateTime; // combined date + time
   final List<String> _assignees = []; // multi-select
   String? _category;
@@ -21,7 +20,6 @@ class _AddChorePageState extends State<AddChorePage> {
   String? _autoRotate;
 
   // sample data
-  final _taskTypes = const ['Chore', 'Bill', 'Note', 'Reminder'];
   final _roommates = const ['Ayu', 'Bima', 'Chai', 'Dewi', 'Eka'];
   final _categories = const [
     'Cleaning',
@@ -213,7 +211,6 @@ class _AddChorePageState extends State<AddChorePage> {
 
     final payload = {
       'title': _titleCtrl.text.trim(),
-      'taskType': _taskType,
       'dateTime': _dateTime?.toIso8601String(),
       'assignees': _assignees,
       'category': _category,
@@ -227,7 +224,6 @@ class _AddChorePageState extends State<AddChorePage> {
   // -------- Enable/disable Create (Option 3) --------
   bool get _canCreate =>
       _titleCtrl.text.trim().isNotEmpty &&
-      _taskType != null &&
       _dateTime != null &&
       _category != null &&
       _recurrence != null &&
@@ -304,20 +300,6 @@ class _AddChorePageState extends State<AddChorePage> {
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'Please enter a title'
                     : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Task Type
-              Text('Task Type', style: _labelStyle),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _taskType,
-                items: _taskTypes
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) => setState(() => _taskType = v),
-                decoration: _fieldDecoration('Select Task Type'),
-                validator: (v) => v == null ? 'Select a task type' : null,
               ),
               const SizedBox(height: 16),
 

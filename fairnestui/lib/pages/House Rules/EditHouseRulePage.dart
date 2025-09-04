@@ -22,7 +22,6 @@ class _EditHousePageState extends State<EditHousePage> {
   CleaningMethodOption? _cleaningMethod;
   final Set<ResponsibilityOption> _responsibilities = {};
   SplitCostsOption? _splitCosts;
-  PaymentDeadlineOption? _paymentDeadline;
 
   // For “Custom” quiet hours
   String? _quietHoursCustom;
@@ -35,7 +34,6 @@ class _EditHousePageState extends State<EditHousePage> {
       cleaningMethod: _cleaningMethod,
       responsibilities: _responsibilities.toList(),
       splitCosts: _splitCosts,
-      paymentDeadline: _paymentDeadline,
     );
     widget.onSubmit?.call(data);
   }
@@ -279,27 +277,6 @@ class _EditHousePageState extends State<EditHousePage> {
                             if (sel != null) setState(() => _splitCosts = sel);
                           },
                         ),
-                        const SizedBox(height: 14),
-                        const _FieldLabel('Payment deadline'),
-                        _SelectTile(
-                          valueText: _paymentDeadline == null
-                              ? null
-                              : paymentDeadlineLabels[_paymentDeadline]!,
-                          onTap: () async {
-                            final sel =
-                                await _showRadioSelector<PaymentDeadlineOption>(
-                              context: context,
-                              title: 'Payment Deadline',
-                              options: paymentDeadlineLabels,
-                              selected: _paymentDeadline,
-                              onChanged: (v) =>
-                                  setState(() => _paymentDeadline = v),
-                            );
-                            if (sel != null) {
-                              setState(() => _paymentDeadline = sel);
-                            }
-                          },
-                        ),
                         const SizedBox(height: 24),
                         MainButton(
                           text: 'Save',
@@ -335,7 +312,6 @@ class EditHouseRuleData {
   final List<ResponsibilityOption> responsibilities;
 
   final SplitCostsOption? splitCosts;
-  final PaymentDeadlineOption? paymentDeadline;
 
   const EditHouseRuleData({
     required this.quietHours,
@@ -344,7 +320,6 @@ class EditHouseRuleData {
     required this.cleaningMethod,
     required this.responsibilities,
     required this.splitCosts,
-    required this.paymentDeadline,
   });
 }
 
@@ -364,8 +339,6 @@ enum CleaningMethodOption { weekly, biweekly, assigned, flexible }
 enum ResponsibilityOption { kitchen, livingRoom, bathroom, trash }
 
 enum SplitCostsOption { equal, custom }
-
-enum PaymentDeadlineOption { fifth, tenth, endOfMonth }
 
 const quietHoursLabels = <QuietHoursOption, String>{
   QuietHoursOption.tenToSeven: '10 PM – 7 AM',
@@ -398,12 +371,6 @@ const responsibilitiesLabels = <ResponsibilityOption, String>{
 const splitCostsLabels = <SplitCostsOption, String>{
   SplitCostsOption.equal: 'Equal split',
   SplitCostsOption.custom: 'Custom',
-};
-
-const paymentDeadlineLabels = <PaymentDeadlineOption, String>{
-  PaymentDeadlineOption.fifth: '5th of each month',
-  PaymentDeadlineOption.tenth: '10th of each month',
-  PaymentDeadlineOption.endOfMonth: 'End of month',
 };
 
 /* ===================== UI Bits ===================== */

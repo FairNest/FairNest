@@ -6,6 +6,7 @@ import 'package:fairnestui/pages/FindRoommate/GroupCheckPage.dart';
 import 'package:fairnestui/pages/FindRoommate/GroupHomePage.dart';
 import 'package:fairnestui/pages/FindRoommate/RequestJoinRoomPage.dart';
 import 'package:fairnestui/pages/Settings/SettingPage.dart';
+import 'package:fairnestui/pages/home/RoomDashboardPage.dart';
 import 'package:fairnestui/shell/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const LoginPage(),
+      home: const AppShell(),
     );
   }
 }
