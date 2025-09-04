@@ -255,7 +255,8 @@ type GetRoomDetailsByRoomCodeResponse struct {
 	Members []FetchAllRoomMemberWithUserDetailsResponse `json:"members" validate:"required"`
 }
 
-type HouseRulesResponse struct {
+type GetHouseRulesByRoomIdResponse struct {
+	RoomID          *uint   `json:"room_id" validate:"required"`
 	QuietHoursStart *string `json:"quiet_hours_start" validate:"required"`
 	GuestStayOver   *string `json:"guest_stay_over" validate:"required"`
 	HandleCleaning  *string `json:"handle_cleaning" validate:"required"`
@@ -263,11 +264,10 @@ type HouseRulesResponse struct {
 	SplitCosts      *bool   `json:"split_costs" validate:"required"`
 }
 
-// PatchEditHouseRulesByRoomIdRequest allows partial updates (all fields optional)
 type PatchEditHouseRulesByRoomIdRequest struct {
-	QuietHoursStart *string `json:"quiet_hours_start,omitempty"`
-	GuestStayOver   *string `json:"guest_stay_over,omitempty"`
-	HandleCleaning  *string `json:"handle_cleaning,omitempty"`
-	SharedSpace     *string `json:"shared_space,omitempty"`
-	SplitCosts      *bool   `json:"split_costs,omitempty"`
+	QuietHoursStart *string `json:"quiet_hours_start" validate:"required"`
+	GuestStayOver   *string `json:"guest_stay_over" validate:"required"`
+	HandleCleaning  *string `json:"handle_cleaning" validate:"required"`
+	SharedSpace     *string `json:"shared_space" validate:"required"`
+	SplitCosts      *bool   `json:"split_costs" validate:"required"`
 }

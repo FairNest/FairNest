@@ -149,39 +149,45 @@ func (h *roomHandler) GetRoomDetailsByRoomCode(c *fiber.Ctx) error {
 }
 
 func (h *roomHandler) GetHouseRulesByRoomId(c *fiber.Ctx) error {
-	roomId, err := strconv.Atoi(c.Params("RoomID"))
+	roomIDReceive, err := strconv.Atoi(c.Params("RoomID"))
+
+	room, err := h.roomSer.GetHouseRulesByRoomId(roomIDReceive)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
+		return err
 	}
 
-	rules, err := h.roomSer.GetHouseRulesByRoomId(roomId)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	roomResponse := dtos.GetHouseRulesByRoomIdResponse{
+		RoomID:          room.RoomID,
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
 	}
 
-	return c.JSON(rules)
+	return c.JSON(roomResponse)
 }
 
 func (h *roomHandler) PatchEditHouseRulesByRoomId(c *fiber.Ctx) error {
-	roomId, err := strconv.Atoi(c.Params("RoomID"))
-	if err != nil || roomId <= 0 {
-		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
-	}
+	roomIDReceive, err := strconv.Atoi(c.Params("RoomID"))
 
 	var req dtos.PatchEditHouseRulesByRoomIdRequest
 	if err := c.BodyParser(&req); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return err
 	}
 
-	if req.QuietHoursStart == nil && req.GuestStayOver == nil &&
-		req.HandleCleaning == nil && req.SharedSpace == nil &&
-		req.SplitCosts == nil {
-		return fiber.NewError(fiber.StatusBadRequest, "no fields provided")
-	}
-
-	updated, err := h.roomSer.PatchEditHouseRulesByRoomId(roomId, req)
+	room, err := h.roomSer.PatchEditHouseRulesByRoomId(roomIDReceive, req)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		return err
 	}
-	return c.JSON(updated)
+
+	roomResponse := dtos.PatchEditHouseRulesByRoomIdRequest{
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
+	}
+
+	return c.JSON(roomResponse)
 }

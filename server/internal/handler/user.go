@@ -139,7 +139,7 @@ func (h *userHandler) GetCurrentUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	userResponse := dtos.CurrentUserResponse{
+	userResponse := dtos.GetCurrentUserResponse{
 		UserID:                     user.UserID,
 		Username:                   user.Username,
 		Password:                   user.Password,
@@ -167,7 +167,7 @@ func (h *userHandler) GetProfileOfCurrentUserByUserId(c *fiber.Ctx) error {
 		return err
 	}
 
-	userResponse := dtos.ProfileOfCurrentUserByUserIdResponse{
+	userResponse := dtos.GetProfileOfCurrentUserByUserIdResponse{
 		UserID:             user.UserID,
 		Username:           user.Username,
 		Firstname:          user.Firstname,
@@ -193,7 +193,7 @@ func (h *userHandler) GetEditUserProfileByUserId(c *fiber.Ctx) error {
 		return err
 	}
 
-	userResponse := dtos.EditUserProfileByUserIdResponse{
+	userResponse := dtos.GetEditUserProfileByUserIdResponse{
 		UserID:      user.UserID,
 		Username:    user.Username,
 		Firstname:   user.Firstname,
@@ -207,7 +207,7 @@ func (h *userHandler) GetEditUserProfileByUserId(c *fiber.Ctx) error {
 func (h *userHandler) PatchEditUserProfileByUserId(c *fiber.Ctx) error {
 	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
 
-	var req dtos.EditUserProfileByUserIdRequest
+	var req dtos.PatchEditUserProfileByUserIdRequest
 	if err := c.BodyParser(&req); err != nil {
 		return err
 	}
@@ -217,7 +217,7 @@ func (h *userHandler) PatchEditUserProfileByUserId(c *fiber.Ctx) error {
 		return err
 	}
 
-	userResponse := dtos.EditUserProfileByUserIdRequest{
+	userResponse := dtos.PatchEditUserProfileByUserIdRequest{
 		Username:    user.Username,
 		Firstname:   user.Firstname,
 		Lastname:    user.Lastname,

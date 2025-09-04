@@ -6,7 +6,7 @@ import (
 	"fairnest/internal/repository"
 	"fairnest/internal/utils"
 	"fairnest/internal/utils/v"
-	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"log"
 	"math/rand"
 	"sort"
@@ -469,66 +469,47 @@ func (s roomService) GetRoomDetailsByRoomCode(roomCode string) (*dtos.GetRoomDet
 	}, nil
 }
 
-func (s roomService) GetHouseRulesByRoomId(roomId int) (dtos.HouseRulesResponse, error) {
-	// Use existing repo method – no new repo code needed
+func (s roomService) GetHouseRulesByRoomId(roomId int) (*entities.Room, error) {
 	room, err := s.roomRepo.GetRoomDetailsByRoomId(roomId)
 	if err != nil {
-		return dtos.HouseRulesResponse{}, err
-	}
-	if room == nil {
-		return dtos.HouseRulesResponse{}, fmt.Errorf("room not found")
+		return nil, err
 	}
 
-	return dtos.HouseRulesResponse{
+	if room.RoomID == nil &&
+		room.QuietHoursStart == nil &&
+		room.GuestStayOver == nil &&
+		room.HandleCleaning == nil &&
+		room.SharedSpace == nil &&
+		room.SplitCosts == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "room data is not found")
+	}
+
+	roomResponse := entities.Room{
+		RoomID:          room.RoomID,
 		QuietHoursStart: room.QuietHoursStart,
 		GuestStayOver:   room.GuestStayOver,
 		HandleCleaning:  room.HandleCleaning,
 		SharedSpace:     room.SharedSpace,
 		SplitCosts:      room.SplitCosts,
-	}, nil
+	}
+	return &roomResponse, nil
 }
 
-func (s roomService) PatchEditHouseRulesByRoomId(roomId int, req dtos.PatchEditHouseRulesByRoomIdRequest) (dtos.HouseRulesResponse, error) {
-
-	updates := map[string]interface{}{}
-	if req.QuietHoursStart != nil {
-		updates["quiet_hours_start"] = req.QuietHoursStart
-	}
-	if req.GuestStayOver != nil {
-		updates["guest_stay_over"] = req.GuestStayOver
-	}
-	if req.HandleCleaning != nil {
-		updates["handle_cleaning"] = req.HandleCleaning
-	}
-	if req.SharedSpace != nil {
-		updates["shared_space"] = req.SharedSpace
-	}
-	if req.SplitCosts != nil {
-		updates["split_costs"] = req.SplitCosts
+func (s roomService) PatchEditHouseRulesByRoomId(roomId int, req dtos.PatchEditHouseRulesByRoomIdRequest) (*entities.Room, error) {
+	room := &entities.Room{
+		RoomID:          v.UintPtr(roomId),
+		QuietHoursStart: req.QuietHoursStart,
+		GuestStayOver:   req.GuestStayOver,
+		HandleCleaning:  req.HandleCleaning,
+		SharedSpace:     req.SharedSpace,
+		SplitCosts:      req.SplitCosts,
 	}
 
-	if len(updates) == 0 {
-		return dtos.HouseRulesResponse{}, fmt.Errorf("no fields to update")
+	err := s.roomRepo.PatchEditHouseRulesByRoomId(room)
+	if err != nil {
+		log.Println(err)
+		return nil, err
 	}
 
-	if err := s.roomRepo.UpdateHouseRulesByRoomId(roomId, updates); err != nil {
-		return dtos.HouseRulesResponse{}, err
-	}
-
-	// Fetch updated room to return canonical response
-	room, err := s.roomRepo.GetRoomDetailsByRoomId(roomId)
-	if err != nil || room == nil {
-		if err == nil {
-			err = fmt.Errorf("room not found after update")
-		}
-		return dtos.HouseRulesResponse{}, err
-	}
-
-	return dtos.HouseRulesResponse{
-		QuietHoursStart: room.QuietHoursStart,
-		GuestStayOver:   room.GuestStayOver,
-		HandleCleaning:  room.HandleCleaning,
-		SharedSpace:     room.SharedSpace,
-		SplitCosts:      room.SplitCosts,
-	}, nil
+	return room, nil
 }

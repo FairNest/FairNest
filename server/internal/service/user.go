@@ -13,10 +13,10 @@ type UserService interface {
 	////////////////////////////////////////////////////////////////////
 
 	GetCurrentUser(int) (*entities.User, error)
-	GetProfileOfCurrentUserByUserId(int) (*dtos.ProfileOfCurrentUserByUserIdResponse, error)
+	GetProfileOfCurrentUserByUserId(int) (*dtos.GetProfileOfCurrentUserByUserIdResponse, error)
 
 	GetEditUserProfileByUserId(int) (*entities.User, error)
-	PatchEditUserProfileByUserId(int, dtos.EditUserProfileByUserIdRequest) (*entities.User, error)
+	PatchEditUserProfileByUserId(int, dtos.PatchEditUserProfileByUserIdRequest) (*entities.User, error)
 
 	Register(request dtos.RegisterRequest) (*dtos.UserResponse, error)
 	Login(request dtos.LoginRequest, jwtSecret string) (*dtos.LoginResponse, error)

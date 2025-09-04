@@ -53,7 +53,7 @@ type UserByTokenDataResponse struct {
 
 //////////////////////////////////////////////////////////////////////////////
 
-type CurrentUserResponse struct {
+type GetCurrentUserResponse struct {
 	UserID                     *uint    `json:"user_id" validate:"required"`
 	Username                   *string  `json:"username" validate:"required"`
 	Password                   *string  `json:"password" validate:"required"`
@@ -70,7 +70,7 @@ type CurrentUserResponse struct {
 	UserIdentityDocumentType   *bool    `json:"user_identity_document_type" validate:"required"`
 }
 
-type ProfileOfCurrentUserByUserIdResponse struct {
+type GetProfileOfCurrentUserByUserIdResponse struct {
 	UserID      *uint   `json:"user_id" validate:"required"`
 	Username    *string `json:"username" validate:"required"`
 	Firstname   *string `json:"firstname" validate:"required"`
@@ -87,7 +87,7 @@ type ProfileOfCurrentUserByUserIdResponse struct {
 	UserMoneyAttitude  *float64 `json:"user_money_attitude" validate:"required"`
 }
 
-type EditUserProfileByUserIdResponse struct {
+type GetEditUserProfileByUserIdResponse struct {
 	UserID      *uint   `json:"user_id" validate:"required"`
 	Username    *string `json:"username" validate:"required"`
 	Firstname   *string `json:"firstname" validate:"required"`
@@ -95,7 +95,7 @@ type EditUserProfileByUserIdResponse struct {
 	UserAboutMe *string `json:"user_about_me" validate:"required"`
 }
 
-type EditUserProfileByUserIdRequest struct {
+type PatchEditUserProfileByUserIdRequest struct {
 	Username    *string `json:"username" validate:"required"`
 	Firstname   *string `json:"firstname" validate:"required"`
 	Lastname    *string `json:"lastname" validate:"required"`
