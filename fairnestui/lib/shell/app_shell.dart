@@ -1,6 +1,7 @@
 // lib/shell/app_shell.dart
 import 'package:fairnestui/pages/Chores/ChoresPage.dart';
 import 'package:fairnestui/pages/Compatibility/CompatibilityPage.dart';
+import 'package:fairnestui/pages/Finance/FinancePage.dart';
 import 'package:fairnestui/pages/Home/RoomDashboardPage.dart';
 import 'package:fairnestui/pages/Chores/AddChorePage.dart';
 import 'package:fairnestui/pages/Finance/AddFinancePage.dart';
@@ -35,7 +36,7 @@ class _AppShellState extends State<AppShell> {
     RoomDashboardPage(), // 0
     Chorespage(), // 1
     SizedBox.shrink(), // 2 (center Add handled separately)
-    _CashPage(), // 3
+    Financepage(), // 3
     CompatibilityPage(), // 4
   ];
 
