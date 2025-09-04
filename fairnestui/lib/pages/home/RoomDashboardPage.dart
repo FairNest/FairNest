@@ -54,7 +54,7 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: RoomHeaderAppBar(
-        avatarImage: const AssetImage('assets/images/sample_face.jpg'),
+        avatarImage: const AssetImage('assets/images/poke.png'),
         scoreText: '50 Points',
         progress: 0.5,
         onTapNotifications: () {},
@@ -265,46 +265,27 @@ class _RoomDashContent extends StatelessWidget {
             ),
           ),
           AccentBorderedCard(
-            child: Container(
-              height: 350,
-              width: double.infinity,
-              child: Column(
-                children: [
-                  Roommateoverviewcard(
-                    name: "Max",
-                    compatibilityScore: 43,
-                    tasksCompleted: 4,
-                    tasksTotal: 7,
-                    amount: 500,
-                    avatarImage: const AssetImage('assets/images/char.png'),
-                    financeStatus: FinanceStatus.owesYou,
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Roommateoverviewcard(
-                    name: "George",
-                    compatibilityScore: 50,
-                    tasksCompleted: 4,
-                    tasksTotal: 4,
-                    amount: 0,
-                    avatarImage: const AssetImage('assets/images/poke.png'),
-                    financeStatus: FinanceStatus.allSettled,
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Roommateoverviewcard(
-                    name: "Lando",
-                    compatibilityScore: 1,
-                    tasksCompleted: 1,
-                    tasksTotal: 2,
-                    amount: 100,
-                    avatarImage: const AssetImage('assets/images/pikachu.png'),
-                    financeStatus: FinanceStatus.owesYou,
-                  )
-                ],
-              ),
+            child: Column(
+              children: [
+                Roommateoverviewcard(
+                  name: "Max",
+                  compatibilityScore: 43,
+                  tasksCompleted: 4,
+                  tasksTotal: 7,
+                  amount: 500,
+                  avatarImage: const AssetImage('assets/images/char.png'),
+                  financeStatus: FinanceStatus.owesYou,
+                ),
+                Roommateoverviewcard(
+                  name: "Lando",
+                  compatibilityScore: 1,
+                  tasksCompleted: 1,
+                  tasksTotal: 2,
+                  amount: 100,
+                  avatarImage: const AssetImage('assets/images/pikachu.png'),
+                  financeStatus: FinanceStatus.owesYou,
+                ),
+              ],
             ),
           ),
           SizedBox(
