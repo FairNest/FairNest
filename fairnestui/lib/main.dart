@@ -2,6 +2,7 @@ import 'package:fairnestui/TestCardPage.dart';
 import 'package:fairnestui/auth/login_page.dart';
 import 'package:fairnestui/auth/welcome_page.dart';
 import 'package:fairnestui/pages/Chores/ChoresPage.dart';
+import 'package:fairnestui/pages/Finance/FinancePage.dart';
 import 'package:fairnestui/pages/FindRoommate/GroupCheckPage.dart';
 import 'package:fairnestui/pages/FindRoommate/GroupHomePage.dart';
 import 'package:fairnestui/pages/FindRoommate/RequestJoinRoomPage.dart';
