@@ -36,9 +36,18 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
     _checked = widget.initiallyChecked;
   }
 
+  // Keep card in sync if parent updates initiallyChecked later
+  @override
+  void didUpdateWidget(covariant ChoresTaskCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initiallyChecked != widget.initiallyChecked) {
+      _checked = widget.initiallyChecked;
+    }
+  }
+
   void _toggleChecked() {
     setState(() => _checked = !_checked);
-    widget.onCheckedChanged?.call(_checked);
+    widget.onCheckedChanged?.call(_checked); // ← notify parent
   }
 
   @override
@@ -46,6 +55,11 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
     const Color iconBg = AppColors.textPurple;
     const Color titleColor = AppColors.textPurple;
     const Color badgeBg = AppColors.accent;
+
+    // Live “Status” chip based on _checked
+    final String statusText = _checked ? 'Completed' : 'Incomplete';
+    final Color statusColor =
+        _checked ? const Color(0xFF49B67A) : AppColors.textOrange;
 
     return AccentBorderedCard(
       child: SizedBox(
@@ -69,7 +83,7 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                         color: AppColors.background, size: 20),
                   ),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -77,9 +91,13 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            color: titleColor,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700),
+                          color: titleColor.withOpacity(_checked ? 0.65 : 1),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          decoration: _checked
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                        ),
                       ),
                     ),
                   ),
@@ -88,13 +106,16 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                     decoration: BoxDecoration(
-                        color: badgeBg, borderRadius: BorderRadius.circular(5)),
+                      color: badgeBg,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                     child: const Text(
                       '+10',
                       style: TextStyle(
-                          color: AppColors.textOrange,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900),
+                        color: AppColors.textOrange,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ],
@@ -105,21 +126,20 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
 
             // CHIPS
             Row(
-              children: const [
-                _StatChip(
+              children: [
+                const _StatChip(
                     label: "Auto-Rotate",
                     color: Color(0xFF8D8B8B),
                     text: "Yes"),
-                SizedBox(width: 15),
-                _StatChip(
+                const SizedBox(width: 15),
+                const _StatChip(
                     label: "Recurrence",
                     color: Color(0xFF8D8B8B),
                     text: "Weekly"),
-                SizedBox(width: 15),
+                const SizedBox(width: 15),
+                // Status chip (reacts to checkbox)
                 _StatChip(
-                    label: "Status",
-                    color: AppColors.textOrange,
-                    text: 'Incomplete'),
+                    label: "Status", color: statusColor, text: statusText),
               ],
             ),
 
@@ -127,8 +147,7 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
 
             // BOTTOM ROW
             Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.center, // <— center everything vertically
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Assigned to
                 Column(
@@ -220,7 +239,8 @@ class _StatChip extends StatelessWidget {
         Text(label,
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
-        Container(
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
           height: 18,
           width: 70,
           decoration: BoxDecoration(
@@ -229,9 +249,10 @@ class _StatChip extends StatelessWidget {
           child: Text(
             text,
             style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.background,
-                fontWeight: FontWeight.w700),
+              fontSize: 11,
+              color: AppColors.background,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],

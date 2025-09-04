@@ -1,3 +1,4 @@
+import 'package:fairnestui/Notification/NotificationPage.dart';
 import 'package:fairnestui/pages/Settings/SettingPage.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
@@ -76,7 +77,13 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
 
               const SizedBox(width: 12),
               IconButton(
-                onPressed: onTapNotifications,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const Notificationpage()),
+                  );
+                },
                 icon: const Icon(Icons.notifications_none_rounded),
                 color: AppColors.textPurple.withOpacity(0.8),
               ),

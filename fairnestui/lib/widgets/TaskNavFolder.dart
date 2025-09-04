@@ -3,12 +3,17 @@ import 'package:fairnestui/components/FInanceTaskCard.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
+/// simple local model for demo items
+class _ChoreTask {
+  _ChoreTask({required this.id, this.isCompleted = false});
+  final String id;
+  bool isCompleted;
+}
+
 class TaskNavFolder extends StatefulWidget {
   const TaskNavFolder({
     super.key,
     this.panelHeight = 520,
-
-    // counts for the header badge
     required this.todayUnfinishedCount,
     required this.completedCount,
     required this.upcomingUnfinishedCount,
@@ -26,11 +31,21 @@ class TaskNavFolder extends StatefulWidget {
 class _TaskNavFolderState extends State<TaskNavFolder> {
   int activeIndex = 0;
 
+  // ✅ Initialize lists here (no 'late', no initState needed)
+  final List<_ChoreTask> _todayTasks = [
+    _ChoreTask(id: 'trash'),
+    _ChoreTask(id: 'dishes'),
+  ];
+  final List<_ChoreTask> _completedTasks = [];
+  final List<_ChoreTask> _upcomingTasks = [
+    _ChoreTask(id: 'laundry'),
+  ];
+
   static const _cream = Color(0xFFFFF1E8);
   final tabs = const [
-    {"label": "Today", "color": Color(0xFFFADDE1)}, // pink
-    {"label": "Completed", "color": Color(0xFFD6F2DB)}, // green
-    {"label": "Upcoming", "color": Color(0xFFD6DFF2)}, // lavender
+    {"label": "Today", "color": Color(0xFFFADDE1)},
+    {"label": "Completed", "color": Color(0xFFD6F2DB)},
+    {"label": "Upcoming", "color": Color(0xFFD6DFF2)},
   ];
 
   String _headerTitle() {
@@ -49,14 +64,53 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
   int _headerCount() {
     switch (activeIndex) {
       case 0:
-        return widget.todayUnfinishedCount;
+        return _todayTasks.length;
       case 1:
-        return widget.completedCount;
+        return _completedTasks.length;
       case 2:
-        return widget.upcomingUnfinishedCount;
+        return _upcomingTasks.length;
       default:
         return 0;
     }
+  }
+
+  // move a task based on checkbox state
+  void _onCheckedChanged(_ChoreTask task, bool checked,
+      {required int fromTab}) {
+    setState(() {
+      task.isCompleted = checked;
+
+      // remove from current list
+      if (fromTab == 0) {
+        _todayTasks.removeWhere((t) => t.id == task.id);
+      } else if (fromTab == 1) {
+        _completedTasks.removeWhere((t) => t.id == task.id);
+      } else if (fromTab == 2) {
+        _upcomingTasks.removeWhere((t) => t.id == task.id);
+      }
+
+      // add to destination + jump tab
+      if (checked) {
+        _completedTasks.add(task);
+        activeIndex = 1;
+      } else {
+        _todayTasks.add(task);
+        activeIndex = 0;
+      }
+    });
+  }
+
+  // render a chores card wired to the mover
+  Widget _buildChoreCard(_ChoreTask task, int sourceTab) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: ChoresTaskCard(
+        paidByImage: const AssetImage('assets/images/char.png'),
+        initiallyChecked: task.isCompleted,
+        onCheckedChanged: (checked) =>
+            _onCheckedChanged(task, checked, fromTab: sourceTab),
+      ),
+    );
   }
 
   Widget _buildTabContent(BuildContext context) {
@@ -67,11 +121,20 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              Financetaskcard(
+            children: [
+              const Financetaskcard(
                 paidByImage: AssetImage('assets/images/char.png'),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
+              for (final t in _todayTasks) _buildChoreCard(t, 0),
+              if (_todayTasks.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: Text(
+                    "No tasks for today 🎉",
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
             ],
           ),
         );
@@ -82,11 +145,16 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              ChoresTaskCard(
-                paidByImage: AssetImage('assets/images/char.png'),
-              ),
-              SizedBox(height: 400),
+            children: [
+              for (final t in _completedTasks) _buildChoreCard(t, 1),
+              if (_completedTasks.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: Text(
+                    "Nothing completed yet.",
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
             ],
           ),
         );
@@ -97,16 +165,16 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              // ===== REPLACE BELOW WITH YOUR "UPCOMING" CARDS =====
-              SizedBox(height: 8),
-              Text("TODO: Add UPCOMING tab content here",
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black45)),
-              SizedBox(height: 400),
-              // ====================================================
+            children: [
+              for (final t in _upcomingTasks) _buildChoreCard(t, 2),
+              if (_upcomingTasks.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 12),
+                  child: Text(
+                    "No upcoming tasks.",
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
             ],
           ),
         );
@@ -115,7 +183,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
         return const SizedBox.shrink();
     }
   }
-  // -------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +191,7 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header (instant update)
+          // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
             child: Row(
@@ -181,22 +248,18 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
                   ),
                 ),
 
-                // MAIN AREA (blank bg + SingleChildScrollView from switch)
+                // Main area
                 Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.background, // your bg
-                        borderRadius: BorderRadius.circular(12), // soft corners
-                        border: Border.all(
-                          color: Colors.black45, // subtle 1px border
-                          width: 1,
-                        ),
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.black45, width: 1),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black
-                                .withOpacity(0.04), // tiny elevation
+                            color: Colors.black.withOpacity(0.04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -263,7 +326,7 @@ class _SideTabState extends State<_SideTab>
     final isActive = widget.isActive;
 
     return ScaleTransition(
-      scale: _scale, // spring pop on tap
+      scale: _scale,
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -275,7 +338,7 @@ class _SideTabState extends State<_SideTab>
             widget.onTap();
           },
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160), // animate tab visuals
+            duration: const Duration(milliseconds: 160),
             curve: Curves.easeOut,
             margin: const EdgeInsets.symmetric(vertical: 3),
             decoration: BoxDecoration(
