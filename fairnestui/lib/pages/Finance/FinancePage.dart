@@ -1,4 +1,5 @@
 import 'package:fairnestui/components/OutstandingBalanceCard.dart';
+import 'package:fairnestui/components/TransactionCard.dart';
 import 'package:fairnestui/components/UpcomingPaymentCard.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -151,6 +152,24 @@ class _FinancepageState extends State<Financepage> {
                   ),
                 ),
               ),
+              Column(
+                children: const [
+                  TransactionCard(
+                    category: "Food",
+                    date: "29 March 2025",
+                    amount: "THB 20",
+                    paidTo: "Paid to Max",
+                    points: 10,
+                  ),
+                  TransactionCard(
+                    category: "Transport",
+                    date: "30 March 2025",
+                    amount: "THB 50",
+                    paidTo: "Paid to Lando",
+                    points: 5,
+                  ),
+                ],
+              )
             ],
           ),
         ),

@@ -29,4 +29,6 @@ class AppFonts {
         fontSize: 12,
         height: 1.4,
       );
+
+  static get bodySmall => null;
 }
