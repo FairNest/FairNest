@@ -100,6 +100,20 @@ type RoomMember struct {
 	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
+type Notification struct {
+	NotificationID *uint `gorm:"primaryKey;autoIncrement"`
+	ReceiverID     *uint `gorm:"not null"` // user who receives the notice
+	SenderID       *uint `gorm:"not null"` // user_id = 1 is system, not real user
+
+	//NotificationTitle *string
+	NotificationMessage *string
+	IsRead              *bool // true = read, nil = unread
+
+	// Relations
+	//Receiver *User `gorm:"foreignKey:ReceiverID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Receiver *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
 type RoomJoinRequest struct {
 	RoomJoinRequestID *uint `gorm:"primaryKey;autoIncrement"`
 	RoomID            *uint `gorm:"not null;index"`
@@ -149,25 +163,6 @@ type UserCompatibilityProfile struct {
 	UserA *User `gorm:"foreignKey:UserAID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	UserB *User `gorm:"foreignKey:UserBID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Room  *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-}
-
-type Notification struct {
-	NoticeID   *uint `gorm:"primaryKey;autoIncrement"`
-	ReceiverID *uint `gorm:"not null"` // user who receives the notice
-	SenderID   *uint `gorm:"not null"` // user_id = 1 is system, not real user
-	//SenderID   *uint // nullable: if null → system message
-	//RoomID        *uint // optional: only if related to a room
-	NoticeTitle   *string
-	NoticeMessage *string
-	IsRead        *bool   // true = read, nil = unread
-	Type          *string // e.g. "chore", "system", "reminder", etc.
-	CreatedAt     *time.Time
-
-	// Relations
-	Receiver *User `gorm:"foreignKey:ReceiverID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Sender   *User `gorm:"foreignKey:SenderID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	//Sender   *User `gorm:"foreignKey:SenderID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
-	//Room     *Room `gorm:"foreignKey:RoomID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 }
 
 type Chore struct {

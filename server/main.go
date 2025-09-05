@@ -131,9 +131,9 @@ func main() {
 	app.Post("/Register", userHandler.Register)
 	app.Post("/Login", userHandler.Login)
 
-	app.Get("/GetCurrentUser", userHandler.GetCurrentUser)
+	app.Get("/GetCurrentUser", userHandler.GetCurrentUser)                                       //#
+	app.Get("/GetCurrentUserDetailsByUserId/:UserID", userHandler.GetCurrentUserDetailsByUserId) //^H
 	app.Get("/GetProfileOfCurrentUserByUserId/:UserID", userHandler.GetProfileOfCurrentUserByUserId)
-	app.Get("/GetCurrentUserDetailsByUserId/:UserID", userHandler.GetCurrentUserDetailsByUserId)
 	app.Get("/GetEditUserProfileByUserId/:UserID", userHandler.GetEditUserProfileByUserId)
 	app.Patch("/PatchEditUserProfileByUserId/:UserID", userHandler.PatchEditUserProfileByUserId)
 
