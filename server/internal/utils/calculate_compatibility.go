@@ -10,22 +10,22 @@ func CalculateCompatibility(user entities.Lifestyle, room entities.Room) float64
 	total := 0.0
 
 	total++
-	score += compatibilityScore(v.FloatValue(user.UserTidiness), v.FloatValue(room.AvgTidiness))
+	score += compatibilityScore(v.Float64Value(user.UserTidiness), v.Float64Value(room.AvgTidiness))
 
 	total++
-	score += compatibilityScore(v.FloatValue(user.UserNoiseActivity), v.FloatValue(room.AvgNoiseActivity))
+	score += compatibilityScore(v.Float64Value(user.UserNoiseActivity), v.Float64Value(room.AvgNoiseActivity))
 
 	total++
-	score += compatibilityScore(v.FloatValue(user.UserSchedule), v.FloatValue(room.AvgSchedule))
+	score += compatibilityScore(v.Float64Value(user.UserSchedule), v.Float64Value(room.AvgSchedule))
 
 	total++
-	score += compatibilityScore(v.FloatValue(user.UserGuestFrequency), v.FloatValue(room.AvgGuestFrequency))
+	score += compatibilityScore(v.Float64Value(user.UserGuestFrequency), v.Float64Value(room.AvgGuestFrequency))
 
 	total++
-	score += compatibilityScore(v.FloatValue(user.UserTaskStructure), v.FloatValue(room.AvgTaskStructure))
+	score += compatibilityScore(v.Float64Value(user.UserTaskStructure), v.Float64Value(room.AvgTaskStructure))
 
 	total++
-	score += compatibilityScore(v.FloatValue(user.UserMoneyAttitude), v.FloatValue(room.AvgMoneyAttitude))
+	score += compatibilityScore(v.Float64Value(user.UserMoneyAttitude), v.Float64Value(room.AvgMoneyAttitude))
 
 	return score / total // average percent (0–100)
 }

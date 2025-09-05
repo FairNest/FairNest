@@ -102,12 +102,14 @@ type RoomMember struct {
 
 type Notification struct {
 	NotificationID *uint `gorm:"primaryKey;autoIncrement"`
-	ReceiverID     *uint `gorm:"not null"` // user who receives the notice
 	SenderID       *uint `gorm:"not null"` // user_id = 1 is system, not real user
+	ReceiverID     *uint `gorm:"not null"` // user who receives the notice
 
 	//NotificationTitle *string
 	NotificationMessage *string
-	IsRead              *bool // true = read, nil = unread
+	IsRead              *bool // true = read, false = unread
+
+	CreatedAt *time.Time
 
 	// Relations
 	Receiver *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`

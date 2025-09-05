@@ -79,17 +79,20 @@ func main() {
 	lifestyleRepositoryDB := repository.NewLifestyleRepositoryDB(db)
 	roomRepositoryDB := repository.NewRoomRepositoryDB(db)
 	roomMemberRepositoryDB := repository.NewRoomMemberRepositoryDB(db)
+	notificationRepositoryDB := repository.NewNotificationRepositoryDB(db)
 
 	uploadService := service.NewUploadService(minioClient)
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
 	userService := service.NewUserService(userRepositoryDB, jwtSecret, lifestyleService)
 	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB, userService)
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
+	notificationService := service.NewNotificationService(notificationRepositoryDB)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
 	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService)
 	roomHandler := handler.NewRoomHandler(roomService)
 	roomMemberHandler := handler.NewRoomMemberHandler(roomMemberService)
+	notificationHandler := handler.NewNotificationHandler(notificationService)
 
 	app := fiber.New()
 
@@ -152,6 +155,9 @@ func main() {
 
 	app.Get("/GetRoomOverallLifestyleByRoomId/:RoomID", roomHandler.GetRoomOverallLifestyleByRoomId)
 	app.Get("/GetUserOverallLifestyleByUserId/:UserID", lifestyleHandler.GetUserOverallLifestyleByUserId)
+
+	app.Get("/FetchAllUnreadNotificationByUserId/:UserID", notificationHandler.FetchAllUnreadNotificationByUserId)
+	app.Get("/FetchThreeNoticesByUserId/:UserID", notificationHandler.FetchThreeNoticesByUserId)
 
 	//#####################################################################################
 

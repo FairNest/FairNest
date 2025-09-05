@@ -163,7 +163,7 @@ func (s roomService) FetchAllRoomSuitUserLifestyleByUserId(userId int) ([]dtos.F
 
 	// Step 4: sort by compatibility descending
 	sort.Slice(responses, func(i, j int) bool {
-		return v.FloatValue(responses[i].CompatibilityPercent) > v.FloatValue(responses[j].CompatibilityPercent)
+		return v.Float64Value(responses[i].CompatibilityPercent) > v.Float64Value(responses[j].CompatibilityPercent)
 	})
 	return responses, nil
 }
@@ -319,7 +319,7 @@ func (s roomService) FetchAllPublicRoomSuitUserLifestyleByUserId(userId int) ([]
 
 	// Step 4: sort by compatibility descending
 	sort.Slice(responses, func(i, j int) bool {
-		return v.FloatValue(responses[i].CompatibilityPercent) > v.FloatValue(responses[j].CompatibilityPercent)
+		return v.Float64Value(responses[i].CompatibilityPercent) > v.Float64Value(responses[j].CompatibilityPercent)
 	})
 	return responses, nil
 }
