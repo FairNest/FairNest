@@ -12,16 +12,115 @@ class Chorespage extends StatefulWidget {
   State<Chorespage> createState() => _ChorespageState();
 }
 
+/* ------------------- simple local chore model ------------------- */
+class _Chore {
+  _Chore({
+    required this.id,
+    required this.title,
+    required this.points,
+    required this.assignedTo,
+    required this.autoRotate,
+    required this.recurrence,
+    required this.reminderTime,
+    required this.reminderRepeat,
+    required this.avatar,
+    this.completed = false,
+  });
+
+  final String id;
+  final String title;
+  final int points;
+  final String assignedTo; // "George", "Max", ...
+  final bool autoRotate;
+  final String recurrence; // "Weekly", "Daily", ...
+  final String reminderTime; // "4PM"
+  final String reminderRepeat; // "Every Tue"
+  final ImageProvider avatar;
+
+  bool completed;
+}
+
 class _ChorespageState extends State<Chorespage> {
-  // calendar state for DateStrip
+  // who is the current user for "My Tasks"
+  static const String _currentUser = 'George';
+
+  // calendar state for DateStrip (not filtering by date yet)
   late DateTime _start;
   late DateTime _selected;
   final int _days = 30;
 
-  // segmented pill state + demo counts
+  // segmented pill state
   int _tab = 0; // 0 = All Tasks, 1 = My Tasks
-  int _allCount = 6; // example
-  int _myCount = 2; // example
+
+  // demo data (6 chores total, 2 assigned to George)
+  final List<_Chore> _chores = [
+    _Chore(
+      id: 'trash',
+      title: 'Take Out the Trash',
+      points: 10,
+      assignedTo: 'Max',
+      autoRotate: true,
+      recurrence: 'Weekly',
+      reminderTime: '4PM',
+      reminderRepeat: 'Every Tue',
+      avatar: const AssetImage('assets/images/char.png'),
+    ),
+    _Chore(
+      id: 'dishes',
+      title: 'Wash Dishes',
+      points: 8,
+      assignedTo: 'George',
+      autoRotate: false,
+      recurrence: 'Daily',
+      reminderTime: '8PM',
+      reminderRepeat: 'Every Day',
+      avatar: const AssetImage('assets/images/poke.png'),
+    ),
+    _Chore(
+      id: 'sweep',
+      title: 'Sweep Living Room',
+      points: 6,
+      assignedTo: 'George',
+      autoRotate: true,
+      recurrence: 'Weekly',
+      reminderTime: '7PM',
+      reminderRepeat: 'Every Fri',
+      avatar: const AssetImage('assets/images/poke.png'),
+    ),
+    _Chore(
+      id: 'bathroom',
+      title: 'Clean Bathroom',
+      points: 12,
+      assignedTo: 'Lando',
+      autoRotate: true,
+      recurrence: 'Biweekly',
+      reminderTime: '6PM',
+      reminderRepeat: 'Every Other Sat',
+      avatar: const AssetImage('assets/images/pikachu.png'),
+    ),
+    _Chore(
+      id: 'groceries',
+      title: 'Buy Groceries',
+      points: 5,
+      assignedTo: 'Max',
+      autoRotate: false,
+      recurrence: 'Weekly',
+      reminderTime: '5PM',
+      reminderRepeat: 'Every Thu',
+      avatar: const AssetImage('assets/images/char.png'),
+    ),
+    _Chore(
+      id: 'plants',
+      title: 'Water Plants',
+      points: 4,
+      assignedTo: 'Lando',
+      autoRotate: false,
+      recurrence: 'Every 3 days',
+      reminderTime: '9AM',
+      reminderRepeat: 'Mon / Thu',
+      avatar: const AssetImage('assets/images/pikachu.png'),
+    ),
+  ];
 
   @override
   void initState() {
@@ -29,6 +128,55 @@ class _ChorespageState extends State<Chorespage> {
     final now = DateTime.now();
     _start = DateTime(now.year, now.month, 1);
     _selected = DateTime(now.year, now.month, now.day);
+  }
+
+  /* ------------------- derived lists & counts ------------------- */
+  List<_Chore> get _openAll =>
+      _chores.where((c) => !c.completed).toList(growable: false);
+
+  List<_Chore> get _openMine => _openAll
+      .where((c) => c.assignedTo.toLowerCase() == _currentUser.toLowerCase())
+      .toList(growable: false);
+
+  int get _allCount => _openAll.length;
+  int get _myCount => _openMine.length;
+
+  /* ------------------- handlers ------------------- */
+  void _onCheckedChanged(_Chore chore, bool checked) {
+    // When a chore is checked we mark it completed and it disappears from view
+    if (!checked) return; // ignore unchecks here (they won't be shown anyway)
+    setState(() => chore.completed = true);
+  }
+
+  /* ------------------- builders ------------------- */
+  Widget _buildList(List<_Chore> items) {
+    if (items.isEmpty) {
+      return const _EmptyArea(label: 'No chores here 🎉');
+    }
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          for (final c in items)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: ChoresTaskCard(
+                // configurable values — make sure your ChoresTaskCard exposes these
+                title: c.title,
+                points: c.points,
+                assignedName: c.assignedTo,
+                autoRotate: c.autoRotate,
+                recurrence: c.recurrence,
+                reminderTime: c.reminderTime,
+                reminderRepeat: c.reminderRepeat,
+                paidByImage: c.avatar,
+
+                initiallyChecked: false,
+                onCheckedChanged: (checked) => _onCheckedChanged(c, checked),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -52,7 +200,7 @@ class _ChorespageState extends State<Chorespage> {
             ),
             const SizedBox(height: 12),
 
-            // Horizontal date strip
+            // Horizontal date strip (visual only for now)
             DateStrip(
               startDate: _start,
               days: _days,
@@ -61,33 +209,31 @@ class _ChorespageState extends State<Chorespage> {
             ),
             const SizedBox(height: 12),
 
-            // Segmented pill with counts — tweak sizes here
+            // Segmented pill with LIVE counts
             _CountSegmentedPill(
               tabs: const ['All Tasks', 'My Tasks'],
-              counts: [_allCount, _myCount],
+              counts: [_allCount, _myCount], // ← live numbers
               initialIndex: _tab,
               onChanged: (i) => setState(() => _tab = i),
 
               // size controls
-              height: 46, // overall pill height
-              labelFontSize: 14, // "All Tasks" / "My Tasks"
-              badgeHeight: 22, // badge height
-              // badgeWidth: 28,        // (optional) fixed width; comment out to use padding
-              badgeFontSize: 12, // number font
-              badgeRadius: 8, // badge corner radius
-              badgeHorizontalPadding:
-                  7, // inner padding left/right (when width is null)
+              height: 46,
+              labelFontSize: 14,
+              badgeHeight: 22,
+              badgeFontSize: 12,
+              badgeRadius: 8,
+              badgeHorizontalPadding: 7,
             ),
 
             const SizedBox(height: 16),
 
-            // Each tab gets its own scrollable area — add your cards here
+            // content per tab
             Expanded(
               child: IndexedStack(
                 index: _tab,
-                children: const [
-                  _AllTasksContent(),
-                  _MyTasksContent(),
+                children: [
+                  _buildList(_openAll), // All Tasks (incomplete only)
+                  _buildList(_openMine), // My Tasks (incomplete + mine)
                 ],
               ),
             ),
@@ -98,42 +244,7 @@ class _ChorespageState extends State<Chorespage> {
   }
 }
 
-/* ---------- Page content placeholders ---------- */
-
-class _AllTasksContent extends StatelessWidget {
-  const _AllTasksContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: const [
-          // _EmptyArea(label: 'All Tasks page — add your content here'),
-          ChoresTaskCard(
-            paidByImage: AssetImage('assets/images/char.png'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MyTasksContent extends StatelessWidget {
-  const _MyTasksContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: const [
-          ChoresTaskCard(
-            paidByImage: AssetImage('assets/images/char.png'),
-          ),
-        ],
-      ),
-    );
-  }
-}
+/* ------------------- empty state box ------------------- */
 
 class _EmptyArea extends StatelessWidget {
   const _EmptyArea({required this.label});
@@ -160,7 +271,7 @@ class _EmptyArea extends StatelessWidget {
   }
 }
 
-/* ---------- Segmented pill with counts (tunable sizes) ---------- */
+/* ------------------- segmented pill (unchanged) ------------------- */
 
 class _CountSegmentedPill extends StatefulWidget {
   const _CountSegmentedPill({
@@ -169,11 +280,9 @@ class _CountSegmentedPill extends StatefulWidget {
     required this.onChanged,
     this.initialIndex = 0,
     this.height = 44,
-
-    // sizing knobs
     this.labelFontSize = 14,
     this.badgeHeight = 22,
-    this.badgeWidth, // optional fixed width; if null we use padding
+    this.badgeWidth,
     this.badgeFontSize = 12,
     this.badgeRadius = 8,
     this.badgeHorizontalPadding = 7,
@@ -186,7 +295,6 @@ class _CountSegmentedPill extends StatefulWidget {
   final ValueChanged<int> onChanged;
   final double height;
 
-  // size controls
   final double labelFontSize;
   final double badgeHeight;
   final double? badgeWidth;
@@ -201,11 +309,10 @@ class _CountSegmentedPill extends StatefulWidget {
 class _CountSegmentedPillState extends State<_CountSegmentedPill> {
   late int _index = widget.initialIndex;
 
-  // palette
-  static const Color _trackPink = Color(0xFFFF8FB5); // background track
-  static const Color _thumbCream = AppColors.background; // cream thumb
-  static const Color _labelPurple = AppColors.textPurple; // label color
-  static const Color _badgeFill = AppColors.textPink; // badge fill
+  static const Color _trackPink = Color(0xFFFF8FB5);
+  static const Color _thumbCream = AppColors.background;
+  static const Color _labelPurple = AppColors.textPurple;
+  static const Color _badgeFill = AppColors.textPink;
   static const EdgeInsets _padding = EdgeInsets.all(6);
 
   Alignment _alignmentFor(int i, int len) {
@@ -229,7 +336,6 @@ class _CountSegmentedPillState extends State<_CountSegmentedPill> {
         ),
         child: Stack(
           children: [
-            // Sliding thumb
             AnimatedAlign(
               alignment: _alignmentFor(_index, tabCount),
               duration: const Duration(milliseconds: 220),
@@ -253,12 +359,9 @@ class _CountSegmentedPillState extends State<_CountSegmentedPill> {
                 ),
               ),
             ),
-
-            // Labels + badges
             Row(
               children: List.generate(tabCount, (i) {
                 final selected = i == _index;
-
                 return Expanded(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(widget.height),
@@ -279,7 +382,6 @@ class _CountSegmentedPillState extends State<_CountSegmentedPill> {
                             style: AppFonts.heading1.copyWith(
                               fontSize: widget.labelFontSize,
                               fontWeight: FontWeight.w700,
-                              // Unselected now purple too (no pink)
                               color: _labelPurple,
                             ),
                           ),
@@ -287,11 +389,10 @@ class _CountSegmentedPillState extends State<_CountSegmentedPill> {
                           _MiniCountBadge(
                             value: widget.counts[i],
                             height: widget.badgeHeight,
-                            width: widget.badgeWidth, // set to fix width
+                            width: widget.badgeWidth,
                             radius: widget.badgeRadius,
                             fontSize: widget.badgeFontSize,
-                            paddingH: widget
-                                .badgeHorizontalPadding, // used only if width == null
+                            paddingH: widget.badgeHorizontalPadding,
                           ),
                         ],
                       ),
@@ -310,12 +411,11 @@ class _CountSegmentedPillState extends State<_CountSegmentedPill> {
 class _MiniCountBadge extends StatelessWidget {
   const _MiniCountBadge({
     required this.value,
-    this.height = 20, // badge height
-    this.width =
-        15, // optional fixed width; if null, width = content + paddingH
-    this.radius = 2, // defaults to height/2
+    this.height = 20,
+    this.width,
+    this.radius = 2,
     this.fontSize = 12,
-    this.paddingH = 10, // used only when width is null
+    this.paddingH = 10,
   });
 
   final int value;
@@ -334,7 +434,6 @@ class _MiniCountBadge extends StatelessWidget {
     );
 
     if (width != null) {
-      // Fixed width badge
       return Container(
         height: height,
         width: width,
@@ -351,10 +450,9 @@ class _MiniCountBadge extends StatelessWidget {
       );
     }
 
-    // Content-driven width (number + padding)
     return Container(
       height: height,
-      constraints: BoxConstraints(minWidth: height), // keep square-ish min
+      constraints: BoxConstraints(minWidth: height),
       padding: EdgeInsets.symmetric(horizontal: paddingH),
       decoration: decoration,
       alignment: Alignment.center,
