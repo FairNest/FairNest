@@ -1,5 +1,6 @@
 import 'package:fairnestui/Notification/NotificationPage.dart';
 import 'package:fairnestui/pages/Settings/SettingPage.dart';
+import 'package:fairnestui/pages/UserProfilePage.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -13,6 +14,7 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.scoreText,
     required this.progress, // 0..1 (real value)
     this.onTapNotifications,
+    this.onTapProfile,
     this.onTapSettings,
     this.height = 88,
   });
@@ -23,6 +25,7 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double progress; // 0..1 (real value)
   final VoidCallback? onTapNotifications;
   final VoidCallback? onTapSettings;
+  final VoidCallback? onTapProfile;
   final double height;
 
   @override
@@ -40,12 +43,24 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor:
-                    avatarColor ?? AppColors.textOrange.withOpacity(0.6),
-                backgroundImage:
-                    avatarImage, // ✅ always shows Pikachu (or overridden)
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const MyProfilePage()),
+                    );
+                  }, // 🔗 fires your navigation
+                  borderRadius: BorderRadius.circular(28),
+                  child: CircleAvatar(
+                    radius: 24,
+                    backgroundColor:
+                        avatarColor ?? AppColors.textOrange.withOpacity(0.6),
+                    backgroundImage: avatarImage,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
 

@@ -1,3 +1,4 @@
+import 'package:fairnestui/Notification/NotificationPage.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -64,18 +65,23 @@ class AppHeader extends StatelessWidget {
           // Right-side widget (notification, profile, or none)
           Positioned(
             right: 0,
-            child: _buildRightWidget(),
+            child: _buildRightWidget(context), // ← pass context in
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRightWidget() {
+  // Accept BuildContext so Navigator works here
+  Widget _buildRightWidget(BuildContext context) {
     switch (rightType) {
       case AppHeaderRightType.notification:
         return GestureDetector(
-          onTap: onNotificationTap,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const Notificationpage()),
+            );
+          },
           child: Image.asset(
             'assets/images/Notification.png',
             width: 40,

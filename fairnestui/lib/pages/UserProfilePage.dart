@@ -13,8 +13,8 @@ import 'package:fairnestui/components/MainButton.dart';
 class MyProfilePage extends StatelessWidget {
   const MyProfilePage({
     super.key,
-    this.name = 'Max',
-    this.avatarAsset = 'assets/images/fairnest.png',
+    this.name = 'George',
+    this.avatarAsset = 'assets/images/poke.png',
     this.about =
         "I’m a night owl who loves sketching and ambient music. I’m mostly quiet "
             "but love the occasional deep convos in the kitchen. I keep my space tidy, "
@@ -41,6 +41,7 @@ class MyProfilePage extends StatelessWidget {
             children: [
               AppHeader(
                 title: 'My Profile',
+                rightType: AppHeaderRightType.notification,
                 onNotificationTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Notifications tapped')),

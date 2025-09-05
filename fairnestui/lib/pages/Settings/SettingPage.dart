@@ -15,7 +15,7 @@ class SettingsPage extends StatelessWidget {
   TextStyle get _titleStyle => const TextStyle(
         fontFamily: 'Krub',
         fontWeight: FontWeight.w700,
-        color: Colors.black,
+        color: AppColors.darkPurple,
       );
 
   TextStyle get _sectionTitleStyle => const TextStyle(

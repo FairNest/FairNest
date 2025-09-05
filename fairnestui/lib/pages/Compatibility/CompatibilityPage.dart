@@ -80,7 +80,7 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Compatibility',
+              Text('Compatibility Overview',
                   style:
                       AppFonts.heading1.copyWith(color: AppColors.textPurple)),
               const SizedBox(height: 12),
@@ -97,11 +97,11 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
                 ),
                 pages: [
                   _OverviewPane(
-                    title: 'Overall Lifestyle Compatibility Overview',
+                    title: 'Room Lifestyle',
                     metrics: overallMetrics,
                   ),
                   _OverviewPane(
-                    title: 'Your Lifestyle Overview',
+                    title: 'Your Lifestyle',
                     metrics: yourMetrics,
                   ),
                 ],
