@@ -110,8 +110,8 @@ type Notification struct {
 	IsRead              *bool // true = read, nil = unread
 
 	// Relations
-	//Receiver *User `gorm:"foreignKey:ReceiverID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Receiver *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Sender   *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type RoomJoinRequest struct {
