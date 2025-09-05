@@ -3,11 +3,62 @@ import 'package:fairnestui/components/FInanceTaskCard.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
-/// simple local model for demo items
+/// --- simple local models ---
 class _ChoreTask {
-  _ChoreTask({required this.id, this.isCompleted = false});
+  _ChoreTask({
+    required this.id,
+    this.isCompleted = false,
+    // configurable display fields for ChoresTaskCard
+    required this.title,
+    required this.points,
+    required this.assignedName,
+    required this.autoRotate,
+    required this.recurrence,
+    required this.reminderTime,
+    required this.reminderRepeat,
+    required this.avatar,
+  });
+
   final String id;
   bool isCompleted;
+
+  // ui data
+  final String title;
+  final int points;
+  final String assignedName;
+  final bool autoRotate;
+  final String recurrence;
+  final String reminderTime;
+  final String reminderRepeat;
+  final ImageProvider avatar;
+}
+
+class _FinanceTask {
+  _FinanceTask({
+    required this.id,
+    required this.title,
+    required this.amount, // this person's share (header, right)
+    required this.totalAmount, // full bill, shown in "Total" chip
+    required this.points, // +X badge
+    required this.splitType,
+    this.splitCount, // needed for even splits
+    this.currency = 'THB',
+    required this.payToName,
+    this.avatar,
+    this.isSettled = false,
+  });
+
+  final String id;
+  final String title;
+  final int amount;
+  final int totalAmount;
+  final int points;
+  final SplitType splitType;
+  final int? splitCount;
+  final String currency;
+  final String payToName;
+  final ImageProvider? avatar;
+  bool isSettled;
 }
 
 class TaskNavFolder extends StatefulWidget {
@@ -31,15 +82,63 @@ class TaskNavFolder extends StatefulWidget {
 class _TaskNavFolderState extends State<TaskNavFolder> {
   int activeIndex = 0;
 
-  // ✅ Initialize lists here (no 'late', no initState needed)
-  final List<_ChoreTask> _todayTasks = [
-    _ChoreTask(id: 'trash'),
-    _ChoreTask(id: 'dishes'),
+  // ------- demo data -------
+  final List<_ChoreTask> _todayChores = [
+    _ChoreTask(
+      id: 'trash',
+      title: 'Take Out the Trash',
+      points: 10,
+      assignedName: 'Max',
+      autoRotate: true,
+      recurrence: 'Weekly',
+      reminderTime: '4PM',
+      reminderRepeat: 'Every Tue',
+      avatar: const AssetImage('assets/images/char.png'),
+    ),
+    _ChoreTask(
+      id: 'dishes',
+      title: 'Wash Dishes',
+      points: 8,
+      assignedName: 'Lando',
+      autoRotate: false,
+      recurrence: 'Daily',
+      reminderTime: '8PM',
+      reminderRepeat: 'Every Day',
+      avatar: const AssetImage('assets/images/pikachu.png'),
+    ),
   ];
-  final List<_ChoreTask> _completedTasks = [];
-  final List<_ChoreTask> _upcomingTasks = [
-    _ChoreTask(id: 'laundry'),
+  final List<_ChoreTask> _completedChores = [];
+
+  final List<_FinanceTask> _todayFinances = [
+    _FinanceTask(
+      id: 'water',
+      title: 'Water Bill',
+      amount: 400,
+      totalAmount: 1200,
+      points: 10,
+      splitType: SplitType.even,
+      splitCount: 3,
+      currency: 'THB',
+      payToName: 'Max',
+      avatar: const AssetImage('assets/images/char.png'),
+    ),
   ];
+  final List<_FinanceTask> _completedFinances = [];
+
+  final List<_ChoreTask> _upcomingChores = [
+    _ChoreTask(
+      id: 'laundry',
+      title: 'Do Laundry',
+      points: 6,
+      assignedName: 'George',
+      autoRotate: true,
+      recurrence: 'Weekly',
+      reminderTime: '6PM',
+      reminderRepeat: 'Every Sun',
+      avatar: const AssetImage('assets/images/char.png'),
+    ),
+  ];
+  final List<_FinanceTask> _upcomingFinances = [];
 
   static const _cream = Color(0xFFFFF1E8);
   final tabs = const [
@@ -64,51 +163,95 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
   int _headerCount() {
     switch (activeIndex) {
       case 0:
-        return _todayTasks.length;
+        return _todayChores.length + _todayFinances.length;
       case 1:
-        return _completedTasks.length;
+        return _completedChores.length + _completedFinances.length;
       case 2:
-        return _upcomingTasks.length;
+        return _upcomingChores.length + _upcomingFinances.length;
       default:
         return 0;
     }
   }
 
-  // move a task based on checkbox state
-  void _onCheckedChanged(_ChoreTask task, bool checked,
-      {required int fromTab}) {
+  // ------- chore checkbox handler -------
+  void _onChoreChecked(_ChoreTask task, bool checked, {required int fromTab}) {
     setState(() {
       task.isCompleted = checked;
 
-      // remove from current list
+      // remove from current bucket
       if (fromTab == 0) {
-        _todayTasks.removeWhere((t) => t.id == task.id);
+        _todayChores.removeWhere((t) => t.id == task.id);
       } else if (fromTab == 1) {
-        _completedTasks.removeWhere((t) => t.id == task.id);
-      } else if (fromTab == 2) {
-        _upcomingTasks.removeWhere((t) => t.id == task.id);
+        _completedChores.removeWhere((t) => t.id == task.id);
+      } else {
+        _upcomingChores.removeWhere((t) => t.id == task.id);
       }
 
-      // add to destination + jump tab
+      // add to destination + switch tab
       if (checked) {
-        _completedTasks.add(task);
+        _completedChores.add(task);
         activeIndex = 1;
       } else {
-        _todayTasks.add(task);
+        _todayChores.add(task);
         activeIndex = 0;
       }
     });
   }
 
-  // render a chores card wired to the mover
+  // ------- finance settle handler (stay in place) -------
+  void _onFinanceSettled(_FinanceTask fin, {required int fromTab}) {
+    setState(() {
+      fin.isSettled = true;
+      List<_FinanceTask> bucket;
+      if (fromTab == 0) {
+        bucket = _todayFinances;
+      } else if (fromTab == 2) {
+        bucket = _upcomingFinances;
+      } else {
+        bucket = _completedFinances;
+      }
+      bucket.removeWhere((f) => f.id == fin.id);
+      bucket.add(fin); // push to end for little feedback
+    });
+  }
+
+  // ------- builders -------
   Widget _buildChoreCard(_ChoreTask task, int sourceTab) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: ChoresTaskCard(
-        paidByImage: const AssetImage('assets/images/char.png'),
+        // new configurable values
+        title: task.title,
+        points: task.points,
+        assignedName: task.assignedName,
+        autoRotate: task.autoRotate,
+        recurrence: task.recurrence,
+        reminderTime: task.reminderTime,
+        reminderRepeat: task.reminderRepeat,
+        paidByImage: task.avatar,
+
+        // existing behavior
         initiallyChecked: task.isCompleted,
         onCheckedChanged: (checked) =>
-            _onCheckedChanged(task, checked, fromTab: sourceTab),
+            _onChoreChecked(task, checked, fromTab: sourceTab),
+      ),
+    );
+  }
+
+  Widget _buildFinanceCard(_FinanceTask f, int sourceTab) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Financetaskcard(
+        title: f.title,
+        amount: f.amount,
+        totalAmount: f.totalAmount,
+        points: f.points,
+        splitType: f.splitType,
+        splitCount: f.splitCount,
+        currency: f.currency,
+        payToName: f.payToName,
+        paidByImage: f.avatar,
+        onSettled: () => _onFinanceSettled(f, fromTab: sourceTab),
       ),
     );
   }
@@ -122,12 +265,9 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Financetaskcard(
-                paidByImage: AssetImage('assets/images/char.png'),
-              ),
-              const SizedBox(height: 10),
-              for (final t in _todayTasks) _buildChoreCard(t, 0),
-              if (_todayTasks.isEmpty)
+              for (final f in _todayFinances) _buildFinanceCard(f, 0),
+              for (final t in _todayChores) _buildChoreCard(t, 0),
+              if (_todayChores.isEmpty && _todayFinances.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 12),
                   child: Text(
@@ -146,8 +286,9 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final t in _completedTasks) _buildChoreCard(t, 1),
-              if (_completedTasks.isEmpty)
+              for (final f in _completedFinances) _buildFinanceCard(f, 1),
+              for (final t in _completedChores) _buildChoreCard(t, 1),
+              if (_completedChores.isEmpty && _completedFinances.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 12),
                   child: Text(
@@ -166,8 +307,9 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final t in _upcomingTasks) _buildChoreCard(t, 2),
-              if (_upcomingTasks.isEmpty)
+              for (final f in _upcomingFinances) _buildFinanceCard(f, 2),
+              for (final t in _upcomingChores) _buildChoreCard(t, 2),
+              if (_upcomingChores.isEmpty && _upcomingFinances.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 12),
                   child: Text(
@@ -184,6 +326,7 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
     }
   }
 
+  // ------- UI -------
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -209,7 +352,7 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Color(0xFF9C2D3C),
+                    color: const Color(0xFF9C2D3C),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

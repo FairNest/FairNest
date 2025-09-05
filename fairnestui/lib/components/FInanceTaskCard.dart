@@ -1,183 +1,333 @@
-import 'package:fairnestui/components/AccentBorderedCard.dart';
-import 'package:fairnestui/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:fairnestui/theme/app_colors.dart';
+import 'package:fairnestui/util/paymentSentDialog.dart'
+    show showPaymentSentDialog;
+
+enum SplitType { even, custom }
 
 class Financetaskcard extends StatelessWidget {
   const Financetaskcard({
     super.key,
+
+    // required data
+    required this.title, // e.g. "Water Bill"
+    required this.amount, // your share (shown top-right)
+    required this.totalAmount, // total bill
+    required this.points, // +10 etc
+
+    // split
+    required this.splitType, // SplitType.even | SplitType.custom
+    this.splitCount, // required when splitType == even
+    this.customSplitLabel, // optional label when custom (e.g. "60/40")
+
+    // misc
+    this.currency = 'THB',
+    this.payToName = 'Max',
     this.paidByImage,
-    this.paidByRingColor = AppColors.textPurple,
-    this.onSettleNow, // <-- tap handler
+    this.qrData,
+    this.onSettled,
   });
 
+  // ---- data ----
+  final String title;
+  final int amount; // your share shown in header
+  final int totalAmount; // "Total" chip
+  final int points; // "+10" badge
+
+  final SplitType splitType;
+  final int? splitCount; // used when even
+  final String? customSplitLabel; // used when custom
+
+  final String currency;
+  final String payToName;
   final ImageProvider? paidByImage;
-  final Color paidByRingColor;
-  final VoidCallback? onSettleNow;
+  final String? qrData;
+
+  final VoidCallback? onSettled;
+
+  String get _splitLabel {
+    if (splitType == SplitType.even) {
+      final n = (splitCount ?? 1).clamp(1, 99);
+      return 'Even ($n)';
+    }
+    return customSplitLabel?.trim().isNotEmpty == true
+        ? customSplitLabel!.trim()
+        : 'Custom';
+  }
 
   @override
   Widget build(BuildContext context) {
-    const Color iconBg = AppColors.textPurple;
-    const Color titleColor = AppColors.textPurple;
-    const Color badgeBg = AppColors.accent;
+    const grayChip = Color(0xFF8D8B8B); // same as your chores chips
 
-    return AccentBorderedCard(
-      child: SizedBox(
-        height: 170, // a bit taller to fit the button comfortably
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // HEADER ROW
-            SizedBox(
-              height: 36,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // circular icon
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: const BoxDecoration(
-                      color: iconBg,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.receipt_long_rounded,
-                        color: AppColors.background, size: 20),
-                  ),
-                  const SizedBox(width: 10),
-
-                  // title
-                  const Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Water Bill - March',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: titleColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-
-                  // +10 badge
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: badgeBg,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: const Text(
-                      '+10',
-                      style: TextStyle(
-                        color: AppColors.textOrange,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: const Color.fromARGB(255, 106, 166, 130), width: 2.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ---------- Header ----------
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                    color: AppColors.textPurple, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: const Icon(Icons.payments_rounded,
+                    size: 20, color: AppColors.background),
               ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // Row of little stat chips (Total / Split / You Owe)
-            Row(
-              children: const [
-                _StatChip(
-                    label: "Total", color: Color(0xFF8D8B8B), text: "400 Baht"),
-                SizedBox(width: 15),
-                _StatChip(
-                    label: "Split", color: Color(0xFF8D8B8B), text: "Even"),
-                SizedBox(width: 15),
-                _StatChip(
-                    label: "You Owe",
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPurple,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '${_fmt(amount)} $currency',
+                style: const TextStyle(
+                  color: AppColors.textPurple,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(width: 8),
+              // +points badge
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '+$points',
+                  style: const TextStyle(
                     color: AppColors.textOrange,
-                    text: '200 Baht'),
-              ],
-            ),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
 
-            const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-            // Paid By + avatar
-            Row(
+          // ---------- Total & Split in gray chips ----------
+          Row(
+            children: [
+              _LabeledValueChip(
+                label: 'Total',
+                value: '${_fmt(totalAmount)} $currency',
+                color: grayChip,
+              ),
+              const SizedBox(width: 18),
+              _LabeledValueChip(
+                label: 'Split',
+                value: _splitLabel,
+                color: grayChip,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // ---------- Receiver row ----------
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: Colors.grey.shade300,
+                backgroundImage: paidByImage,
+                child: paidByImage == null
+                    ? const Icon(Icons.person, size: 16, color: Colors.white)
+                    : null,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Pay to $payToName',
+                style: const TextStyle(
+                  color: AppColors.textPurple,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF9C2D3C),
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () => _showQrSheet(context),
+                child: const Text('Settle now'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------- QR Sheet + Dialog ----------
+  Future<void> _showQrSheet(BuildContext context) async {
+    final rootContext = context;
+
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetCtx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Paid By",
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 6),
-                    Container(
-                      width: 35,
-                      height: 35,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: paidByRingColor.withOpacity(0.15),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Pay ${_fmt(amount)} $currency to $payToName',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: AppColors.textPurple,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // QR placeholder — replace later with an actual QR widget
+                Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border:
+                        Border.all(color: AppColors.textPurple.withOpacity(.6)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                      alignment: Alignment.center,
-                      child: CircleAvatar(
-                        radius: 13,
-                        backgroundColor: Colors.grey.shade300,
-                        backgroundImage: paidByImage,
-                        child: paidByImage == null
-                            ? const Icon(Icons.person,
-                                size: 14, color: Colors.white)
-                            : null,
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    qrData ?? 'QR CODE',
+                    style: const TextStyle(
+                      color: AppColors.textPurple,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Scan with your banking app to settle.',
+                  style: TextStyle(
+                    color: AppColors.textPurple,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(sheetCtx),
+                        child: const Text('Close'),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    const SizedBox(
-                      width: 35,
-                      child: Text(
-                        "Max",
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: Colors.black,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(sheetCtx);
+                          Future.microtask(() {
+                            showPaymentSentDialog(
+                              rootContext,
+                              payer: 'You',
+                              receiver: payToName,
+                              amount: '${_fmt(amount)} $currency',
+                            );
+                            onSettled?.call();
+                          });
+                        },
+                        child: const Text('Mark as Paid'),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(
-                  width: 10,
-                ),
-                Spacer(
-                  flex: 3,
-                ),
-
-                // SETTLE NOW button (fills remaining width nicely)
-                Expanded(
-                  flex: 30,
-                  child: _SettleNowButton(
-                    text: 'Settle Now',
-                    onTap: onSettleNow,
-                  ),
-                ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
+  }
+
+  static String _fmt(int n) {
+    final s = n.toString();
+    final buf = StringBuffer();
+    int count = 0;
+    for (int i = s.length - 1; i >= 0; i--) {
+      buf.write(s[i]);
+      count++;
+      if (count == 3 && i != 0) {
+        buf.write(',');
+        count = 0;
+      }
+    }
+    return buf.toString().split('').reversed.join();
   }
 }
 
-class _StatChip extends StatelessWidget {
-  const _StatChip(
-      {required this.label, required this.color, required this.text});
+// --- tiny chip like your chores chips (label on top, gray value below) ---
+class _LabeledValueChip extends StatelessWidget {
+  const _LabeledValueChip({
+    required this.label,
+    required this.value,
+    this.color = const Color(0xFF8D8B8B),
+  });
 
   final String label;
+  final String value;
   final Color color;
-  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -189,15 +339,14 @@ class _StatChip extends StatelessWidget {
         const SizedBox(height: 4),
         Container(
           height: 18,
-          width: 70,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(2),
           ),
           alignment: Alignment.center,
           child: Text(
-            text,
-            textAlign: TextAlign.center,
+            value,
             style: const TextStyle(
               fontSize: 11,
               color: AppColors.background,
@@ -206,52 +355,6 @@ class _StatChip extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Lavender pill button with purple border + small shadow.
-class _SettleNowButton extends StatelessWidget {
-  const _SettleNowButton({required this.text, this.onTap});
-
-  final String text;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    const lavenderFill = Color(0xFFD9CFF1); // soft lavender
-    const purpleBorder = Color(0xFF645A80); // text/border purple
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Ink(
-          height: 38,
-          decoration: BoxDecoration(
-            color: lavenderFill,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: purpleBorder, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.12),
-                blurRadius: 6,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: purpleBorder,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

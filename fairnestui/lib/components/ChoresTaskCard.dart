@@ -5,14 +5,35 @@ import 'package:flutter/material.dart';
 class ChoresTaskCard extends StatefulWidget {
   const ChoresTaskCard({
     super.key,
-    this.paidByImage,
+
+    // NEW configurable fields
+    this.title = 'Take Out the Trash',
+    this.points = 10,
+    this.assignedName = 'Max',
+    this.autoRotate = true,
+    this.recurrence = 'Weekly',
+    this.reminderTime = '4PM',
+    this.reminderRepeat = 'Every Tue',
+
+    // existing
+    this.paidByImage, // avatar for the assignee
     this.paidByRingColor = AppColors.textPurple,
     this.onReminderTap,
     this.initiallyChecked = false,
     this.onCheckedChanged,
   });
 
-  final ImageProvider? paidByImage;
+  // --- configurable content ---
+  final String title;
+  final int points;
+  final String assignedName;
+  final bool autoRotate;
+  final String recurrence;
+  final String reminderTime; // shown in "Reminder Time <X>"
+  final String reminderRepeat; // pill text
+
+  // --- existing props ---
+  final ImageProvider? paidByImage; // assignee avatar
   final Color paidByRingColor;
   final VoidCallback? onReminderTap;
 
@@ -47,7 +68,7 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
 
   void _toggleChecked() {
     setState(() => _checked = !_checked);
-    widget.onCheckedChanged?.call(_checked); // ← notify parent
+    widget.onCheckedChanged?.call(_checked); // notify parent
   }
 
   @override
@@ -87,7 +108,7 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Take Out the Trash',
+                        widget.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -109,9 +130,9 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                       color: badgeBg,
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    child: const Text(
-                      '+10',
-                      style: TextStyle(
+                    child: Text(
+                      '+${widget.points}',
+                      style: const TextStyle(
                         color: AppColors.textOrange,
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
@@ -127,15 +148,17 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
             // CHIPS
             Row(
               children: [
-                const _StatChip(
-                    label: "Auto-Rotate",
-                    color: Color(0xFF8D8B8B),
-                    text: "Yes"),
+                _StatChip(
+                  label: "Auto-Rotate",
+                  color: const Color(0xFF8D8B8B),
+                  text: widget.autoRotate ? "Yes" : "No",
+                ),
                 const SizedBox(width: 15),
-                const _StatChip(
-                    label: "Recurrence",
-                    color: Color(0xFF8D8B8B),
-                    text: "Weekly"),
+                _StatChip(
+                  label: "Recurrence",
+                  color: const Color(0xFF8D8B8B),
+                  text: widget.recurrence,
+                ),
                 const SizedBox(width: 15),
                 // Status chip (reacts to checkbox)
                 _StatChip(
@@ -155,36 +178,43 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                   children: [
                     const Text("Assigned to",
                         style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600)),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPurple)),
                     const SizedBox(height: 6),
-                    Container(
-                      width: 35,
-                      height: 35,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: widget.paidByRingColor.withOpacity(0.15),
-                      ),
-                      alignment: Alignment.center,
-                      child: CircleAvatar(
-                        radius: 13,
-                        backgroundColor: Colors.grey.shade300,
-                        backgroundImage: widget.paidByImage,
-                        child: widget.paidByImage == null
-                            ? const Icon(Icons.person,
-                                size: 14, color: Colors.white)
-                            : null,
+                    Padding(
+                      padding: const EdgeInsets.only(left: 11.0),
+                      child: Container(
+                        width: 35,
+                        height: 35,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: widget.paidByRingColor.withOpacity(0.15),
+                        ),
+                        alignment: Alignment.center,
+                        child: CircleAvatar(
+                          radius: 13,
+                          backgroundColor: Colors.grey.shade300,
+                          backgroundImage: widget.paidByImage,
+                          child: widget.paidByImage == null
+                              ? const Icon(Icons.person,
+                                  size: 14, color: Colors.white)
+                              : null,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 2),
-                    const SizedBox(
-                      width: 35,
+                    SizedBox(
+                      width: 60,
                       child: Text(
-                        "Max",
+                        widget.assignedName,
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPurple),
                       ),
                     ),
                   ],
@@ -196,12 +226,14 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Reminder Time 4PM",
-                        style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w600)),
+                    Text("Reminder Time ${widget.reminderTime}",
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPurple)),
                     const SizedBox(height: 6),
                     _MiniLavenderPill(
-                      text: 'Every Tue',
+                      text: widget.reminderRepeat,
                       icon: Icons.sync,
                       onTap: widget.onReminderTap,
                     ),
@@ -237,7 +269,10 @@ class _StatChip extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPurple)),
         const SizedBox(height: 4),
         AnimatedContainer(
           duration: const Duration(milliseconds: 180),
@@ -248,6 +283,8 @@ class _StatChip extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 11,
               color: AppColors.background,
