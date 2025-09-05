@@ -183,12 +183,6 @@ class _ChorespageState extends State<Chorespage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: RoomHeaderAppBar(
-        scoreText: '50 Points',
-        progress: 0.5,
-        onTapNotifications: () {},
-        onTapSettings: () {},
-      ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         child: Column(

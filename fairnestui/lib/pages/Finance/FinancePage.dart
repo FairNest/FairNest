@@ -25,12 +25,6 @@ class _FinancepageState extends State<Financepage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: RoomHeaderAppBar(
-        scoreText: '50 Points',
-        progress: 0.5,
-        onTapNotifications: () {},
-        onTapSettings: () {},
-      ),
       body: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Padding(

@@ -1,23 +1,25 @@
 // lib/shell/app_shell.dart
-import 'package:fairnestui/pages/Chores/ChoresPage.dart';
-import 'package:fairnestui/pages/Compatibility/CompatibilityPage.dart';
-import 'package:fairnestui/pages/Finance/FinancePage.dart';
-import 'package:fairnestui/pages/Home/RoomDashboardPage.dart';
-import 'package:fairnestui/pages/Chores/AddChorePage.dart';
-import 'package:fairnestui/pages/Finance/AddFinancePage.dart';
 import 'package:flutter/material.dart';
 
-// your custom bottom nav
+// ---- Your pages ----
+import 'package:fairnestui/pages/Home/RoomDashboardPage.dart';
+import 'package:fairnestui/pages/Chores/ChoresPage.dart';
+import 'package:fairnestui/pages/Finance/FinancePage.dart';
+import 'package:fairnestui/pages/Compatibility/CompatibilityPage.dart';
+import 'package:fairnestui/pages/Chores/AddChorePage.dart';
+import 'package:fairnestui/pages/Finance/AddFinancePage.dart';
+
+// ---- Your widgets ----
 import 'package:fairnestui/widgets/app_bottom_nav.dart';
+import 'package:fairnestui/widgets/room_header_appbar.dart';
 
-// your real pages
+// ---- Header centralization helpers ----
+import 'package:fairnestui/shell/header_controller.dart';
+import 'package:fairnestui/shell/header_scope.dart';
 
-class _CashPage extends StatelessWidget {
-  const _CashPage();
-  @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text('Cash Page')));
-}
+// ---- Profile service & model (paths aligned to your service snippet) ----
+import 'package:fairnestui/services/user_profile_service.dart';
+import 'package:fairnestui/model/user_profile_model.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, this.initialIndex = 0});
@@ -30,6 +32,9 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   late int _index = widget.initialIndex;
 
+  /// Single source of truth for the header (score, progress, icons, avatar).
+  final HeaderController _header = HeaderController();
+
   // Order must match your AppBottomNav icons:
   // 0 Home, 1 List, 2 Add (center), 3 Cash, 4 User
   late final List<Widget> _tabs = const [
@@ -39,6 +44,73 @@ class _AppShellState extends State<AppShell> {
     Financepage(), // 3
     CompatibilityPage(), // 4
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Neutral header fast (will be replaced by cached/fresh).
+    _header.set(const HeaderConfig(
+      scoreText: '0 Points',
+      progress: 0.0,
+      showNotifications: true,
+      showSettings: true,
+      // avatarImage: null (fallback handled in builder)
+    ));
+
+    // Cache-first, then refresh to keep it correct.
+    _loadProfileCacheThenRefresh();
+  }
+
+  @override
+  void dispose() {
+    _header.dispose();
+    super.dispose();
+  }
+
+  /// Public helper if pages want to trigger a refresh after actions.
+  Future<void> reloadProfile() => _loadProfileCacheThenRefresh();
+
+  Future<void> _loadProfileCacheThenRefresh() async {
+    // 1) Cached (fast)
+    final cached = await UserProfileService.instance.getCurrentUserProfile();
+    if (mounted && cached != null) {
+      await _applyProfileToHeader(cached);
+    }
+
+    // 2) Fresh (force refresh)
+    try {
+      final fresh =
+          await UserProfileService.instance.refreshCurrentUserProfile();
+      if (mounted && fresh != null) {
+        await _applyProfileToHeader(fresh);
+      }
+    } catch (_) {
+      // Keep cached UI if network fails.
+    }
+  }
+
+  Future<void> _applyProfileToHeader(UserProfile p) async {
+    final int score = p.roommateScore;
+    final double progress = (score / 100).clamp(0.0, 1.0);
+
+    final ImageProvider avatar = (p.userPicture.isNotEmpty)
+        ? ResizeImage(NetworkImage(p.userPicture), width: 192, height: 192)
+        : const AssetImage('assets/images/poke.png');
+
+    // Warm the image cache so the first paint is snappy.
+    try {
+      await precacheImage(avatar, context);
+    } catch (_) {}
+
+    _header.set(HeaderConfig(
+      scoreText: '$score Points',
+      progress: progress,
+      showNotifications: true,
+      showSettings: true,
+      avatarImage: avatar,
+    ));
+  }
 
   void _onTabSelected(int i) {
     if (i == 2) return; // center handled by _onCenterAction
@@ -75,15 +147,14 @@ class _AppShellState extends State<AppShell> {
                 leading: const Icon(Icons.cleaning_services_rounded),
                 title: const Text('Add Chore'),
                 onTap: () async {
-                  Navigator.pop(context); // close the sheet
+                  Navigator.pop(context);
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const AddChorePage()),
                   );
-
                   if (result != null) {
-                    // TODO: handle the created chore data (e.g., call API / state update)
-                    // print(result);
+                    // Optionally refresh if score changes:
+                    // await reloadProfile();
                   }
                 },
               ),
@@ -91,15 +162,14 @@ class _AppShellState extends State<AppShell> {
                 leading: const Icon(Icons.receipt_long_rounded),
                 title: const Text('Add Finance'),
                 onTap: () async {
-                  Navigator.pop(context); // close the sheet
+                  Navigator.pop(context);
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const AddFinancePage()),
                   );
-
                   if (result != null) {
-                    // TODO: handle the created chore data (e.g., call API / state update)
-                    // print(result);
+                    // Optionally refresh if score changes:
+                    // await reloadProfile();
                   }
                 },
               ),
@@ -112,17 +182,53 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Keep all tabs alive; only the active one is visible.
-      body: IndexedStack(
-        index: _index == 2 ? 0 : _index, // ignore center slot visually
-        children: _tabs,
+    return HeaderScope(
+      controller: _header, // expose header to descendants if needed
+      child: Scaffold(
+        // Centralized AppBar that rebuilds immediately on header changes.
+        appBar: const PreferredSize(
+          preferredSize: Size.fromHeight(88),
+          child: _HeaderAppBarBuilder(),
+        ),
+
+        // Keep all tabs alive; only the active one is visible.
+        body: IndexedStack(
+          index: _index == 2 ? 0 : _index, // ignore center slot visually
+          children: _tabs,
+        ),
+
+        bottomNavigationBar: AppBottomNav(
+          currentIndex: _index,
+          onTabSelected: _onTabSelected,
+          onCenterAction: _onCenterAction,
+        ),
       ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: _index,
-        onTabSelected: _onTabSelected,
-        onCenterAction: _onCenterAction,
-      ),
+    );
+  }
+}
+
+/// Extracted to keep build() clean. Rebuilds whenever HeaderController notifies.
+class _HeaderAppBarBuilder extends StatelessWidget {
+  const _HeaderAppBarBuilder();
+
+  @override
+  Widget build(BuildContext context) {
+    final header = HeaderScope.of(context);
+
+    return AnimatedBuilder(
+      animation: header,
+      builder: (context, _) {
+        final c = header.config;
+        return RoomHeaderAppBar(
+          avatarImage:
+              c.avatarImage ?? const AssetImage('assets/images/poke.png'),
+          scoreText: c.scoreText,
+          progress: c.progress,
+          onTapNotifications:
+              c.showNotifications ? (c.onTapNotifications ?? () {}) : null,
+          onTapSettings: c.showSettings ? (c.onTapSettings ?? () {}) : null,
+        );
+      },
     );
   }
 }
