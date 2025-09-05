@@ -156,3 +156,22 @@ type LoginResponse struct {
 	Email  *string `json:"email" validate:"required"`
 	Token  *string `json:"token,omitempty"`
 }
+
+type GetCurrentUserDetailsByUserId struct {
+	UserID      *uint   `json:"user_id" validate:"required"`
+	Username    *string `json:"username" validate:"required"`
+	Firstname   *string `json:"firstname" validate:"required"`
+	Lastname    *string `json:"lastname" validate:"required"`
+	UserPicture *string `json:"user_picture" validate:"required"`
+	UserAboutMe *string `json:"user_about_me" validate:"required"`
+
+	UserTidiness       *float64 `json:"user_tidiness" validate:"required"`
+	UserNoiseActivity  *float64 `json:"user_noise_activity" validate:"required"`
+	UserSchedule       *float64 `json:"user_schedule" validate:"required"`
+	UserGuestFrequency *float64 `json:"user_guest_frequency" validate:"required"`
+	UserTaskStructure  *float64 `json:"user_task_structure" validate:"required"`
+	UserMoneyAttitude  *float64 `json:"user_money_attitude" validate:"required"`
+
+	RoommateScore *float64 `json:"roommate_score" validate:"required"`
+	RoomID        *uint    `json:"room_id" validate:"required"`
+}

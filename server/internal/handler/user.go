@@ -5,19 +5,21 @@ import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/service"
 	"fairnest/internal/utils"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
 	"strings"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type userHandler struct {
 	userSer   service.UserService
 	jwtSecret string
 	uploadSer service.UploadService
+	roomSer   service.RoomService
 }
 
-func NewUserHandler(userSer service.UserService, jwtSecret string, uploadSer service.UploadService) userHandler {
-	return userHandler{userSer: userSer, jwtSecret: jwtSecret, uploadSer: uploadSer}
+func NewUserHandler(userSer service.UserService, jwtSecret string, uploadSer service.UploadService, roomSer service.RoomService) userHandler {
+	return userHandler{userSer: userSer, jwtSecret: jwtSecret, uploadSer: uploadSer, roomSer: roomSer}
 }
 
 func (h *userHandler) FetchAllUser(c *fiber.Ctx) error {
@@ -294,4 +296,53 @@ func (h *userHandler) Login(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(response)
+}
+
+func (h *userHandler) GetCurrentUserDetailsByUserId(c *fiber.Ctx) error {
+	userId, err := strconv.Atoi(c.Params("UserID"))
+	if err != nil || userId <= 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid user id")
+	}
+
+	prof, err := h.userSer.GetProfileOfCurrentUserByUserId(userId)
+	if err != nil || prof == nil || prof.UserID == nil {
+		if err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+		return fiber.NewError(fiber.StatusNotFound, "user profile not found")
+	}
+
+	userEnt, err := h.userSer.GetFindUserByUserId(userId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	if userEnt == nil || userEnt.UserID == nil {
+		return fiber.NewError(fiber.StatusNotFound, "user not found")
+	}
+
+	var roomID *uint
+	if roomResp, err := h.roomSer.GetMyRoomByUserId(userId); err == nil && roomResp != nil && roomResp.RoomID != nil {
+		roomID = roomResp.RoomID
+	}
+
+	resp := dtos.GetCurrentUserDetailsByUserId{
+		UserID:      prof.UserID,
+		Username:    prof.Username,
+		Firstname:   prof.Firstname,
+		Lastname:    prof.Lastname,
+		UserPicture: prof.UserPicture,
+		UserAboutMe: prof.UserAboutMe,
+
+		UserTidiness:       prof.UserTidiness,
+		UserNoiseActivity:  prof.UserNoiseActivity,
+		UserSchedule:       prof.UserSchedule,
+		UserGuestFrequency: prof.UserGuestFrequency,
+		UserTaskStructure:  prof.UserTaskStructure,
+		UserMoneyAttitude:  prof.UserMoneyAttitude,
+
+		RoommateScore: userEnt.RoommateScore,
+		RoomID:        roomID,
+	}
+
+	return c.JSON(resp)
 }

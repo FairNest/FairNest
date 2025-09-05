@@ -86,7 +86,7 @@ func main() {
 	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB, userService)
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 
-	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService)
+	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
 	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService)
 	roomHandler := handler.NewRoomHandler(roomService)
 	roomMemberHandler := handler.NewRoomMemberHandler(roomMemberService)
@@ -131,8 +131,9 @@ func main() {
 	app.Post("/Register", userHandler.Register)
 	app.Post("/Login", userHandler.Login)
 
-	app.Get("/GetCurrentUser", userHandler.GetCurrentUser) //#
+	app.Get("/GetCurrentUser", userHandler.GetCurrentUser)
 	app.Get("/GetProfileOfCurrentUserByUserId/:UserID", userHandler.GetProfileOfCurrentUserByUserId)
+	app.Get("/GetCurrentUserDetailsByUserId/:UserID", userHandler.GetCurrentUserDetailsByUserId)
 	app.Get("/GetEditUserProfileByUserId/:UserID", userHandler.GetEditUserProfileByUserId)
 	app.Patch("/PatchEditUserProfileByUserId/:UserID", userHandler.PatchEditUserProfileByUserId)
 
