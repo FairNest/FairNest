@@ -38,17 +38,17 @@ func (h *notificationHandler) FetchAllUnreadNotificationByUserId(c *fiber.Ctx) e
 	return c.JSON(notificationsResponse)
 }
 
-func (h *notificationHandler) FetchThreeNoticesByUserId(c *fiber.Ctx) error {
-	notificationsResponse := make([]dtos.FetchAllUnreadNotificationByUserIdResponse, 0)
+func (h *notificationHandler) FetchThreeNotificationByUserId(c *fiber.Ctx) error {
+	notificationsResponse := make([]dtos.FetchThreeNotificationByUserIdResponse, 0)
 	notificationIDReceive, err := strconv.Atoi(c.Params("UserID"))
 
-	notifications, err := h.notificationSer.FetchThreeNoticesByUserId(notificationIDReceive)
+	notifications, err := h.notificationSer.FetchThreeNotificationByUserId(notificationIDReceive)
 	if err != nil {
 		return err
 	}
 
 	for _, notification := range notifications {
-		notificationsResponse = append(notificationsResponse, dtos.FetchAllUnreadNotificationByUserIdResponse{
+		notificationsResponse = append(notificationsResponse, dtos.FetchThreeNotificationByUserIdResponse{
 			NotificationID:      notification.NotificationID,
 			SenderID:            notification.SenderID,
 			ReceiverID:          notification.ReceiverID,

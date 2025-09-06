@@ -46,8 +46,8 @@ func (s notificationService) FetchAllUnreadNotificationByUserId(userId int) ([]e
 	return notificationResponses, nil
 }
 
-func (s notificationService) FetchThreeNoticesByUserId(userId int) ([]entities.Notification, error) {
-	notifications, err := s.notificationRepo.FetchThreeNoticesByUserId(userId)
+func (s notificationService) FetchThreeNotificationByUserId(userId int) ([]entities.Notification, error) {
+	notifications, err := s.notificationRepo.FetchThreeNotificationByUserId(userId)
 	if err != nil {
 		log.Println(err)
 		return nil, err

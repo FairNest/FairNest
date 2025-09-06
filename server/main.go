@@ -157,7 +157,7 @@ func main() {
 	app.Get("/GetUserOverallLifestyleByUserId/:UserID", lifestyleHandler.GetUserOverallLifestyleByUserId)
 
 	app.Get("/FetchAllUnreadNotificationByUserId/:UserID", notificationHandler.FetchAllUnreadNotificationByUserId)
-	app.Get("/FetchThreeNoticesByUserId/:UserID", notificationHandler.FetchThreeNoticesByUserId)
+	app.Get("/FetchThreeNotificationByUserId/:UserID", notificationHandler.FetchThreeNotificationByUserId)
 
 	//#####################################################################################
 

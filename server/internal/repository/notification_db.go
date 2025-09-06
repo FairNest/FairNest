@@ -26,7 +26,7 @@ func (r notificationRepositoryDB) FetchAllUnreadNotificationByUserId(userId int)
 	return notifications, nil
 }
 
-func (r notificationRepositoryDB) FetchThreeNoticesByUserId(userId int) ([]entities.Notification, error) {
+func (r notificationRepositoryDB) FetchThreeNotificationByUserId(userId int) ([]entities.Notification, error) {
 	notifications := []entities.Notification{}
 	result := r.db.
 		Where("receiver_id = ?", userId).
