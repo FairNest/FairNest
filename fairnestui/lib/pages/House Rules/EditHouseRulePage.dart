@@ -1,32 +1,54 @@
-// roommate_agreement_page.dart
-import 'package:fairnestui/pages/room_creation/GenerateInviteCode.dart';
+// lib/pages/House Rules/EditHouseRulePage.dart
 import 'package:fairnestui/widgets/app_header.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:fairnestui/components/MainButton.dart';
+import 'package:fairnestui/model/house_rules_model.dart';
+import 'package:fairnestui/services/house_rules_service.dart';
+
+/* ===================== Page ===================== */
 
 class EditHousePage extends StatefulWidget {
-  const EditHousePage({super.key, this.onSubmit});
+  const EditHousePage({super.key, this.onSubmit, this.initialData});
 
   final void Function(EditHouseRuleData data)? onSubmit;
+
+  /// comes from the dialog (already mapped from API)
+  final EditHouseRuleData? initialData;
 
   @override
   State<EditHousePage> createState() => _EditHousePageState();
 }
 
 class _EditHousePageState extends State<EditHousePage> {
-  // ====== State ======
   QuietHoursOption? _quietHours;
   GuestPolicyOption? _guestPolicy;
   CleaningMethodOption? _cleaningMethod;
   final Set<ResponsibilityOption> _responsibilities = {};
   SplitCostsOption? _splitCosts;
 
-  // For “Custom” quiet hours
-  String? _quietHoursCustom;
+  String? _quietHoursCustom; // for custom
 
-  void _submit() {
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final d = widget.initialData;
+    if (d != null) {
+      _quietHours = d.quietHours;
+      _quietHoursCustom = d.quietHoursCustom;
+      _guestPolicy = d.guestPolicy;
+      _cleaningMethod = d.cleaningMethod;
+      _responsibilities
+        ..clear()
+        ..addAll(d.responsibilities);
+      _splitCosts = d.splitCosts;
+    }
+  }
+
+  Future<void> _submit() async {
     final data = EditHouseRuleData(
       quietHours: _quietHours,
       quietHoursCustom: _quietHoursCustom,
@@ -36,6 +58,26 @@ class _EditHousePageState extends State<EditHousePage> {
       splitCosts: _splitCosts,
     );
     widget.onSubmit?.call(data);
+
+    // Map UI → PATCH payload
+    final patch = _mapEditDataToPatch(data);
+
+    setState(() => _saving = true);
+    try {
+      await HouseRulesService().patchForCurrentRoom(patch);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('House rules updated')),
+      );
+      Navigator.of(context).pop(true); // close page after save
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -49,16 +91,13 @@ class _EditHousePageState extends State<EditHousePage> {
             showBack: true,
             rightType: AppHeaderRightType.none,
           ),
-
-          // Body
           Expanded(
             child: SingleChildScrollView(
-              // Only vertical padding so the section bars can span full width
               padding: const EdgeInsets.only(top: 16, bottom: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Intro (padded)
+                  // Intro
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
@@ -86,7 +125,6 @@ class _EditHousePageState extends State<EditHousePage> {
                   const SizedBox(height: 14),
                   const _SectionBar(label: 'Quiet Hours'),
 
-                  // Section content (padded)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
@@ -116,16 +154,13 @@ class _EditHousePageState extends State<EditHousePage> {
                                         16, 6, 16, 12),
                                     child: TextField(
                                       controller: TextEditingController(
-                                        text: _quietHoursCustom ?? '',
-                                      ),
+                                          text: _quietHoursCustom ?? ''),
                                       decoration: const InputDecoration(
-                                        hintText: 'e.g. 9 PM – 7 AM',
+                                        hintText: 'e.g. 22:00',
                                         filled: true,
                                         fillColor: Color(0xFFF5F2EE),
                                         contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 12,
-                                        ),
+                                            horizontal: 12, vertical: 12),
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.all(
                                               Radius.circular(10)),
@@ -141,18 +176,16 @@ class _EditHousePageState extends State<EditHousePage> {
                               onChanged: (v) {
                                 setState(() {
                                   _quietHours = v;
-                                  if (v != QuietHoursOption.custom) {
+                                  if (v != QuietHoursOption.custom)
                                     _quietHoursCustom = null;
-                                  }
                                 });
                               },
                             );
                             if (sel != null) {
                               setState(() {
                                 _quietHours = sel;
-                                if (sel != QuietHoursOption.custom) {
+                                if (sel != QuietHoursOption.custom)
                                   _quietHoursCustom = null;
-                                }
                               });
                             }
                           },
@@ -216,9 +249,8 @@ class _EditHousePageState extends State<EditHousePage> {
                               onChanged: (v) =>
                                   setState(() => _cleaningMethod = v),
                             );
-                            if (sel != null) {
+                            if (sel != null)
                               setState(() => _cleaningMethod = sel);
-                            }
                           },
                         ),
                         const SizedBox(height: 14),
@@ -279,13 +311,13 @@ class _EditHousePageState extends State<EditHousePage> {
                         ),
                         const SizedBox(height: 24),
                         MainButton(
-                          text: 'Save',
+                          text: _saving ? 'Saving...' : 'Save',
                           backgroundColor: const Color(0xFFD8A85B),
                           textColor: Colors.black,
                           width: double.infinity,
                           height: 52,
                           borderRadius: 12,
-                          onPressed: () {},
+                          onPressed: _saving ? null : _submit,
                         ),
                       ],
                     ),
@@ -300,17 +332,15 @@ class _EditHousePageState extends State<EditHousePage> {
   }
 }
 
-/* ===================== Data Model ===================== */
+/* ===================== Data Model (UI) ===================== */
 
 class EditHouseRuleData {
   final QuietHoursOption? quietHours;
   final String? quietHoursCustom;
 
   final GuestPolicyOption? guestPolicy;
-
   final CleaningMethodOption? cleaningMethod;
   final List<ResponsibilityOption> responsibilities;
-
   final SplitCostsOption? splitCosts;
 
   const EditHouseRuleData({
@@ -373,7 +403,7 @@ const splitCostsLabels = <SplitCostsOption, String>{
   SplitCostsOption.custom: 'Custom',
 };
 
-/* ===================== UI Bits ===================== */
+/* ===================== UI Bits & Selectors ===================== */
 
 class _SectionBar extends StatelessWidget {
   const _SectionBar({required this.label});
@@ -382,16 +412,14 @@ class _SectionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity, // full span
+      width: double.infinity,
       height: 53,
       child: ColoredBox(
-        color: AppColors.secondary, // pink
+        color: AppColors.secondary,
         child: Center(
           child: Text(
             label,
-            style: AppFonts.heading1.copyWith(
-              color: const Color(0xFFB84B6A),
-            ),
+            style: AppFonts.heading1.copyWith(color: const Color(0xFFB84B6A)),
             textAlign: TextAlign.center,
           ),
         ),
@@ -418,10 +446,8 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
-/// Dropdown-looking tile
 class _SelectTile extends StatelessWidget {
   const _SelectTile({required this.valueText, required this.onTap});
-
   final String? valueText;
   final VoidCallback onTap;
 
@@ -463,14 +489,12 @@ class _SelectTile extends StatelessWidget {
   }
 }
 
-/* ===================== Selectors ===================== */
-
 Future<T?> _showRadioSelector<T>({
   required BuildContext context,
   required String title,
   required Map<T, String> options,
   required T? selected,
-  void Function(T value)? onChanged, // live-change inside sheet
+  void Function(T value)? onChanged,
   Widget Function(BuildContext, void Function(void Function()))? extraFooter,
 }) async {
   T? current = selected;
@@ -613,5 +637,82 @@ Future<Set<T>?> _showMultiSelector<T>({
         ),
       );
     },
+  );
+}
+
+/* ===================== Mapper: UI → PATCH ===================== */
+
+HouseRulesPatch _mapEditDataToPatch(EditHouseRuleData d) {
+  // Quiet hours start (server expects a single start time string or 'none')
+  String? quietStart;
+  switch (d.quietHours) {
+    case QuietHoursOption.tenToSeven:
+      quietStart = '22:00';
+      break;
+    case QuietHoursOption.elevenToSix:
+      quietStart = '23:00';
+      break;
+    case QuietHoursOption.none:
+      quietStart = 'none';
+      break;
+    case QuietHoursOption.custom:
+      quietStart = (d.quietHoursCustom ?? '').trim().isEmpty
+          ? null
+          : d.quietHoursCustom!.trim();
+      break;
+    default:
+      quietStart = null;
+  }
+
+  String? guest;
+  switch (d.guestPolicy) {
+    case GuestPolicyOption.noOvernight:
+      guest = 'No overnight guests';
+      break;
+    case GuestPolicyOption.max1NightWeek:
+      guest = 'Max 1 night/week';
+      break;
+    case GuestPolicyOption.max3NightsMonth:
+      guest = 'Max 3 nights/month';
+      break;
+    case GuestPolicyOption.noRestriction:
+      guest = 'No restriction (notify group)';
+      break;
+    default:
+      guest = null;
+  }
+
+  String? cleaning;
+  switch (d.cleaningMethod) {
+    case CleaningMethodOption.weekly:
+      cleaning = 'Weekly rotation';
+      break;
+    case CleaningMethodOption.biweekly:
+      cleaning = 'Bi-weekly rotation';
+      break;
+    case CleaningMethodOption.assigned:
+      cleaning = 'Assigned to specific people';
+      break;
+    case CleaningMethodOption.flexible:
+      cleaning = 'Flexible';
+      break;
+    default:
+      cleaning = null;
+  }
+
+  // Responsibilities to a simple comma-separated string (use the visible labels)
+  final shared = d.responsibilities.isEmpty
+      ? null
+      : d.responsibilities.map((e) => responsibilitiesLabels[e]!).join(', ');
+
+  final split =
+      (d.splitCosts == null) ? null : (d.splitCosts == SplitCostsOption.equal);
+
+  return HouseRulesPatch(
+    quietHoursStart: quietStart,
+    guestStayOver: guest,
+    handleCleaning: cleaning,
+    sharedSpace: shared,
+    splitCosts: split,
   );
 }
