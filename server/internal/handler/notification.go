@@ -16,6 +16,26 @@ func NewNotificationHandler(notificationSer service.NotificationService) notific
 	return notificationHandler{notificationSer: notificationSer}
 }
 
+func (h *notificationHandler) GetNotificationByNotificationId(c *fiber.Ctx) error {
+	notificationIDReceive, err := strconv.Atoi(c.Params("NotificationID"))
+
+	notification, err := h.notificationSer.GetNotificationByNotificationId(notificationIDReceive)
+	if err != nil {
+		return err
+	}
+
+	notificationResponse := dtos.GetNotificationByNotificationIdResponse{
+		NotificationID:      notification.NotificationID,
+		SenderID:            notification.SenderID,
+		ReceiverID:          notification.ReceiverID,
+		NotificationMessage: notification.NotificationMessage,
+		IsRead:              notification.IsRead,
+		IsVoteNotification:  notification.IsVoteNotification,
+		CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
+	}
+	return c.JSON(notificationResponse)
+}
+
 func (h *notificationHandler) FetchAllUnreadNotificationByUserId(c *fiber.Ctx) error {
 	notificationsResponse := make([]dtos.FetchAllUnreadNotificationByUserIdResponse, 0)
 	notificationIDReceive, err := strconv.Atoi(c.Params("UserID"))
@@ -32,6 +52,7 @@ func (h *notificationHandler) FetchAllUnreadNotificationByUserId(c *fiber.Ctx) e
 			ReceiverID:          notification.ReceiverID,
 			NotificationMessage: notification.NotificationMessage,
 			IsRead:              notification.IsRead,
+			IsVoteNotification:  notification.IsVoteNotification,
 			CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
 		})
 	}
@@ -54,8 +75,29 @@ func (h *notificationHandler) FetchThreeNotificationByUserId(c *fiber.Ctx) error
 			ReceiverID:          notification.ReceiverID,
 			NotificationMessage: notification.NotificationMessage,
 			IsRead:              notification.IsRead,
+			IsVoteNotification:  notification.IsVoteNotification,
 			CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
 		})
 	}
 	return c.JSON(notificationsResponse)
+}
+
+func (h *notificationHandler) PutMarkAsReadByNotificationId(c *fiber.Ctx) error {
+	notificationIDReceive, err := strconv.Atoi(c.Params("NotificationID"))
+
+	notification, err := h.notificationSer.PutMarkAsReadByNotificationId(notificationIDReceive)
+	if err != nil {
+		return err
+	}
+
+	notificationResponse := dtos.PutMarkAsReadByNotificationIdResponse{
+		NotificationID:      notification.NotificationID,
+		SenderID:            notification.SenderID,
+		ReceiverID:          notification.ReceiverID,
+		NotificationMessage: notification.NotificationMessage,
+		IsRead:              notification.IsRead,
+		IsVoteNotification:  notification.IsVoteNotification,
+		CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
+	}
+	return c.JSON(notificationResponse)
 }

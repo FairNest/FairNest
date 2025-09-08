@@ -126,6 +126,8 @@ func main() {
 
 	app.Get("/FetchAllRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FetchAllRoomSuitUserLifestyleByUserId)
 
+	app.Get("/GetNotificationByNotificationId/:NotificationID", notificationHandler.GetNotificationByNotificationId)
+
 	app.Post("/upload", storageHandler.UploadFile)
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -158,6 +160,7 @@ func main() {
 
 	app.Get("/FetchAllUnreadNotificationByUserId/:UserID", notificationHandler.FetchAllUnreadNotificationByUserId)
 	app.Get("/FetchThreeNotificationByUserId/:UserID", notificationHandler.FetchThreeNotificationByUserId)
+	app.Put("/PutMarkAsReadByNotificationId/:NotificationID", notificationHandler.PutMarkAsReadByNotificationId)
 
 	//#####################################################################################
 

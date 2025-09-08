@@ -13,11 +13,19 @@ func NewNotificationRepositoryDB(db *gorm.DB) notificationRepositoryDB {
 	return notificationRepositoryDB{db: db}
 }
 
+func (r notificationRepositoryDB) GetNotificationByNotificationId(notificationId int) (*entities.Notification, error) {
+	notification := entities.Notification{}
+	result := r.db.Where("notification_id = ?", notificationId).First(&notification)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &notification, nil
+}
+
 func (r notificationRepositoryDB) FetchAllUnreadNotificationByUserId(userId int) ([]entities.Notification, error) {
 	notifications := []entities.Notification{}
 	result := r.db.
 		Where("receiver_id = ?", userId).
-		Where("is_read = ?", false).
 		Order("created_at DESC").
 		Find(&notifications)
 	if result.Error != nil {
@@ -40,10 +48,8 @@ func (r notificationRepositoryDB) FetchThreeNotificationByUserId(userId int) ([]
 	return notifications, nil
 }
 
-func (r notificationRepositoryDB) PutMarkAsRead(notificationId int) error {
-	result := r.db.Model(&entities.Notification{}).
-		Where("notification_id = ?", notificationId).
-		Update("is_read", true)
+func (r notificationRepositoryDB) PutMarkAsReadByNotificationId(notification *entities.Notification) error {
+	result := r.db.Save(notification)
 	if result.Error != nil {
 		return result.Error
 	}

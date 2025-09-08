@@ -108,6 +108,7 @@ type Notification struct {
 	//NotificationTitle *string
 	NotificationMessage *string
 	IsRead              *bool // true = read, false = unread
+	IsVoteNotification  *bool // true = related to vote, false = normal notice
 
 	CreatedAt *time.Time
 
@@ -119,10 +120,10 @@ type Notification struct {
 type RoomJoinRequest struct {
 	RoomJoinRequestID *uint `gorm:"primaryKey;autoIncrement"`
 	RoomID            *uint `gorm:"not null;index"`
-	ApplicantUserID   *uint `gorm:"not null;index"`
+	RequesterUserID   *uint `gorm:"not null;index"`
 
 	// Tri-state: nil=pending, true=approved, false=rejected
-	Decision *bool `gorm:"index"`
+	Status *bool `gorm:"index"`
 
 	EligibleVoterCount *int    `gorm:"not null"`
 	EligibleVoterIDs   *string // JSON snapshot of voter userIDs (optional but recommended)
@@ -138,11 +139,12 @@ type RoomJoinVote struct {
 	VoterUserID       *uint `gorm:"not null;index"`
 
 	// Tri-state: nil=pending (hasn’t voted), true=approve, false=reject
-	Decision  *bool `gorm:"index"`
+	Vote      *bool `gorm:"index"`
 	CreatedAt time.Time
 
 	// Relations
 	Request *RoomJoinRequest `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Voter   *User            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type UserCompatibilityProfile struct {

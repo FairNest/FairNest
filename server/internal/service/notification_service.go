@@ -3,7 +3,6 @@ package service
 import (
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
-	"fairnest/internal/utils/v"
 	"log"
 )
 
@@ -15,6 +14,25 @@ func NewNotificationService(notificationRepo repository.NotificationRepository) 
 	return notificationService{
 		notificationRepo: notificationRepo,
 	}
+}
+
+func (s notificationService) GetNotificationByNotificationId(notificationId int) (*entities.Notification, error) {
+	notification, err := s.notificationRepo.GetNotificationByNotificationId(notificationId)
+	if err != nil {
+		return nil, err
+	}
+
+	notificationResponse := &entities.Notification{
+		NotificationID:      notification.NotificationID,
+		SenderID:            notification.SenderID,
+		ReceiverID:          notification.ReceiverID,
+		NotificationMessage: notification.NotificationMessage,
+		IsRead:              notification.IsRead,
+		IsVoteNotification:  notification.IsVoteNotification,
+		CreatedAt:           notification.CreatedAt,
+	}
+
+	return notificationResponse, nil
 }
 
 func (s notificationService) FetchAllUnreadNotificationByUserId(userId int) ([]entities.Notification, error) {
@@ -32,14 +50,9 @@ func (s notificationService) FetchAllUnreadNotificationByUserId(userId int) ([]e
 			ReceiverID:          notification.ReceiverID,
 			NotificationMessage: notification.NotificationMessage,
 			IsRead:              notification.IsRead,
+			IsVoteNotification:  notification.IsVoteNotification,
 			CreatedAt:           notification.CreatedAt,
 		}
-		err := s.notificationRepo.PutMarkAsRead(v.UintToInt(v.UintValue(notification.NotificationID)))
-		if err != nil {
-			log.Println(err)
-			return nil, err
-		}
-
 		notificationResponses = append(notificationResponses, notificationResponse)
 	}
 
@@ -61,9 +74,37 @@ func (s notificationService) FetchThreeNotificationByUserId(userId int) ([]entit
 			ReceiverID:          notification.ReceiverID,
 			NotificationMessage: notification.NotificationMessage,
 			IsRead:              notification.IsRead,
+			IsVoteNotification:  notification.IsVoteNotification,
 			CreatedAt:           notification.CreatedAt,
 		}
 		notificationResponses = append(notificationResponses, notificationResponse)
 	}
 	return notificationResponses, nil
+}
+
+func (s notificationService) PutMarkAsReadByNotificationId(notificationId int) (*entities.Notification, error) {
+	notification, err := s.notificationRepo.GetNotificationByNotificationId(notificationId)
+	if err != nil {
+		return nil, err
+	}
+
+	read := true
+	notification.IsRead = &read
+
+	err = s.notificationRepo.PutMarkAsReadByNotificationId(notification)
+	if err != nil {
+		return nil, err
+	}
+
+	notificationResponse := &entities.Notification{
+		NotificationID:      notification.NotificationID,
+		SenderID:            notification.SenderID,
+		ReceiverID:          notification.ReceiverID,
+		NotificationMessage: notification.NotificationMessage,
+		IsRead:              notification.IsRead,
+		IsVoteNotification:  notification.IsVoteNotification,
+		CreatedAt:           notification.CreatedAt,
+	}
+
+	return notificationResponse, nil
 }
