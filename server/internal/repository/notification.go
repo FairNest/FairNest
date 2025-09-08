@@ -9,4 +9,5 @@ type NotificationRepository interface {
 	FetchThreeNotificationByUserId(int) ([]entities.Notification, error)
 
 	PutMarkAsReadByNotificationId(notification *entities.Notification) error
+	GetCountOfUnreadNotificationByUserId(int) (int, error)
 }

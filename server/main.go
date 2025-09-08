@@ -164,6 +164,7 @@ func main() {
 	app.Get("/FetchAllUnreadNotificationByUserId/:UserID", notificationHandler.FetchAllUnreadNotificationByUserId)
 	app.Get("/FetchThreeNotificationByUserId/:UserID", notificationHandler.FetchThreeNotificationByUserId)
 	app.Put("/PutMarkAsReadByNotificationId/:NotificationID", notificationHandler.PutMarkAsReadByNotificationId)
+	app.Get("/GetCountOfUnreadNotificationByUserId/:UserID", notificationHandler.GetCountOfUnreadNotificationByUserId)
 
 	//#####################################################################################
 

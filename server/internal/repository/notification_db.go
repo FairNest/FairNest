@@ -56,3 +56,16 @@ func (r notificationRepositoryDB) PutMarkAsReadByNotificationId(notification *en
 
 	return nil
 }
+
+func (r notificationRepositoryDB) GetCountOfUnreadNotificationByUserId(userId int) (int, error) {
+	var count int64
+	result := r.db.Model(&entities.Notification{}).
+		Where("receiver_id = ?", userId).
+		Where("is_read = ?", false).
+		Count(&count)
+
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return int(count), nil
+}

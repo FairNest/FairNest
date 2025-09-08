@@ -39,3 +39,7 @@ type PutMarkAsReadByNotificationIdResponse struct {
 	IsVoteNotification  *bool   `json:"is_vote_notification" validate:"required"`
 	CreatedAt           *string `json:"created_at" validate:"required"`
 }
+
+type GetCountOfUnreadNotificationByUserIdResponse struct {
+	CountOfUnreadNotification *int `json:"count_of_unread_notification" validate:"required"`
+}

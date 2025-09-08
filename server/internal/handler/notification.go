@@ -101,3 +101,17 @@ func (h *notificationHandler) PutMarkAsReadByNotificationId(c *fiber.Ctx) error 
 	}
 	return c.JSON(notificationResponse)
 }
+
+func (h *notificationHandler) GetCountOfUnreadNotificationByUserId(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+
+	count, err := h.notificationSer.GetCountOfUnreadNotificationByUserId(userIDReceive)
+	if err != nil {
+		return err
+	}
+
+	countResponse := dtos.GetCountOfUnreadNotificationByUserIdResponse{
+		CountOfUnreadNotification: v.Ptr(count),
+	}
+	return c.JSON(countResponse)
+}

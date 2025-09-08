@@ -10,4 +10,6 @@ type NotificationService interface {
 	FetchThreeNotificationByUserId(int) ([]entities.Notification, error)
 
 	PutMarkAsReadByNotificationId(int) (*entities.Notification, error)
+
+	GetCountOfUnreadNotificationByUserId(int) (int, error)
 }

@@ -108,3 +108,11 @@ func (s notificationService) PutMarkAsReadByNotificationId(notificationId int) (
 
 	return notificationResponse, nil
 }
+
+func (s notificationService) GetCountOfUnreadNotificationByUserId(userId int) (int, error) {
+	count, err := s.notificationRepo.GetCountOfUnreadNotificationByUserId(userId)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
