@@ -1,12 +1,11 @@
 package service
 
 import (
-	"fairnest/internal/utils/v"
-	"log"
-
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
+	"fairnest/internal/utils/v"
 	"github.com/gofiber/fiber/v2"
+	"log"
 )
 
 type lifestyleService struct {

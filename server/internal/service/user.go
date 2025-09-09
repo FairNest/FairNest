@@ -24,4 +24,8 @@ type UserService interface {
 	FetchAllUserByUserId(userIds []int) ([]entities.User, error)
 
 	GetFindUserByUserId(userId int) (*entities.User, error)
+
+	// * new functions for roommate score management
+	UpdateRoommateScore(userID uint, scoreChange float64) (*float64, error)
+	GetCurrentRoommateScore(userID uint) (*float64, error)
 }

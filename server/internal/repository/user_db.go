@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fairnest/internal/entities"
 	"gorm.io/gorm"
 )
@@ -127,4 +128,38 @@ func (r userRepositoryDB) GetFindUserByUserId(userId int) (*entities.User, error
 	}
 	return &users, nil
 
+}
+
+func (r userRepositoryDB) UpdateRoommateScore(userID uint, newScore float64) error {
+	result := r.db.Model(&entities.User{}).
+		Where("user_id = ?", userID).
+		Update("roommate_score", newScore)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("user not found")
+	}
+
+	return nil
+}
+
+func (r userRepositoryDB) GetCurrentRoommateScore(userID uint) (*float64, error) {
+	var score float64
+	result := r.db.Model(&entities.User{}).
+		Select("roommate_score").
+		Where("user_id = ?", userID).
+		Scan(&score)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, errors.New("user not found")
+	}
+
+	return &score, nil
 }

@@ -23,4 +23,8 @@ type UserRepository interface {
 
 	FetchAllUserByUserId(userIds []int) ([]entities.User, error)
 	GetFindUserByUserId(userId int) (*entities.User, error)
+
+	// * new function for updating roommate score
+	UpdateRoommateScore(userID uint, newScore float64) error
+	GetCurrentRoommateScore(userID uint) (*float64, error)
 }

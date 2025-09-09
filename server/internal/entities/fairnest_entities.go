@@ -170,35 +170,39 @@ type UserCompatibilityProfile struct {
 }
 
 type Chore struct {
-	ChoreID           *uint `gorm:"primaryKey;autoIncrement"`
-	RoomID            *uint `gorm:"not null"`
-	ChoreTitle        *string
+	ChoreID           *uint   `gorm:"primaryKey;autoIncrement"`
+	RoomID            *uint   `gorm:"not null"`
+	ChoreTitle        *string `gorm:"not null"`
 	ChoreDescription  *string
-	DueDayOfWeek      *string // e.g. "Tuesday"
-	DueTime           *string // e.g. "17:00"
-	ReminderDayOfWeek *string // e.g. "Monday"
-	ReminderTime      *string // e.g. "16:00"
-	Recurrence        *string // e.g. "Weekly"
-	AutoRotate        *bool   // "true = Auto Rotate", "false = No Auto Rotate"
-	ChoreScore        *int    // +10 or -10, etc.
+	Category          *string `gorm:"not null"` // * bathroom, kitchen, living room, etc
+	DueDayOfWeek      *string `gorm:"not null"` // * monday, tuesday, etc
+	DueTime           *string `gorm:"not null"` // * 14:00, 18:30, etc
+	ReminderDayOfWeek *string // * optional reminder day
+	ReminderTime      *string // * optional reminder time
+	Recurrence        *string `gorm:"not null"`      // * weekly, monthly, once
+	AutoRotate        *bool   `gorm:"default:false"` // * auto rotation between users
+	ChoreScore        *int    `gorm:"not null"`      // * positive points for completion, negative for missing
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt *time.Time
+	UpdatedAt *time.Time
 
-	// Relations
-	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	// * relations
+	Room             *Room               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ChoreAssignments []ChoreAssignment   `gorm:"foreignKey:ChoreID"`
+	ChoreRotations   []ChoreRotationUser `gorm:"foreignKey:ChoreID"`
 }
 
 type ChoreAssignment struct {
-	ChoreAssignmentID *uint `gorm:"primaryKey;autoIncrement"`
-	ChoreID           *uint `gorm:"not null"`
-	UserID            *uint `gorm:"not null"`
-	AssignedDate      *time.Time
-	Status            *bool // "nil = Not Completed", "true = Completed", "false = Missed"
+	ChoreAssignmentID *uint      `gorm:"primaryKey;autoIncrement"`
+	ChoreID           *uint      `gorm:"not null"`
+	UserID            *uint      `gorm:"not null"`
+	AssignedDate      *time.Time `gorm:"not null"`          // * specific date for this assignment
+	DueDateTime       *time.Time `gorm:"not null"`          // * exact due date and time
+	Status            *string    `gorm:"default:'pending'"` // * pending, completed, missed, overdue
 	CompletedAt       *time.Time
-	ScoreEarned       *int // e.g. +10 or -10
+	ScoreEarned       *int // * actual score earned (positive for completion, negative for miss)
 
-	// Relations
+	// * relations
 	Chore *Chore `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
@@ -207,8 +211,9 @@ type ChoreRotationUser struct {
 	ChoreRotationUserID *uint `gorm:"primaryKey;autoIncrement"`
 	ChoreID             *uint `gorm:"not null"`
 	UserID              *uint `gorm:"not null"`
+	RotationOrder       *int  `gorm:"not null"` // * order in rotation: 1, 2, 3, etc
 
-	// Relations
+	// * relations
 	Chore *Chore `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }

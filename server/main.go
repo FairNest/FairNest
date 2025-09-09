@@ -80,7 +80,7 @@ func main() {
 	roomRepositoryDB := repository.NewRoomRepositoryDB(db)
 	roomMemberRepositoryDB := repository.NewRoomMemberRepositoryDB(db)
 	notificationRepositoryDB := repository.NewNotificationRepositoryDB(db)
-	//choreRepositoryDB := repository.NewChoreRepositoryDB(db)
+	choreRepositoryDB := repository.NewChoreRepositoryDB(db)
 
 	uploadService := service.NewUploadService(minioClient)
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
@@ -88,14 +88,14 @@ func main() {
 	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB, userService)
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	notificationService := service.NewNotificationService(notificationRepositoryDB)
-	//choreService := service.NewChoreService(choreRepositoryDB)
+	choreService := service.NewChoreService(choreRepositoryDB)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
 	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService)
 	roomHandler := handler.NewRoomHandler(roomService)
 	roomMemberHandler := handler.NewRoomMemberHandler(roomMemberService)
 	notificationHandler := handler.NewNotificationHandler(notificationService)
-	//choreHandler := handler.NewChoreHandler(choreService)
+	choreHandler := handler.NewChoreHandler(choreService)
 
 	app := fiber.New()
 
@@ -165,6 +165,8 @@ func main() {
 	app.Get("/FetchThreeNotificationByUserId/:UserID", notificationHandler.FetchThreeNotificationByUserId)
 	app.Put("/PutMarkAsReadByNotificationId/:NotificationID", notificationHandler.PutMarkAsReadByNotificationId)
 	app.Get("/GetCountOfUnreadNotificationByUserId/:UserID", notificationHandler.GetCountOfUnreadNotificationByUserId)
+
+	app.Get("/FetchAllChore", choreHandler.FetchAllChore)
 
 	//#####################################################################################
 
