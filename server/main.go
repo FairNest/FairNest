@@ -88,14 +88,14 @@ func main() {
 	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB, userService)
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	notificationService := service.NewNotificationService(notificationRepositoryDB)
-	choreService := service.NewChoreService(choreRepositoryDB)
+	choreService := service.NewChoreService(choreRepositoryDB, userService)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
 	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService)
 	roomHandler := handler.NewRoomHandler(roomService)
 	roomMemberHandler := handler.NewRoomMemberHandler(roomMemberService)
 	notificationHandler := handler.NewNotificationHandler(notificationService)
-	choreHandler := handler.NewChoreHandler(choreService)
+	choreHandler := handler.NewChoreHandler(choreService, jwtSecret)
 
 	app := fiber.New()
 
@@ -130,6 +130,8 @@ func main() {
 	app.Get("/FetchAllRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FetchAllRoomSuitUserLifestyleByUserId)
 
 	app.Get("/GetNotificationByNotificationId/:NotificationID", notificationHandler.GetNotificationByNotificationId)
+
+	app.Get("/FetchAllChore", choreHandler.FetchAllChore)
 
 	app.Post("/upload", storageHandler.UploadFile)
 
@@ -166,7 +168,20 @@ func main() {
 	app.Put("/PutMarkAsReadByNotificationId/:NotificationID", notificationHandler.PutMarkAsReadByNotificationId)
 	app.Get("/GetCountOfUnreadNotificationByUserId/:UserID", notificationHandler.GetCountOfUnreadNotificationByUserId)
 
-	app.Get("/FetchAllChore", choreHandler.FetchAllChore)
+	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
+
+	// Chore Management
+	app.Post("/rooms/:roomID/chores", choreHandler.CreateChore)      // Create new chore
+	app.Get("/rooms/:roomID/chores", choreHandler.GetChoresByRoomID) // Get all chores for room
+	app.Put("/chores/:choreID", choreHandler.UpdateChore)            // Update chore
+	app.Delete("/chores/:choreID", choreHandler.DeleteChore)         // Delete chore
+
+	// Chore Views and Completion
+	app.Get("/rooms/:roomID/chores/calendar", choreHandler.GetChoreCalendar) // Calendar view with date range
+	app.Get("/rooms/:roomID/chores/today", choreHandler.GetTodayChores)      // Get today's chores
+	app.Post("/chores/complete", choreHandler.MarkChoreComplete)             // Mark chore as completed
+
+	//###################################################################
 
 	//#####################################################################################
 

@@ -183,13 +183,13 @@ type Chore struct {
 	AutoRotate        *bool   `gorm:"default:false"` // * auto rotation between users
 	ChoreScore        *int    `gorm:"not null"`      // * positive points for completion, negative for missing
 
-	CreatedAt *time.Time
-	UpdatedAt *time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 
-	// * relations
+	// * relations with CASCADE DELETE
 	Room             *Room               `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	ChoreAssignments []ChoreAssignment   `gorm:"foreignKey:ChoreID"`
-	ChoreRotations   []ChoreRotationUser `gorm:"foreignKey:ChoreID"`
+	ChoreAssignments []ChoreAssignment   `gorm:"foreignKey:ChoreID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ChoreRotations   []ChoreRotationUser `gorm:"foreignKey:ChoreID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type ChoreAssignment struct {

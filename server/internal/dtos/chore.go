@@ -1,20 +1,22 @@
 package dtos
 
+import "time"
+
 type ChoreDataResponse struct {
-	ChoreID           *uint   `json:"chore_id"`
-	RoomID            *uint   `json:"room_id"`
-	ChoreTitle        *string `json:"chore_title"`
-	ChoreDescription  *string `json:"chore_description"`
-	Category          *string `json:"category"`
-	DueDayOfWeek      *string `json:"due_day_of_week"`
-	DueTime           *string `json:"due_time"`
-	ReminderDayOfWeek *string `json:"reminder_day_of_week"`
-	ReminderTime      *string `json:"reminder_time"`
-	Recurrence        *string `json:"recurrence"`
-	AutoRotate        *bool   `json:"auto_rotate"`
-	ChoreScore        *int    `json:"chore_score"`
-	CreatedAt         *string `json:"created_at"`
-	UpdatedAt         *string `json:"updated_at"`
+	ChoreID           *uint      `json:"chore_id"`
+	RoomID            *uint      `json:"room_id"`
+	ChoreTitle        *string    `json:"chore_title"`
+	ChoreDescription  *string    `json:"chore_description"`
+	Category          *string    `json:"category"`
+	DueDayOfWeek      *string    `json:"due_day_of_week"`
+	DueTime           *string    `json:"due_time"`
+	ReminderDayOfWeek *string    `json:"reminder_day_of_week"`
+	ReminderTime      *string    `json:"reminder_time"`
+	Recurrence        *string    `json:"recurrence"`
+	AutoRotate        *bool      `json:"auto_rotate"`
+	ChoreScore        *int       `json:"chore_score"`
+	CreatedAt         *time.Time `json:"created_at"`
+	UpdatedAt         *time.Time `json:"updated_at"`
 }
 
 // CreateChoreRequest * create task request
@@ -129,7 +131,7 @@ type GetRoomChoresResponse struct {
 	AutoRotate        *bool              `json:"auto_rotate"`
 	ChoreScore        *int               `json:"chore_score"`
 	AssignedUsers     []AssignedUserInfo `json:"assigned_users"`
-	CreatedAt         *string            `json:"created_at"`
+	CreatedAt         *time.Time         `json:"created_at"`
 }
 
 // DeleteChoreResponse * delete chore response

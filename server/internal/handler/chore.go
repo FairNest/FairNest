@@ -3,16 +3,21 @@ package handler
 import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/service"
+	"fairnest/internal/utils"
 	"fairnest/internal/utils/v"
 	"github.com/gofiber/fiber/v2"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type choreHandler struct {
-	choreSer service.ChoreService
+	choreSer  service.ChoreService
+	jwtSecret string
 }
 
-func NewChoreHandler(choreSer service.ChoreService) choreHandler {
-	return choreHandler{choreSer: choreSer}
+func NewChoreHandler(choreSer service.ChoreService, jwtSecret string) choreHandler {
+	return choreHandler{choreSer: choreSer, jwtSecret: jwtSecret}
 }
 
 func (h *choreHandler) FetchAllChore(c *fiber.Ctx) error {
@@ -37,9 +42,228 @@ func (h *choreHandler) FetchAllChore(c *fiber.Ctx) error {
 			Recurrence:        chore.Recurrence,
 			AutoRotate:        chore.AutoRotate,
 			ChoreScore:        chore.ChoreScore,
-			CreatedAt:         v.TimePtrToRFC3339Ptr(chore.CreatedAt),
-			UpdatedAt:         v.TimePtrToRFC3339Ptr(chore.UpdatedAt),
+			CreatedAt:         v.Ptr(chore.CreatedAt),
+			UpdatedAt:         v.Ptr(chore.UpdatedAt),
 		})
 	}
 	return c.JSON(choresResponse)
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// * create new chore
+func (h *choreHandler) CreateChore(c *fiber.Ctx) error {
+	roomID, err := strconv.ParseUint(c.Params("roomID"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid room id",
+		})
+	}
+
+	var request *dtos.CreateChoreRequest
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	response, err := h.choreSer.CreateChore(uint(roomID), request)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(response)
+}
+
+// * get all chores for room
+func (h *choreHandler) GetChoresByRoomID(c *fiber.Ctx) error {
+	roomID, err := strconv.ParseUint(c.Params("roomID"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid room id",
+		})
+	}
+
+	chores, err := h.choreSer.GetChoresByRoomID(uint(roomID))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(chores)
+}
+
+// * get calendar view of chores
+func (h *choreHandler) GetChoreCalendar(c *fiber.Ctx) error {
+	roomID, err := strconv.ParseUint(c.Params("roomID"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid room id",
+		})
+	}
+
+	// * parse date range from query params
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
+
+	var startDate, endDate time.Time
+	if startDateStr != "" {
+		startDate, err = time.Parse("2006-01-02", startDateStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid start_date format, use YYYY-MM-DD",
+			})
+		}
+	} else {
+		// * default to start of current month
+		now := time.Now()
+		startDate = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	}
+
+	if endDateStr != "" {
+		endDate, err = time.Parse("2006-01-02", endDateStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid end_date format, use YYYY-MM-DD",
+			})
+		}
+	} else {
+		// * default to end of current month
+		startDate = time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location())
+		endDate = startDate.AddDate(0, 1, -1) // * last day of current month
+	}
+
+	calendar, err := h.choreSer.GetChoreCalendar(uint(roomID), startDate, endDate)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(calendar)
+}
+
+// * get today's chores
+func (h *choreHandler) GetTodayChores(c *fiber.Ctx) error {
+	roomID, err := strconv.ParseUint(c.Params("roomID"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid room id",
+		})
+	}
+
+	// * extract user id from jwt token
+	token := c.Get("Authorization")
+	if token == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "missing authorization token",
+		})
+	}
+
+	userID, err := utils.ExtractUserIDFromToken(strings.Replace(token, "Bearer ", "", 1), h.jwtSecret)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "invalid token",
+		})
+	}
+
+	chores, err := h.choreSer.GetTodayChores(uint(roomID), uint(userID))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(chores)
+}
+
+// * mark chore as completed
+func (h *choreHandler) MarkChoreComplete(c *fiber.Ctx) error {
+	// * extract user id from jwt token
+	token := c.Get("Authorization")
+	if token == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "missing authorization token",
+		})
+	}
+
+	userID, err := utils.ExtractUserIDFromToken(strings.Replace(token, "Bearer ", "", 1), h.jwtSecret)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "invalid token",
+		})
+	}
+
+	var request dtos.MarkChoreCompleteRequest
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	if request.ChoreAssignmentID == nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "chore_assignment_id is required",
+		})
+	}
+
+	response, err := h.choreSer.MarkChoreComplete(uint(userID), *request.ChoreAssignmentID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(response)
+}
+
+// * update chore
+func (h *choreHandler) UpdateChore(c *fiber.Ctx) error {
+	choreID, err := strconv.ParseUint(c.Params("choreID"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid chore id",
+		})
+	}
+
+	var request *dtos.EditChoreRequest
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	response, err := h.choreSer.UpdateChore(uint(choreID), request)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(response)
+}
+
+// * delete chore
+func (h *choreHandler) DeleteChore(c *fiber.Ctx) error {
+	choreID, err := strconv.ParseUint(c.Params("choreID"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid chore id",
+		})
+	}
+
+	err = h.choreSer.DeleteChore(uint(choreID))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(dtos.DeleteChoreResponse{
+		Message: v.Ptr("chore deleted successfully"),
+		ChoreID: v.Ptr(uint(choreID)),
+	})
 }
