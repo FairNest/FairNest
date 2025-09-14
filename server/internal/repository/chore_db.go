@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fairnest/internal/entities"
-	"fairnest/internal/utils/v"
 	"time"
 
 	"gorm.io/gorm"
@@ -211,6 +210,8 @@ func (r choreRepositoryDB) GetAssignmentsForRoomOnDateByUser(roomID, userID uint
 	return rows, err
 }
 
-func (r choreRepositoryDB) UpdateAssignedDate(assignmentID uint, newDate time.Time) error {
-	return r.db.Where("chore_assignment_id = ?", assignmentID).Save(entities.ChoreAssignment{AssignedDate: v.Ptr(newDate)}).Error
+func (r choreRepositoryDB) UpdateAssignedDate(assignmentIDs []uint, newDate time.Time) error {
+	return r.db.Model(&entities.ChoreAssignment{}).
+		Where("chore_assignment_id IN ?", assignmentIDs).
+		Update("assigned_date", newDate).Error
 }
