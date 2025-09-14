@@ -468,6 +468,22 @@ func (s choreService) ProcessMissedChores() error {
 	return nil
 }
 
+func (s choreService) GetRoomTasksForDate(roomID uint, date time.Time) ([]dtos.ChoreDayItem, error) {
+	assignments, err := s.choreRepo.GetAssignmentsForRoomOnDate(roomID, date)
+	if err != nil {
+		return nil, err
+	}
+	return mapAssignmentsToDTO(assignments), nil
+}
+
+func (s choreService) GetMyTasksForDate(roomID, userID uint, date time.Time) ([]dtos.ChoreDayItem, error) {
+	asg, err := s.choreRepo.GetAssignmentsForRoomOnDateByUser(roomID, userID, date)
+	if err != nil {
+		return nil, err
+	}
+	return mapAssignmentsToDTO(asg), nil
+}
+
 // * helper functions
 func (s choreService) parseDayOfWeek(dayStr string) time.Weekday {
 	switch strings.ToLower(dayStr) {
@@ -507,4 +523,102 @@ func (s choreService) getStartOfWeek(t time.Time) time.Time {
 		offset -= 7
 	}
 	return t.AddDate(0, 0, offset)
+}
+
+func sptr(s string) *string { return &s }
+
+func mapAssignmentsToDTO(list []entities.ChoreAssignment) []dtos.ChoreDayItem {
+	out := make([]dtos.ChoreDayItem, 0, len(list))
+	for _, a := range list {
+		item := dtos.ChoreDayItem{
+			ChoreAssignmentID: a.ChoreAssignmentID,
+		}
+
+		// Dates
+		if a.DueDateTime != nil {
+			d := a.DueDateTime.Format("2006-01-02")
+			item.DueDate = &d
+		}
+
+		// Status + completed_at (string RFC3339 if present)
+		if a.Status != nil {
+			item.Status = a.Status
+		}
+		if a.CompletedAt != nil {
+			s := a.CompletedAt.Format(time.RFC3339)
+			item.CompletedAt = &s
+		}
+
+		// Chore (exclude created_at/updated_at)
+		if a.Chore != nil {
+			c := a.Chore
+			item.ChoreID = c.ChoreID
+			item.RoomID = c.RoomID
+			item.ChoreTitle = c.ChoreTitle
+			item.ChoreDescription = c.ChoreDescription
+			item.Category = c.Category
+			item.DueDayOfWeek = c.DueDayOfWeek
+			item.DueTime = c.DueTime
+			item.ReminderDayOfWeek = c.ReminderDayOfWeek
+			item.ReminderTime = c.ReminderTime
+			item.Recurrence = c.Recurrence
+			item.AutoRotate = c.AutoRotate
+			item.ChoreScore = c.ChoreScore
+		}
+
+		// Assigned user
+		if a.User != nil {
+			u := a.User
+			item.AssignedUser = &dtos.RoomUserInfo{
+				UserID:      u.UserID,
+				Username:    u.Username,
+				UserPicture: u.UserPicture,
+			}
+		}
+
+		out = append(out, item)
+	}
+	return out
+}
+
+func (s choreService) GetChoreDetailByID(choreID uint) (*dtos.GetChoreDetailByIDResponse, error) {
+	chore, err := s.choreRepo.GetChoreByID(choreID)
+	if err != nil {
+		return nil, fmt.Errorf("chore not found: %v", err)
+	}
+
+	// Get assigned users for this chore
+	assignedUsers := make([]dtos.AssignedUserInfo, 0)
+	if v.BoolValue(chore.AutoRotate) {
+		rotations, err := s.choreRepo.GetRotationUsersByChoreID(choreID)
+		if err == nil {
+			for _, rotation := range rotations {
+				if rotation.User != nil {
+					assignedUsers = append(assignedUsers, dtos.AssignedUserInfo{
+						UserID:      rotation.User.UserID,
+						Username:    rotation.User.Username,
+						UserPicture: rotation.User.UserPicture,
+					})
+				}
+			}
+		}
+	}
+
+	// Convert to response struct with proper null handling
+	response := &dtos.GetChoreDetailByIDResponse{
+		ChoreID:           *chore.ChoreID,
+		ChoreTitle:        v.StringValue(chore.ChoreTitle),
+		ChoreDescription:  v.StringValue(chore.ChoreDescription),
+		Category:          v.StringValue(chore.Category),
+		DueDayOfWeek:      v.StringValue(chore.DueDayOfWeek),
+		DueTime:           v.StringValue(chore.DueTime),
+		ReminderDayOfWeek: v.StringValue(chore.ReminderDayOfWeek),
+		ReminderTime:      v.StringValue(chore.ReminderTime),
+		Recurrence:        v.StringValue(chore.Recurrence),
+		AutoRotate:        v.BoolValue(chore.AutoRotate),
+		ChoreScore:        v.IntValue(chore.ChoreScore),
+		AssignedUsers:     assignedUsers,
+	}
+
+	return response, nil
 }

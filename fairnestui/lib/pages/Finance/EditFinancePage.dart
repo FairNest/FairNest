@@ -78,7 +78,7 @@ class _EditFinancePageState extends State<EditFinancePage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.accent, width: 1.8),
+          borderSide: const BorderSide(color: AppColors.accent, width: 1.8),
         ),
       );
 

@@ -11,7 +11,6 @@ import 'package:fairnestui/widgets/LifestyleOverview.dart';
 
 // Services & models
 import 'package:fairnestui/services/user_profile_service.dart';
-import 'package:fairnestui/model/user_profile_model.dart';
 import 'package:fairnestui/services/api_client.dart';
 
 class CompatibilityPage extends StatefulWidget {
@@ -250,13 +249,13 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
                               children: [
                                 // If you later get an overall compatibility % from backend,
                                 // pass it here instead of the placeholder 0.66.
-                                RoomCompatibilityCard(value: 0.66),
+                                const RoomCompatibilityCard(value: 0.66),
                                 const SizedBox(height: 12),
 
                                 // Light panel inside lavender card
                                 Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.35),
+                                    color: Colors.white.withValues(alpha: .35),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   padding: const EdgeInsets.all(12),
@@ -288,23 +287,21 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
                             style: AppFonts.heading3
                                 .copyWith(color: AppColors.textDark)),
                         const SizedBox(height: 8),
-                        Roommatecompatibilitycard(
-                          avatarImage:
-                              const AssetImage('assets/images/char.png'),
+                        const Roommatecompatibilitycard(
+                          avatarImage: AssetImage('assets/images/char.png'),
                           name: 'Max',
                           compatibilityPercent: 72,
-                          traits: const ['Very Good Match'],
-                          insights: const [
+                          traits: ['Very Good Match'],
+                          insights: [
                             'You and Max share a strong co-living rhythm. Keep up the great streak by maintaining consistent chore completion and clear communication.',
                           ],
                         ),
-                        Roommatecompatibilitycard(
-                          avatarImage:
-                              const AssetImage('assets/images/pikachu.png'),
+                        const Roommatecompatibilitycard(
+                          avatarImage: AssetImage('assets/images/pikachu.png'),
                           name: 'Lando',
                           compatibilityPercent: 68,
-                          traits: const ['A good match'],
-                          insights: const [
+                          traits: ['A good match'],
+                          insights: [
                             "You're mostly in sync, but small differences in guest preferences may cause tension. Consider aligning on quiet hours or visitor expectations.",
                           ],
                         ),

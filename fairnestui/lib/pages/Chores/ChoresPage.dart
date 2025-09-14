@@ -2,8 +2,12 @@ import 'package:fairnestui/components/ChoresTaskCard.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
-import 'package:fairnestui/widgets/room_header_appbar.dart';
 import 'package:fairnestui/util/DateStrip.dart';
+
+// NEW imports
+import 'package:fairnestui/services/api_client.dart';
+import 'package:fairnestui/services/user_profile_service.dart';
+import 'package:fairnestui/pages/Chores/EditChorePage.dart';
 
 class Chorespage extends StatefulWidget {
   const Chorespage({super.key});
@@ -12,39 +16,105 @@ class Chorespage extends StatefulWidget {
   State<Chorespage> createState() => _ChorespageState();
 }
 
-/* ------------------- simple local chore model ------------------- */
-class _Chore {
-  _Chore({
-    required this.id,
+/* ------------------- API model mapped from backend ------------------- */
+class _ChoreItem {
+  _ChoreItem({
+    required this.choreId,
+    this.assignmentId,
     required this.title,
     required this.points,
-    required this.assignedTo,
     required this.autoRotate,
     required this.recurrence,
     required this.reminderTime,
     required this.reminderRepeat,
-    required this.avatar,
+    this.assignedName,
+    this.assignedAvatarUrl,
     this.completed = false,
   });
 
-  final String id;
+  /// Always the chore_id (needed for GET/PUT/DELETE detail endpoints)
+  final int choreId;
+
+  /// Optional chore_assignment_id (useful if you later complete a specific assignment)
+  final int? assignmentId;
+
   final String title;
   final int points;
-  final String assignedTo; // "George", "Max", ...
   final bool autoRotate;
-  final String recurrence; // "Weekly", "Daily", ...
-  final String reminderTime; // "4PM"
-  final String reminderRepeat; // "Every Tue"
-  final ImageProvider avatar;
+  final String recurrence;
+  final String reminderTime; // derived from due_time or reminder_time
+  final String reminderRepeat; // derived from recurrence or weekday
+  final String? assignedName;
+  final String? assignedAvatarUrl;
 
   bool completed;
+
+  factory _ChoreItem.fromJson(Map<String, dynamic> j) {
+    final assigned = j['assigned_user'] as Map<String, dynamic>?;
+    final dueTime = (j['due_time'] ?? '') as String;
+    final reminderTime = (j['reminder_time'] ?? '') as String;
+
+    String timeLabel = dueTime.isNotEmpty
+        ? _ChoreItem._hhmmToFriendly(dueTime)
+        : (reminderTime.isNotEmpty
+            ? _ChoreItem._hhmmToFriendly(reminderTime)
+            : '');
+
+    final recurrence = (j['recurrence'] ?? '') as String;
+    final weekday = (j['due_day_of_week'] ?? '') as String;
+    final repeatLabel = recurrence.isNotEmpty
+        ? _prettyRecurrence(recurrence, weekday)
+        : weekday;
+
+    // Parse IDs
+    final int choreId = (j['chore_id'] is int)
+        ? j['chore_id'] as int
+        : int.tryParse('${j['chore_id'] ?? 0}') ?? 0;
+
+    final int? assignmentId = (j['chore_assignment_id'] is int)
+        ? j['chore_assignment_id'] as int
+        : int.tryParse('${j['chore_assignment_id'] ?? ''}');
+
+    final scoreAny = j['chore_score'];
+    final points = scoreAny is int ? scoreAny : int.tryParse('$scoreAny') ?? 0;
+
+    return _ChoreItem(
+      choreId: choreId,
+      assignmentId: assignmentId,
+      title: (j['chore_title'] ?? '') as String,
+      points: points,
+      autoRotate: (j['auto_rotate'] ?? false) as bool,
+      recurrence: recurrence,
+      reminderTime: timeLabel,
+      reminderRepeat: repeatLabel,
+      assignedName: assigned?['username'] as String?,
+      assignedAvatarUrl: assigned?['userPicture'] as String?,
+      completed: ((j['status'] ?? 'pending') == 'completed'),
+    );
+  }
+
+  static String _hhmmToFriendly(String hhmm) {
+    if (hhmm.isEmpty || !hhmm.contains(':')) return hhmm;
+    final p = hhmm.split(':');
+    int h = int.tryParse(p[0]) ?? 0;
+    final m = p.length > 1 ? int.tryParse(p[1]) ?? 0 : 0;
+    final am = h < 12;
+    final h12 = ((h % 12) == 0) ? 12 : (h % 12);
+    final mm = m.toString().padLeft(2, '0');
+    return "$h12:$mm ${am ? 'AM' : 'PM'}";
+  }
+
+  static String _prettyRecurrence(String recur, String weekday) {
+    final r = recur.toLowerCase();
+    if (r == 'daily') return 'Every Day';
+    if (r == 'weekly') return weekday.isNotEmpty ? 'Every $weekday' : 'Weekly';
+    if (r.contains('bi')) return 'Every 2 Weeks';
+    return recur;
+  }
 }
 
 class _ChorespageState extends State<Chorespage> {
-  // who is the current user for "My Tasks"
-  static const String _currentUser = 'George';
-
-  // calendar state for DateStrip (not filtering by date yet)
+  // calendar state for DateStrip
   late DateTime _start;
   late DateTime _selected;
   final int _days = 30;
@@ -52,75 +122,14 @@ class _ChorespageState extends State<Chorespage> {
   // segmented pill state
   int _tab = 0; // 0 = All Tasks, 1 = My Tasks
 
-  // demo data (6 chores total, 2 assigned to George)
-  final List<_Chore> _chores = [
-    _Chore(
-      id: 'trash',
-      title: 'Take Out the Trash',
-      points: 10,
-      assignedTo: 'Max',
-      autoRotate: true,
-      recurrence: 'Weekly',
-      reminderTime: '4PM',
-      reminderRepeat: 'Every Tue',
-      avatar: const AssetImage('assets/images/char.png'),
-    ),
-    _Chore(
-      id: 'dishes',
-      title: 'Wash Dishes',
-      points: 8,
-      assignedTo: 'George',
-      autoRotate: false,
-      recurrence: 'Daily',
-      reminderTime: '8PM',
-      reminderRepeat: 'Every Day',
-      avatar: const AssetImage('assets/images/poke.png'),
-    ),
-    _Chore(
-      id: 'sweep',
-      title: 'Sweep Living Room',
-      points: 6,
-      assignedTo: 'George',
-      autoRotate: true,
-      recurrence: 'Weekly',
-      reminderTime: '7PM',
-      reminderRepeat: 'Every Fri',
-      avatar: const AssetImage('assets/images/poke.png'),
-    ),
-    _Chore(
-      id: 'bathroom',
-      title: 'Clean Bathroom',
-      points: 12,
-      assignedTo: 'Lando',
-      autoRotate: true,
-      recurrence: 'Biweekly',
-      reminderTime: '6PM',
-      reminderRepeat: 'Every Other Sat',
-      avatar: const AssetImage('assets/images/pikachu.png'),
-    ),
-    _Chore(
-      id: 'groceries',
-      title: 'Buy Groceries',
-      points: 5,
-      assignedTo: 'Max',
-      autoRotate: false,
-      recurrence: 'Weekly',
-      reminderTime: '5PM',
-      reminderRepeat: 'Every Thu',
-      avatar: const AssetImage('assets/images/char.png'),
-    ),
-    _Chore(
-      id: 'plants',
-      title: 'Water Plants',
-      points: 4,
-      assignedTo: 'Lando',
-      autoRotate: false,
-      recurrence: 'Every 3 days',
-      reminderTime: '9AM',
-      reminderRepeat: 'Mon / Thu',
-      avatar: const AssetImage('assets/images/pikachu.png'),
-    ),
-  ];
+  // runtime/user/room
+  int? _roomId;
+
+  // remote data
+  List<_ChoreItem> _allTasks = [];
+  List<_ChoreItem> _myTasks = [];
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -128,50 +137,189 @@ class _ChorespageState extends State<Chorespage> {
     final now = DateTime.now();
     _start = DateTime(now.year, now.month, 1);
     _selected = DateTime(now.year, now.month, now.day);
+    _bootstrapAndFetch();
   }
 
-  /* ------------------- derived lists & counts ------------------- */
-  List<_Chore> get _openAll =>
-      _chores.where((c) => !c.completed).toList(growable: false);
+  Future<void> _bootstrapAndFetch() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
-  List<_Chore> get _openMine => _openAll
-      .where((c) => c.assignedTo.toLowerCase() == _currentUser.toLowerCase())
-      .toList(growable: false);
+    try {
+      // 1) Try cache first
+      var profile = await UserProfileService.instance.getCachedProfile();
 
-  int get _allCount => _openAll.length;
-  int get _myCount => _openMine.length;
+      // 2) If cache is empty, fetch (this will populate the cache)
+      profile ??= await UserProfileService.instance.getUserProfile();
 
-  /* ------------------- handlers ------------------- */
-  void _onCheckedChanged(_Chore chore, bool checked) {
-    // When a chore is checked we mark it completed and it disappears from view
-    if (!checked) return; // ignore unchecks here (they won't be shown anyway)
-    setState(() => chore.completed = true);
+      if (profile == null) {
+        setState(() {
+          _loading = false;
+          _error =
+              'No cached profile found and fetch failed.\nPlease open profile once or re-login.';
+        });
+        return;
+      }
+
+      _roomId = profile.roomId;
+
+      // 3) Fetch chores for the currently selected date
+      await _fetchForDate(_selected);
+    } catch (e) {
+      setState(() {
+        _loading = false;
+        _error = 'Failed to load chores: $e';
+      });
+    }
+  }
+
+  String _toYmd(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<void> _fetchForDate(DateTime d) async {
+    if (_roomId == null) return;
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final ymd = _toYmd(d);
+
+      // All tasks
+      final respAll = await ApiClient.get(
+        '/rooms/${_roomId}/chores/day',
+        queryParameters: {'date': ymd},
+      );
+      final listAll = (respAll.data as List<dynamic>)
+          .map((e) => _ChoreItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      // My tasks
+      final respMine = await ApiClient.get(
+        '/rooms/${_roomId}/chores/day/mine',
+        queryParameters: {'date': ymd},
+      );
+      final listMine = (respMine.data as List<dynamic>)
+          .map((e) => _ChoreItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      setState(() {
+        _allTasks = listAll.where((c) => !c.completed).toList();
+        _myTasks = listMine.where((c) => !c.completed).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _loading = false;
+        _error = 'Failed to fetch chores: $e';
+      });
+    }
+  }
+
+  // Pull-to-refresh & manual reload
+  Future<void> _refresh() async {
+    await _fetchForDate(_selected);
+  }
+
+  // -------- open edit flow --------
+  Future<void> _openEditFor(_ChoreItem c) async {
+    if (_roomId == null || c.choreId <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Missing room or chore id')),
+      );
+      return;
+    }
+
+    // We can pass the data we already have; EditChorePage will fetch detail and prefill itself.
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditChorePage(
+          roomId: _roomId!, // ✅ required by EditChorePage
+          choreId: c.choreId, // ✅ required by EditChorePage
+          title: c.title, // placeholders (overridden by GET)
+          dateTime: DateTime.now(),
+          assignees: const [],
+          category: null,
+          recurrence: c.recurrence.isNotEmpty ? c.recurrence : null,
+          autoRotate: c.autoRotate,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (result is Map &&
+        (result['action'] == 'saved' || result['action'] == 'deleted')) {
+      await _refresh();
+    }
   }
 
   /* ------------------- builders ------------------- */
-  Widget _buildList(List<_Chore> items) {
+  Widget _buildList(List<_ChoreItem> items) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  color: Colors.red, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: _refresh,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
     if (items.isEmpty) {
-      return const _EmptyArea(label: 'No chores here 🎉');
+      // keep scrollable for pull-to-refresh even when empty
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: const _EmptyArea(label: 'No chores here 🎉'),
+      );
     }
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         children: [
           for (final c in items)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: ChoresTaskCard(
-                // configurable values — make sure your ChoresTaskCard exposes these
-                title: c.title,
-                points: c.points,
-                assignedName: c.assignedTo,
-                autoRotate: c.autoRotate,
-                recurrence: c.recurrence,
-                reminderTime: c.reminderTime,
-                reminderRepeat: c.reminderRepeat,
-                paidByImage: c.avatar,
-
-                initiallyChecked: false,
-                onCheckedChanged: (checked) => _onCheckedChanged(c, checked),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _openEditFor(c),
+                child: ChoresTaskCard(
+                  title: c.title,
+                  points: c.points,
+                  assignedName: c.assignedName ?? '—',
+                  autoRotate: c.autoRotate,
+                  recurrence: c.recurrence,
+                  reminderTime: c.reminderTime,
+                  reminderRepeat: c.reminderRepeat,
+                  paidByImage: (c.assignedAvatarUrl != null &&
+                          c.assignedAvatarUrl!.isNotEmpty)
+                      ? NetworkImage(c.assignedAvatarUrl!)
+                      : const AssetImage('assets/images/pikachu.png')
+                          as ImageProvider,
+                  initiallyChecked: false,
+                  onCheckedChanged: (checked) {
+                    if (!checked) return;
+                    setState(() => c.completed = true);
+                  },
+                ),
               ),
             ),
         ],
@@ -181,6 +329,9 @@ class _ChorespageState extends State<Chorespage> {
 
   @override
   Widget build(BuildContext context) {
+    final allCount = _allTasks.length;
+    final myCount = _myTasks.length;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Padding(
@@ -188,25 +339,40 @@ class _ChorespageState extends State<Chorespage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Chores & Tasks",
-              style: AppFonts.heading1.copyWith(color: AppColors.textPurple),
+            // Title + manual refresh button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Chores & Tasks",
+                  style:
+                      AppFonts.heading1.copyWith(color: AppColors.textPurple),
+                ),
+                IconButton(
+                  tooltip: 'Reload',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _loading ? null : _refresh,
+                ),
+              ],
             ),
             const SizedBox(height: 12),
 
-            // Horizontal date strip (visual only for now)
+            // Horizontal date strip (drives data fetch)
             DateStrip(
               startDate: _start,
               days: _days,
               selectedDate: _selected,
-              onDateSelected: (d) => setState(() => _selected = d),
+              onDateSelected: (d) {
+                setState(() => _selected = d);
+                _fetchForDate(d); // fetch when user taps a date
+              },
             ),
             const SizedBox(height: 12),
 
             // Segmented pill with LIVE counts
             _CountSegmentedPill(
               tabs: const ['All Tasks', 'My Tasks'],
-              counts: [_allCount, _myCount], // ← live numbers
+              counts: [allCount, myCount],
               initialIndex: _tab,
               onChanged: (i) => setState(() => _tab = i),
 
@@ -221,14 +387,17 @@ class _ChorespageState extends State<Chorespage> {
 
             const SizedBox(height: 16),
 
-            // content per tab
+            // Pull-to-refresh wrapper around the tab content
             Expanded(
-              child: IndexedStack(
-                index: _tab,
-                children: [
-                  _buildList(_openAll), // All Tasks (incomplete only)
-                  _buildList(_openMine), // My Tasks (incomplete + mine)
-                ],
+              child: RefreshIndicator(
+                onRefresh: _refresh,
+                child: IndexedStack(
+                  index: _tab,
+                  children: [
+                    _buildList(_allTasks), // All Tasks (incomplete only)
+                    _buildList(_myTasks), // My Tasks (incomplete + mine)
+                  ],
+                ),
               ),
             ),
           ],
@@ -253,7 +422,7 @@ class _EmptyArea extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.textPurple.withOpacity(0.25)),
+        border: Border.all(color: AppColors.textPurple.withValues(alpha: .25)),
       ),
       alignment: Alignment.center,
       child: Text(
@@ -344,7 +513,7 @@ class _CountSegmentedPillState extends State<_CountSegmentedPill> {
                     borderRadius: BorderRadius.circular(widget.height),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
+                        color: Colors.black.withValues(alpha: .06),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),

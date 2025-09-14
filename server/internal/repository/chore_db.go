@@ -175,3 +175,37 @@ func (r choreRepositoryDB) GetOverdueAssignments(currentTime time.Time) ([]entit
 		Find(&assignments).Error
 	return assignments, err
 }
+
+func (r choreRepositoryDB) GetAssignmentsForRoomOnDate(roomID uint, date time.Time) ([]entities.ChoreAssignment, error) {
+	var rows []entities.ChoreAssignment
+	qDate := date.Format("2006-01-02")
+
+	err := r.db.
+		Preload("Chore").
+		Preload("User").
+		Joins("JOIN chores ON chores.chore_id = chore_assignments.chore_id").
+		Where("chores.room_id = ?", roomID).
+		// Filter by DUE date (date part of due_date_time)
+		Where("DATE(chore_assignments.due_date_time) = ?", qDate).
+		// If you prefer ASSIGNED date instead, use:
+		// Where("DATE(chore_assignments.assigned_date) = ?", qDate).
+		Find(&rows).Error
+
+	return rows, err
+}
+
+func (r choreRepositoryDB) GetAssignmentsForRoomOnDateByUser(roomID, userID uint, date time.Time) ([]entities.ChoreAssignment, error) {
+	var rows []entities.ChoreAssignment
+	qDate := date.Format("2006-01-02")
+
+	err := r.db.
+		Preload("Chore").
+		Preload("User").
+		Joins("JOIN chores ON chores.chore_id = chore_assignments.chore_id").
+		Where("chores.room_id = ?", roomID).
+		Where("chore_assignments.user_id = ?", userID).
+		Where("DATE(chore_assignments.due_date_time) = ?", qDate).
+		Find(&rows).Error
+
+	return rows, err
+}

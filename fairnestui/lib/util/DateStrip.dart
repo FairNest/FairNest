@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fairnestui/theme/app_colors.dart';
 
 class DateStrip extends StatefulWidget {
   const DateStrip({
@@ -194,8 +193,8 @@ class _DateChip extends StatelessWidget {
     final weekday = _weekdayShort(date.weekday);
 
     // use stronger contrast when selected, softer when not
-    final dayClr = isSelected ? textColor : textColor.withOpacity(0.70);
-    final weekClr = isSelected ? textColor : textColor.withOpacity(0.65);
+    final dayClr = isSelected ? textColor : textColor.withValues(alpha: .7);
+    final weekClr = isSelected ? textColor : textColor.withValues(alpha: .65);
 
     return Material(
       color: Colors.transparent,
@@ -208,10 +207,11 @@ class _DateChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: borderColor.withOpacity(0.5), width: 1.5),
+            border: Border.all(
+                color: borderColor.withValues(alpha: .5), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: .06),
                 blurRadius: 6,
                 offset: const Offset(0, 3),
               ),

@@ -57,7 +57,7 @@ class _AddFinancePageState extends State<AddFinancePage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primary, width: 1.8),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.8),
         ),
       );
 

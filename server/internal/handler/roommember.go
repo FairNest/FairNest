@@ -3,8 +3,9 @@ package handler
 import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/service"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type roomMemberHandler struct {
@@ -82,4 +83,18 @@ func (h *roomMemberHandler) CheckUserHasRoomOrNot(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"has_room": hasRoom,
 	})
+}
+
+func (h roomMemberHandler) GetUsersBasicByRoomId(c *fiber.Ctx) error {
+	roomID, err := strconv.Atoi(c.Params("RoomID"))
+	if err != nil || roomID <= 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
+	}
+
+	users, err := h.roomMemberSer.GetUsersBasicByRoomId(roomID) // int → int
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.Status(fiber.StatusOK).JSON(users)
 }

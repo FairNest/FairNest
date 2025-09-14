@@ -103,8 +103,8 @@ class _SignUpPageState extends State<SignUpPage> {
             Column(
               children: [
                 const SizedBox(height: 210),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
                   child: Text(
                     "Sign Up",
                     style: TextStyle(

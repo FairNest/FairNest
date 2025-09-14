@@ -10,7 +10,6 @@ import 'package:fairnestui/util/EditHouseRules.dart';
 import 'package:fairnestui/widgets/TaskNavFolder.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
-import 'package:fairnestui/widgets/room_header_appbar.dart';
 
 class RoomDashboardPage extends StatefulWidget {
   const RoomDashboardPage({super.key});
@@ -94,11 +93,11 @@ class _RoomDashContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
+          const Padding(
+            padding: EdgeInsets.only(left: 15),
             child: Text(
               "Notices",
-              style: const TextStyle(
+              style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                   color: AppColors.textPurple),
@@ -116,15 +115,15 @@ class _RoomDashContent extends StatelessWidget {
             child: Stack(
               children: [
                 Padding(
-                    padding: EdgeInsets.fromLTRB(10, 13, 10, 10),
+                    padding: const EdgeInsets.fromLTRB(10, 13, 10, 10),
                     child: Container(
                       height: 34,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                          color: Color(0xFFFAEDE5),
+                          color: const Color(0xFFFAEDE5),
                           borderRadius: BorderRadius.circular(5)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           "Max added a new bill: Electricity ฿1,200 — due in 5 days ⚡",
                           style: TextStyle(
@@ -135,15 +134,15 @@ class _RoomDashContent extends StatelessWidget {
                       ),
                     )),
                 Padding(
-                    padding: EdgeInsets.fromLTRB(10, 56, 10, 10),
+                    padding: const EdgeInsets.fromLTRB(10, 56, 10, 10),
                     child: Container(
                       height: 34,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                          color: Color(0xFFFAEDE5),
+                          color: const Color(0xFFFAEDE5),
                           borderRadius: BorderRadius.circular(5)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           "Lando settled his part of the water bill 💧",
                           style: TextStyle(
@@ -154,15 +153,15 @@ class _RoomDashContent extends StatelessWidget {
                       ),
                     )),
                 Padding(
-                    padding: EdgeInsets.fromLTRB(10, 100, 10, 10),
+                    padding: const EdgeInsets.fromLTRB(10, 100, 10, 10),
                     child: Container(
                       height: 34,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                          color: Color(0xFFFAEDE5),
+                          color: const Color(0xFFFAEDE5),
                           borderRadius: BorderRadius.circular(5)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           "New payment reminder: Rent due in 3 days 🏠",
                           style: TextStyle(
@@ -175,7 +174,7 @@ class _RoomDashContent extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 15,
           ),
           Row(
@@ -226,7 +225,7 @@ class _RoomDashContent extends StatelessWidget {
             children: [
               Container(
                 height: 350,
-                child: Column(
+                child: const Column(
                   children: [
                     RoomCompatibilityCard(value: 0.5),
                     SizedBox(
@@ -245,11 +244,11 @@ class _RoomDashContent extends StatelessWidget {
               ),
             ],
           )),
-          SizedBox(
+          const SizedBox(
             height: 15,
           ),
           Container(
-            child: Text(
+            child: const Text(
               "Roommate Overview",
               style: TextStyle(
                   fontSize: 16,
@@ -257,7 +256,7 @@ class _RoomDashContent extends StatelessWidget {
                   color: AppColors.textPurple),
             ),
           ),
-          AccentBorderedCard(
+          const AccentBorderedCard(
             child: Column(
               children: [
                 Roommateoverviewcard(
@@ -266,7 +265,7 @@ class _RoomDashContent extends StatelessWidget {
                   tasksCompleted: 4,
                   tasksTotal: 7,
                   amount: 400,
-                  avatarImage: const AssetImage('assets/images/char.png'),
+                  avatarImage: AssetImage('assets/images/char.png'),
                   financeStatus: FinanceStatus.owesYou,
                 ),
                 Roommateoverviewcard(
@@ -275,13 +274,13 @@ class _RoomDashContent extends StatelessWidget {
                   tasksCompleted: 1,
                   tasksTotal: 2,
                   amount: 20,
-                  avatarImage: const AssetImage('assets/images/pikachu.png'),
+                  avatarImage: AssetImage('assets/images/pikachu.png'),
                   financeStatus: FinanceStatus.youOwe,
                 ),
               ],
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 15,
           ),
         ],
@@ -294,7 +293,7 @@ class _YourDashContent extends StatelessWidget {
   const _YourDashContent({super.key});
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return const SingleChildScrollView(
       child: Column(
         children: [
           SizedBox(
@@ -380,7 +379,7 @@ class _PillSegmentedControlState extends State<_PillSegmentedControl> {
                     borderRadius: BorderRadius.circular(widget.height),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
+                        color: Colors.black.withValues(alpha: .06),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),

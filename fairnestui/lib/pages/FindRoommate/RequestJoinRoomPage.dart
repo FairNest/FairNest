@@ -159,7 +159,7 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
                           const SizedBox(height: 12),
 
                           // Room Overview
-                          _SectionTitle('Room Overview'),
+                          const _SectionTitle('Room Overview'),
                           const SizedBox(height: 8),
                           _OverviewCard(
                             apartmentName:
@@ -191,7 +191,7 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
                           const SizedBox(height: 14),
 
                           // Lifestyle Overview
-                          _SectionTitle('Lifestyle Overview'),
+                          const _SectionTitle('Lifestyle Overview'),
                           const SizedBox(height: 8),
                           Container(
                             padding: const EdgeInsets.all(10),
@@ -234,7 +234,7 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
                           const SizedBox(height: 16),
 
                           // Roommates
-                          _SectionTitle('Roommates'),
+                          const _SectionTitle('Roommates'),
                           const SizedBox(height: 8),
                           _RoommatesRow(
                             members: (data["members"] as List)

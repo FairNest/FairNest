@@ -125,3 +125,8 @@ func (s roomMemberService) CheckUserHasRoomOrNot(userId int) (bool, error) {
 	// Otherwise return room membership flag
 	return res.HasRoom, nil
 }
+
+// internal/service/roommember_service.go (implementation)
+func (s roomMemberService) GetUsersBasicByRoomId(roomID int) ([]dtos.RoomUserInfo, error) {
+	return s.roomMemberRepo.GetUsersBasicByRoomId(roomID)
+}

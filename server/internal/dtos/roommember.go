@@ -42,3 +42,9 @@ type UserRoomCheck struct {
 	UserExists bool
 	HasRoom    bool
 }
+
+type RoomUserInfo struct {
+	UserID      *uint   `json:"userId"`
+	Username    *string `json:"username"`
+	UserPicture *string `json:"userPicture"`
+}

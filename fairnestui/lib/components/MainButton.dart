@@ -31,20 +31,20 @@ class MainButton extends StatelessWidget {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: onPressed == null
-              ? backgroundColor.withOpacity(0.6) // Disabled state
+              ? backgroundColor.withValues(alpha: .6) // Disabled state
               : backgroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
           elevation: onPressed == null ? 2 : 6,
-          shadowColor: Colors.black.withOpacity(0.25),
+          shadowColor: Colors.black.withValues(alpha: .25),
         ),
         onPressed: onPressed,
         child: Text(
           text,
           style: AppFonts.heading3.copyWith(
             color: onPressed == null
-                ? textColor.withOpacity(0.6) // Disabled text color
+                ? textColor.withValues(alpha: .6) // Disabled text color
                 : textColor,
             fontWeight: fontWeight,
           ),

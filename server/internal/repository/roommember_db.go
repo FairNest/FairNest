@@ -3,6 +3,7 @@ package repository
 import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
+
 	"gorm.io/gorm"
 )
 
@@ -47,4 +48,32 @@ func (r roomMemberRepositoryDB) CheckUserHasRoomOrNot(userId int) (*dtos.UserRoo
 		return nil, err
 	}
 	return &result, nil
+}
+
+func (r roomMemberRepositoryDB) GetUsersBasicByRoomId(roomID int) ([]dtos.RoomUserInfo, error) {
+	var rows []struct {
+		UserID      *uint
+		Username    *string
+		UserPicture *string
+	}
+
+	err := r.db.
+		Table("users").
+		Select("users.user_id AS user_id, users.username AS username, users.user_picture AS user_picture").
+		Joins("JOIN room_members ON room_members.user_id = users.user_id").
+		Where("room_members.room_id = ?", roomID).
+		Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]dtos.RoomUserInfo, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, dtos.RoomUserInfo{
+			UserID:      r.UserID,
+			Username:    r.Username,
+			UserPicture: r.UserPicture,
+		})
+	}
+	return out, nil
 }

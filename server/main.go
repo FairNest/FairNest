@@ -135,6 +135,8 @@ func main() {
 
 	app.Post("/upload", storageHandler.UploadFile)
 
+	app.Get("/rooms/:RoomID/users/basic", roomMemberHandler.GetUsersBasicByRoomId)
+
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	// Endpoints for project
@@ -180,6 +182,11 @@ func main() {
 	app.Get("/rooms/:roomID/chores/calendar", choreHandler.GetChoreCalendar) // Calendar view with date range
 	app.Get("/rooms/:roomID/chores/today", choreHandler.GetTodayChores)      // Get today's chores
 	app.Post("/chores/complete", choreHandler.MarkChoreComplete)             // Mark chore as completed
+
+	app.Get("/rooms/:roomID/chores/day", choreHandler.GetRoomTasksForDate)
+	app.Get("/rooms/:roomID/chores/day/mine", choreHandler.GetMyTasksForDate)
+
+	app.Get("/chores/:choreID", choreHandler.GetChoreDetailByID)
 
 	//###################################################################
 

@@ -31,7 +31,7 @@ class SecondaryButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
           elevation: 6,
-          shadowColor: Colors.black.withOpacity(0.2),
+          shadowColor: Colors.black.withValues(alpha: .2),
         ),
         onPressed: onPressed,
         child: Text(
