@@ -97,7 +97,14 @@ func (s choreService) CreateChore(roomID uint, request *dtos.CreateChoreRequest)
 	// * generate assignments for current week and next 3 weeks
 	startDate := s.getStartOfWeek(now)
 	endDate := startDate.AddDate(0, 0, 28) // * 4 weeks
-	err = s.GenerateChoreAssignments(*chore.ChoreID, startDate, endDate)
+
+	if v.BoolValue(request.AutoRotate) {
+		// generate using rotation
+		err = s.GenerateChoreAssignments(*chore.ChoreID, startDate, endDate)
+	} else if len(request.AssignedUserIDs) > 0 {
+		// generate fixed assignments for all users
+		err = s.GenerateFixedAssignments(*chore.ChoreID, request.AssignedUserIDs, startDate, endDate)
+	}
 	if err != nil {
 		log.Printf("failed to generate initial assignments: %v", err)
 	}
@@ -325,23 +332,27 @@ func (s choreService) GenerateChoreAssignments(choreID uint, startDate, endDate 
 	rotationIndex := 0
 
 	for currentDate.Before(endDate) || currentDate.Equal(endDate) {
-		// * check if current day matches chore day
 		if currentDate.Weekday() == dayOfWeek {
-			// * create due date time
 			dueDateTime := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(),
 				dueTime.Hour(), dueTime.Minute(), 0, 0, currentDate.Location())
 
 			var assignedUserID *uint
-			if len(rotationUsers) > 0 {
-				assignedUserID = rotationUsers[rotationIndex%len(rotationUsers)].UserID
-				rotationIndex++
+
+			if v.BoolValue(chore.AutoRotate) {
+				if len(rotationUsers) > 0 {
+					assignedUserID = rotationUsers[rotationIndex%len(rotationUsers)].UserID
+					rotationIndex++
+				} else {
+					log.Printf("no rotation users found for chore %d", choreID)
+					continue
+				}
 			}
 
 			assignment := &entities.ChoreAssignment{
 				ChoreID:      v.Ptr(choreID),
 				UserID:       assignedUserID,
-				AssignedDate: &currentDate,
-				DueDateTime:  &dueDateTime,
+				AssignedDate: v.Ptr(currentDate),
+				DueDateTime:  v.Ptr(dueDateTime),
 				Status:       v.Ptr("pending"),
 			}
 
@@ -351,6 +362,60 @@ func (s choreService) GenerateChoreAssignments(choreID uint, startDate, endDate 
 			}
 		}
 		currentDate = currentDate.AddDate(0, 0, 1)
+	}
+
+	return nil
+}
+
+// GenerateFixedAssignments assigns this chore ONCE to all given users
+// at the first matching due date after startDate.
+func (s choreService) GenerateFixedAssignments(
+	choreID uint,
+	userIDs []uint,
+	startDate, endDate time.Time,
+) error {
+	chore, err := s.choreRepo.GetChoreByID(choreID)
+	if err != nil {
+		return err
+	}
+
+	if chore.DueDayOfWeek == nil || chore.DueTime == nil {
+		return fmt.Errorf("chore missing due day or time")
+	}
+
+	dayOfWeek := s.parseDayOfWeek(*chore.DueDayOfWeek)
+	dueTime := s.parseTime(*chore.DueTime)
+
+	// find the first due date that matches the chore's due day
+	currentDate := startDate
+	for currentDate.Weekday() != dayOfWeek {
+		currentDate = currentDate.AddDate(0, 0, 1)
+		if currentDate.After(endDate) {
+			return fmt.Errorf("no matching due day found within range")
+		}
+	}
+
+	// build full due datetime
+	dueDateTime := time.Date(
+		currentDate.Year(), currentDate.Month(), currentDate.Day(),
+		dueTime.Hour(), dueTime.Minute(), 0, 0,
+		currentDate.Location(),
+	)
+
+	// assign to ALL users once
+	for _, userID := range userIDs {
+		u := userID
+		assignment := &entities.ChoreAssignment{
+			ChoreID:      v.Ptr(choreID),
+			UserID:       &u,
+			AssignedDate: v.Ptr(currentDate),
+			DueDateTime:  v.Ptr(dueDateTime),
+			Status:       v.Ptr("pending"),
+		}
+
+		if err := s.choreRepo.CreateChoreAssignment(assignment); err != nil {
+			log.Printf("failed to create fixed assignment: %v", err)
+		}
 	}
 
 	return nil
