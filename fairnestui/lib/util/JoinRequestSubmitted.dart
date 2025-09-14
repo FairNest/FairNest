@@ -51,7 +51,7 @@ class JoinRequestSubmittedDialog extends StatelessWidget {
                     style: AppFonts.body1.copyWith(
                       fontSize: 12,
                       height: 1.4,
-                      color: AppColors.textDark.withOpacity(0.85),
+                      color: AppColors.textDark.withValues(alpha: .85),
                     ),
                   ),
 

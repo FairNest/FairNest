@@ -5,10 +5,11 @@ import (
 	"fairnest/internal/service"
 	"fairnest/internal/utils"
 	"fairnest/internal/utils/v"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type choreHandler struct {
@@ -266,4 +267,82 @@ func (h *choreHandler) DeleteChore(c *fiber.Ctx) error {
 		Message: v.Ptr("chore deleted successfully"),
 		ChoreID: v.Ptr(uint(choreID)),
 	})
+}
+
+func (h choreHandler) GetRoomTasksForDate(c *fiber.Ctx) error {
+	roomID, err := strconv.Atoi(c.Params("roomID"))
+	if err != nil || roomID <= 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
+	}
+
+	dateStr := c.Query("date")
+	if dateStr == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "date is required (YYYY-MM-DD)")
+	}
+	date, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid date format, use YYYY-MM-DD")
+	}
+
+	items, err := h.choreSer.GetRoomTasksForDate(uint(roomID), date)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(items)
+}
+
+func (h choreHandler) GetMyTasksForDate(c *fiber.Ctx) error {
+	roomID, err := strconv.Atoi(c.Params("roomID"))
+	if err != nil || roomID <= 0 {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
+	}
+
+	dateStr := c.Query("date")
+	if dateStr == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "date is required (YYYY-MM-DD)")
+	}
+	day, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid date format, use YYYY-MM-DD")
+	}
+
+	// Get bearer token
+	token := c.Get("Authorization")
+	if token == "" {
+		return fiber.NewError(fiber.StatusUnauthorized, "missing authorization token")
+	}
+
+	// Extract user id from token (returns int in your utils)
+	intUserID, err := utils.ExtractUserIDFromToken(strings.Replace(token, "Bearer ", "", 1), h.jwtSecret)
+	if err != nil {
+		return fiber.NewError(fiber.StatusUnauthorized, "invalid token")
+	}
+	if intUserID <= 0 {
+		return fiber.NewError(fiber.StatusUnauthorized, "invalid user id in token")
+	}
+	userID := uint(intUserID) // <-- convert int -> uint
+
+	items, err := h.choreSer.GetMyTasksForDate(uint(roomID), userID, day)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(items)
+}
+
+func (h *choreHandler) GetChoreDetailByID(c *fiber.Ctx) error {
+	choreID, err := strconv.ParseUint(c.Params("choreID"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid chore id",
+		})
+	}
+
+	choreDetail, err := h.choreSer.GetChoreDetailByID(uint(choreID))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(choreDetail)
 }

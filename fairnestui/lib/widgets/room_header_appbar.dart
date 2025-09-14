@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:fairnestui/Notification/NotificationPage.dart';
 import 'package:fairnestui/pages/Settings/SettingPage.dart';
 import 'package:fairnestui/pages/UserProfilePage.dart';
@@ -56,8 +58,8 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
                   borderRadius: BorderRadius.circular(28),
                   child: CircleAvatar(
                     radius: 24,
-                    backgroundColor:
-                        avatarColor ?? AppColors.textOrange.withOpacity(0.6),
+                    backgroundColor: avatarColor ??
+                        AppColors.textOrange.withValues(alpha: .6),
                     backgroundImage: avatarImage,
                   ),
                 ),
@@ -75,7 +77,7 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
                       style: AppFonts.heading1.copyWith(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPurple.withOpacity(0.9),
+                        color: AppColors.textPurple.withValues(alpha: .9),
                         height: 1.2,
                       ),
                     ),
@@ -100,7 +102,7 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
                   );
                 },
                 icon: const Icon(Icons.notifications_none_rounded),
-                color: AppColors.textPurple.withOpacity(0.8),
+                color: AppColors.textPurple.withValues(alpha: .8),
               ),
               IconButton(
                 onPressed: () {
@@ -111,7 +113,7 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
                   );
                 },
                 icon: const Icon(Icons.settings_rounded),
-                color: AppColors.textPurple.withOpacity(0.8),
+                color: AppColors.textPurple.withValues(alpha: .8),
               ),
             ],
           ),

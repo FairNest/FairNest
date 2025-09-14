@@ -112,7 +112,8 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: titleColor.withOpacity(_checked ? 0.65 : 1),
+                          color:
+                              titleColor.withValues(alpha: _checked ? 0.65 : 1),
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           decoration: _checked
@@ -189,7 +190,7 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                         height: 35,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: widget.paidByRingColor.withOpacity(0.15),
+                          color: widget.paidByRingColor.withValues(alpha: .15),
                         ),
                         alignment: Alignment.center,
                         child: CircleAvatar(
@@ -322,9 +323,9 @@ class _MiniLavenderPill extends StatelessWidget {
             border: Border.all(color: purple, width: 1.5),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.10),
+                  color: Colors.black.withValues(alpha: .10),
                   blurRadius: 4,
-                  offset: Offset(0, 2))
+                  offset: const Offset(0, 2))
             ],
           ),
           child: Row(

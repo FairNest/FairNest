@@ -79,7 +79,7 @@ class TransactionCard extends StatelessWidget {
                     date,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textPurple.withOpacity(0.7),
+                      color: AppColors.textPurple.withValues(alpha: .7),
                     ),
                   ),
                 ],
@@ -103,7 +103,7 @@ class TransactionCard extends StatelessWidget {
                 paidTo,
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textPurple.withOpacity(0.7),
+                  color: AppColors.textPurple.withValues(alpha: .7),
                 ),
               ),
             ],

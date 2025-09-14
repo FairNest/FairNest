@@ -80,7 +80,7 @@ class StartRoommatePage extends StatelessWidget {
                   const SizedBox(height: 12),
 
                   // Room Overview
-                  _SectionTitle('Room Overview'),
+                  const _SectionTitle('Room Overview'),
                   const SizedBox(height: 8),
                   const _OverviewCard(
                     apartmentName: 'KikiRah Apartment',
@@ -94,7 +94,7 @@ class StartRoommatePage extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   // Lifestyle
-                  _SectionTitle('Lifestyle Overview'),
+                  const _SectionTitle('Lifestyle Overview'),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(10),
@@ -129,7 +129,7 @@ class StartRoommatePage extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // Roommates
-                  _SectionTitle('Roommates'),
+                  const _SectionTitle('Roommates'),
                   const SizedBox(height: 8),
                   _RoommatesRow(
                     members: const [

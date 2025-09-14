@@ -213,17 +213,17 @@ class _RulePill extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: ShapeDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: .9),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side:
-              BorderSide(color: AppColors.primary.withOpacity(0.7), width: 1.2),
+          side: BorderSide(
+              color: AppColors.primary.withValues(alpha: .7), width: 1.2),
         ),
         shadows: [
           BoxShadow(
               blurRadius: 6,
               offset: const Offset(0, 2),
-              color: Colors.black.withOpacity(0.06)),
+              color: Colors.black.withValues(alpha: .06)),
         ],
       ),
       child: Padding(
@@ -232,7 +232,7 @@ class _RulePill extends StatelessWidget {
           text,
           style: AppFonts.heading3.copyWith(
               fontWeight: FontWeight.w500,
-              color: AppColors.textDark.withOpacity(0.85)),
+              color: AppColors.textDark.withValues(alpha: .85)),
         ),
       ),
     );

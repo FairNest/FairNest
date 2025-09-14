@@ -30,4 +30,8 @@ type ChoreService interface {
 
 	// * helper functions
 	GenerateChoreAssignments(choreID uint, startDate, endDate time.Time) error
+
+	GetRoomTasksForDate(roomID uint, date time.Time) ([]dtos.ChoreDayItem, error)
+	GetMyTasksForDate(roomID, userID uint, date time.Time) ([]dtos.ChoreDayItem, error)
+	GetChoreDetailByID(choreID uint) (*dtos.GetChoreDetailByIDResponse, error)
 }

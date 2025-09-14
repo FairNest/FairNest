@@ -62,7 +62,7 @@ class OutstandingBalanceCard extends StatelessWidget {
           border: Border.all(color: AppColors.textPurple, width: 2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: .05),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -179,11 +179,11 @@ class OutstandingBalanceCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: AppColors.textPurple.withOpacity(.6)),
+                    border: Border.all(
+                        color: AppColors.textPurple.withValues(alpha: .0)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(.05),
+                        color: Colors.black.withValues(alpha: .05),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -256,12 +256,12 @@ class OutstandingBalanceCard extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => SafeArea(
+      builder: (_) => const SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+          padding: EdgeInsets.fromLTRB(16, 20, 16, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: const [
+            children: [
               Text(
                 'All settled!',
                 style: TextStyle(

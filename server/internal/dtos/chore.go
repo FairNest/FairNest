@@ -139,3 +139,43 @@ type DeleteChoreResponse struct {
 	Message *string `json:"message"`
 	ChoreID *uint   `json:"chore_id"`
 }
+
+type ChoreDayItem struct {
+	// From assignment
+	ChoreAssignmentID *uint   `json:"chore_assignment_id"`
+	DueDate           *string `json:"due_date"` // "YYYY-MM-DD"
+	Status            *string `json:"status"`   // "pending" | "completed" | "missed" | "overdue"
+	CompletedAt       *string `json:"completed_at,omitempty"`
+
+	// From chore (no created_at / updated_at)
+	ChoreID           *uint   `json:"chore_id"`
+	RoomID            *uint   `json:"room_id"`
+	ChoreTitle        *string `json:"chore_title"`
+	ChoreDescription  *string `json:"chore_description"`
+	Category          *string `json:"category"`
+	DueDayOfWeek      *string `json:"due_day_of_week"`
+	DueTime           *string `json:"due_time"`
+	ReminderDayOfWeek *string `json:"reminder_day_of_week"`
+	ReminderTime      *string `json:"reminder_time"`
+	Recurrence        *string `json:"recurrence"`
+	AutoRotate        *bool   `json:"auto_rotate"`
+	ChoreScore        *int    `json:"chore_score"`
+
+	// Assigned user (for avatar/name)
+	AssignedUser *RoomUserInfo `json:"assigned_user"`
+}
+
+type GetChoreDetailByIDResponse struct {
+	ChoreID           uint               `json:"chore_id"`
+	ChoreTitle        string             `json:"chore_title"`
+	ChoreDescription  string             `json:"chore_description"`
+	Category          string             `json:"category"`
+	DueDayOfWeek      string             `json:"due_day_of_week"`
+	DueTime           string             `json:"due_time"`
+	ReminderDayOfWeek string             `json:"reminder_day_of_week"`
+	ReminderTime      string             `json:"reminder_time"`
+	Recurrence        string             `json:"recurrence"`
+	AutoRotate        bool               `json:"auto_rotate"`
+	ChoreScore        int                `json:"chore_score"`
+	AssignedUsers     []AssignedUserInfo `json:"assigned_users"`
+}

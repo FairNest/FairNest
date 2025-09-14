@@ -402,7 +402,7 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
                         border: Border.all(color: Colors.black45, width: 1),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: .04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -492,7 +492,7 @@ class _SideTabState extends State<_SideTab>
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isActive ? 0.18 : 0.12),
+                  color: Colors.black.withValues(alpha: isActive ? 0.18 : 0.12),
                   blurRadius: isActive ? 6 : 4,
                   offset: Offset(0, isActive ? 3 : 2),
                 ),

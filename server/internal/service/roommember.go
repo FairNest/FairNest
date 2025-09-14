@@ -16,4 +16,5 @@ type RoomMemberService interface {
 
 	CreateRoomMemberByRoomIdAndUserId(int, int) (*entities.RoomMember, error)
 	CheckUserHasRoomOrNot(int) (bool, error)
+	GetUsersBasicByRoomId(roomID int) ([]dtos.RoomUserInfo, error)
 }

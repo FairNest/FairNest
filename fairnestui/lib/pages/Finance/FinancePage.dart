@@ -3,7 +3,6 @@ import 'package:fairnestui/components/TransactionCard.dart';
 import 'package:fairnestui/components/UpcomingPaymentCard.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
-import 'package:fairnestui/widgets/room_header_appbar.dart';
 import 'package:flutter/material.dart';
 
 class Financepage extends StatefulWidget {
@@ -55,8 +54,8 @@ class _FinancepageState extends State<Financepage> {
                 currency: 'THB',
               ),
               const SizedBox(height: 25),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                 child: Text(
                   "Outstanding Balances",
                   style: TextStyle(
@@ -66,11 +65,11 @@ class _FinancepageState extends State<Financepage> {
                   ),
                 ),
               ),
-              SingleChildScrollView(
+              const SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
-                  children: const [
+                  children: [
                     SizedBox(width: 4), // left inset
                     OutstandingBalanceCard(
                       name: 'Max',
@@ -102,9 +101,9 @@ class _FinancepageState extends State<Financepage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
+                    const Text(
                       "Upcoming Payments",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPurple,
@@ -134,8 +133,8 @@ class _FinancepageState extends State<Financepage> {
               ),
               const SizedBox(height: 25),
 
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
                 child: Text(
                   "Transaction History",
                   style: TextStyle(
@@ -145,8 +144,8 @@ class _FinancepageState extends State<Financepage> {
                   ),
                 ),
               ),
-              Column(
-                children: const [
+              const Column(
+                children: [
                   TransactionCard(
                     category: "Food",
                     date: "29 March 2025",
@@ -266,7 +265,7 @@ class _SnapshotTile extends StatelessWidget {
         border: Border.all(color: AppColors.textPurple, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: .06),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),

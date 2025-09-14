@@ -51,8 +51,8 @@ class AppBottomNav extends StatelessWidget {
                   asset: it.asset!,
                   size: iconSize,
                   onTap: onCenterAction,
-                  bg: inactiveColor.withOpacity(.35),
-                  tint: Colors.white.withOpacity(.9),
+                  bg: inactiveColor.withValues(alpha: .35),
+                  tint: Colors.white.withValues(alpha: .9),
                 );
               }
 

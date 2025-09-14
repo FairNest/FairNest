@@ -62,7 +62,7 @@ class Roommateoverviewcard extends StatelessWidget {
               CircleAvatar(
                 radius: 24,
                 backgroundColor:
-                    (avatarColor ?? AppColors.textOrange).withOpacity(0.6),
+                    (avatarColor ?? AppColors.textOrange).withValues(alpha: .6),
                 backgroundImage: avatarImage,
                 child: avatarImage == null
                     ? const Icon(Icons.person, color: Colors.white)

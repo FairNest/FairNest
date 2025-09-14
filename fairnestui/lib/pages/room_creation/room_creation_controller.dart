@@ -1,10 +1,7 @@
 // lib/pages/room_creation/room_creation_controller.dart
-import 'dart:convert';
-import 'package:fairnestui/services/user_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fairnestui/services/storage_service.dart'; // Change from user_service to storage_service
 import 'package:fairnestui/services/api_client.dart'; // Add ApiClient import
-import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart'; // Add Dio import for Response type
 
 // Reuse your existing models/enums from the pages you already wrote.
@@ -293,7 +290,7 @@ class RoomCreationController extends ChangeNotifier {
     String? roomPicture,
   }) {
     // Provide a fallback picture if one isn't given.
-    final fallbackPicture =
+    const fallbackPicture =
         'https://minio.bocchikitsunei.com/fairnest/rng_room_3.png';
 
     return {

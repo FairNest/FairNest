@@ -51,7 +51,7 @@ class UpcomingPaymentCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: .06),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -100,7 +100,7 @@ class UpcomingPaymentCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 4, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.textPurple.withOpacity(.35),
+                          color: AppColors.textPurple.withValues(alpha: .35),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Icon(Icons.more_vert,
@@ -130,7 +130,7 @@ class UpcomingPaymentCard extends StatelessWidget {
                 Text(
                   '${_fmt(amount)} $currency$periodLabel',
                   style: TextStyle(
-                    color: AppColors.textPurple.withOpacity(.8),
+                    color: AppColors.textPurple.withValues(alpha: .8),
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),

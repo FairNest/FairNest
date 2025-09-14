@@ -1,5 +1,4 @@
 // roommate_agreement_page.dart
-import 'dart:convert';
 import 'package:fairnestui/pages/room_creation/GenerateInviteCode.dart';
 import 'package:fairnestui/widgets/app_header.dart';
 import 'package:flutter/material.dart';
@@ -306,8 +305,9 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
                               onChanged: (v) =>
                                   setState(() => _cleaningMethod = v),
                             );
-                            if (sel != null)
+                            if (sel != null) {
                               setState(() => _cleaningMethod = sel);
+                            }
                           },
                         ),
                         const SizedBox(height: 14),
@@ -399,9 +399,9 @@ class _BlockingLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Ensure back button doesn't dismiss the dialog while loading
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: const Center(
+    return const PopScope(
+      canPop: false,
+      child: Center(
         child: CircularProgressIndicator(),
       ),
     );

@@ -68,7 +68,7 @@ class Financetaskcard extends StatelessWidget {
             color: const Color.fromARGB(255, 106, 166, 130), width: 2.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: .05),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -173,7 +173,7 @@ class Financetaskcard extends StatelessWidget {
               const Spacer(),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF9C2D3C),
+                  backgroundColor: const Color(0xFF9C2D3C),
                   foregroundColor: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -232,11 +232,11 @@ class Financetaskcard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: AppColors.textPurple.withOpacity(.6)),
+                    border: Border.all(
+                        color: AppColors.textPurple.withValues(alpha: .6)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(.05),
+                        color: Colors.black.withValues(alpha: .05),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),

@@ -1,5 +1,4 @@
 import 'package:fairnestui/pages/FindRoommate/GroupHomePage.dart';
-import 'package:fairnestui/pages/room_creation/CreateRoomDetails.dart';
 import 'package:fairnestui/pages/room_creation/create_room_flow.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
@@ -166,16 +165,17 @@ Future<void> _showJoinByCodeDialog(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        BorderSide(color: AppColors.primary, width: 1.6),
+                        const BorderSide(color: AppColors.primary, width: 1.6),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        BorderSide(color: AppColors.primary, width: 1.6),
+                        const BorderSide(color: AppColors.primary, width: 1.6),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: AppColors.primary, width: 2),
+                    borderSide:
+                        const BorderSide(color: AppColors.primary, width: 2),
                   ),
                 ),
               ),

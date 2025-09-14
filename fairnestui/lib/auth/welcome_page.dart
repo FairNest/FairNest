@@ -67,7 +67,7 @@ class WelcomePage extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       height: 500,
                     ),
                     // Sign Up button using MainButton

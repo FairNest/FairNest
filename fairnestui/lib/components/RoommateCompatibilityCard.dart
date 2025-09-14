@@ -41,8 +41,8 @@ class Roommatecompatibilitycard extends StatelessWidget {
                   const SizedBox(height: 21),
                   CircleAvatar(
                     radius: 24,
-                    backgroundColor:
-                        (avatarColor ?? AppColors.textOrange).withOpacity(0.6),
+                    backgroundColor: (avatarColor ?? AppColors.textOrange)
+                        .withValues(alpha: .6),
                     backgroundImage: avatarImage,
                     child: avatarImage == null
                         ? const Icon(Icons.person, color: Colors.white)

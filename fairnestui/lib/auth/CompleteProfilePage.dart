@@ -1,6 +1,4 @@
 import 'package:fairnestui/auth/login_page.dart';
-import 'package:fairnestui/pages/FindRoommate/GroupCheckPage.dart';
-import 'package:fairnestui/pages/FindRoommate/GroupHomePage.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
@@ -132,13 +130,6 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
       default:
         return '$base/$file';
     }
-  }
-
-  ({String first, String last}) _splitName(String fullName) {
-    final parts = fullName.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty) return (first: '', last: '');
-    if (parts.length == 1) return (first: parts.first, last: '');
-    return (first: parts.first, last: parts.sublist(1).join(' '));
   }
 
   Future<void> _submit() async {
@@ -540,7 +531,7 @@ class _AvatarChoice extends StatelessWidget {
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
+                    color: Colors.black.withValues(alpha: .15),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -569,6 +560,7 @@ class _Blob extends StatelessWidget {
     this.top,
     this.left,
     this.right,
+    // ignore: unused_element_parameter
     this.bottom,
     this.angle = 0,
   });

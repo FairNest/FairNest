@@ -54,7 +54,7 @@ class AccentBorderedCard extends StatelessWidget {
           surfaceTintColor: Colors.transparent, // no M3 tint
           elevation: elevation,
           shadowColor:
-              borderColor.withOpacity(shadowOpacity), // your accent color
+              borderColor.withValues(alpha: shadowOpacity), // your accent color
           shape: RoundedRectangleBorder(
             borderRadius: r,
             side: BorderSide(color: borderColor, width: borderWidth),
