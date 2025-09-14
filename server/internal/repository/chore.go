@@ -35,4 +35,6 @@ type ChoreRepository interface {
 	MarkAssignmentMissed(assignmentID uint) error
 	GetPendingAssignments() ([]entities.ChoreAssignment, error)
 	GetOverdueAssignments(currentTime time.Time) ([]entities.ChoreAssignment, error)
+
+	UpdateAssignedDate(assignmentID uint, newDate time.Time) error
 }

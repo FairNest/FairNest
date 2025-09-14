@@ -381,6 +381,13 @@ func (s choreService) UpdateChore(choreID uint, request *dtos.EditChoreRequest) 
 		return nil, err
 	}
 
+	now := time.Now()
+	currentTime := s.getStartOfWeek(now)
+	err = s.choreRepo.UpdateAssignedDate(choreID, currentTime)
+	if err != nil {
+		log.Printf("failed to update assigned date with current time: %v", err)
+	}
+
 	// * update rotation users
 	if v.BoolValue(request.AutoRotate) {
 		// * delete existing rotations

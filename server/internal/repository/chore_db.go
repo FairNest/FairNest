@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fairnest/internal/entities"
+	"fairnest/internal/utils/v"
 	"time"
 
 	"gorm.io/gorm"
@@ -174,4 +175,8 @@ func (r choreRepositoryDB) GetOverdueAssignments(currentTime time.Time) ([]entit
 		Preload("User").
 		Find(&assignments).Error
 	return assignments, err
+}
+
+func (r choreRepositoryDB) UpdateAssignedDate(assignmentID uint, newDate time.Time) error {
+	return r.db.Where("chore_assignment_id = ?", assignmentID).Save(entities.ChoreAssignment{AssignedDate: v.Ptr(newDate)}).Error
 }
