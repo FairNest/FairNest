@@ -383,7 +383,7 @@ func (s choreService) UpdateChore(choreID uint, request *dtos.EditChoreRequest) 
 
 	now := time.Now()
 	currentTime := s.getStartOfWeek(now)
-	err = s.choreRepo.UpdateAssignedDate(choreID, currentTime)
+	err = s.choreRepo.UpdateAssignedDates([]uint{choreID}, currentTime)
 	if err != nil {
 		log.Printf("failed to update assigned date with current time: %v", err)
 	}

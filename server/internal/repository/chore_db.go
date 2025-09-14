@@ -210,7 +210,7 @@ func (r choreRepositoryDB) GetAssignmentsForRoomOnDateByUser(roomID, userID uint
 	return rows, err
 }
 
-func (r choreRepositoryDB) UpdateAssignedDate(assignmentIDs []uint, newDate time.Time) error {
+func (r choreRepositoryDB) UpdateAssignedDates(assignmentIDs []uint, newDate time.Time) error {
 	return r.db.Model(&entities.ChoreAssignment{}).
 		Where("chore_assignment_id IN ?", assignmentIDs).
 		Update("assigned_date", newDate).Error

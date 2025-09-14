@@ -39,5 +39,5 @@ type ChoreRepository interface {
 	GetAssignmentsForRoomOnDate(roomID uint, date time.Time) ([]entities.ChoreAssignment, error)
 	GetAssignmentsForRoomOnDateByUser(roomID, userID uint, date time.Time) ([]entities.ChoreAssignment, error)
 
-	UpdateAssignedDate(assignmentID uint, newDate time.Time) error
+	UpdateAssignedDates(assignmentID []uint, newDate time.Time) error
 }
