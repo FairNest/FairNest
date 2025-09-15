@@ -111,8 +111,8 @@ func (s roomMemberService) CreateRoomMemberByRoomIdAndUserId(roomId int, userId 
 	}, nil
 }
 
-func (s roomMemberService) CheckUserHasRoomOrNot(userId int) (bool, error) {
-	res, err := s.roomMemberRepo.CheckUserHasRoomOrNot(userId)
+func (s roomMemberService) GetCheckUserHasRoomOrNotByUserId(userID int) (bool, error) {
+	res, err := s.roomMemberRepo.GetCheckUserHasRoomOrNotByUserId(userID)
 	if err != nil {
 		return false, err
 	}
