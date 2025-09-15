@@ -1,8 +1,6 @@
 import 'package:fairnestui/components/MainButton.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
-
-// NEW
 import 'package:fairnestui/services/api_client.dart';
 
 class ViewChorePage extends StatefulWidget {
@@ -50,6 +48,28 @@ class _ViewChorePageState extends State<ViewChorePage> {
   List<String> _assignees = [];
 
   /* ---------------- helpers ---------------- */
+
+  List<String> _dedupUsernamesByUserId(List<dynamic> arr) {
+    final seenIds = <int>{};
+    final names = <String>[];
+    for (final e in arr) {
+      if (e is! Map<String, dynamic>) continue;
+      final idAny = e['userId'] ?? e['user_id'];
+      final uid = idAny is int ? idAny : int.tryParse('$idAny');
+      final name = (e['username'] as String?)?.trim();
+      if (uid != null) {
+        if (seenIds.add(uid)) {
+          if (name != null && name.isNotEmpty) names.add(name);
+        }
+      } else {
+        // Fallback: no id — dedupe by name
+        if (name != null && name.isNotEmpty && !names.contains(name)) {
+          names.add(name);
+        }
+      }
+    }
+    return names;
+  }
 
   static const _weekdayFull = [
     'Monday',
@@ -143,13 +163,16 @@ class _ViewChorePageState extends State<ViewChorePage> {
       final score =
           scoreAny is int ? scoreAny : int.tryParse('$scoreAny') ?? 10;
 
-      final assignedUsers = ((j['assigned_users'] as List?) ?? [])
-          .cast<Map<String, dynamic>>()
-          .map((m) => (m['username'] as String?) ?? '')
-          .where((s) => s.isNotEmpty)
-          .toList();
+// Supports both shapes: `assigned_users: [...]` or single `assigned_user: {...}`
+      final rawAssignedList = (j['assigned_users'] as List?) ?? [];
+      var assignedUsers = _dedupUsernamesByUserId(rawAssignedList);
 
-      print("Assigned users: $assignedUsers");
+// Fallback if backend uses single object field
+      if (assignedUsers.isEmpty && j['assigned_user'] is Map<String, dynamic>) {
+        assignedUsers = _dedupUsernamesByUserId([j['assigned_user']]);
+      }
+
+      print("Assigned users (deduped): $assignedUsers");
 
       setState(() {
         _title = title;
