@@ -24,9 +24,11 @@ type ChoreRepository interface {
 	GetTodayAssignments(roomID uint, date time.Time) ([]entities.ChoreAssignment, error)
 	GetUserAssignmentsByDateRange(userID uint, startDate, endDate time.Time) ([]entities.ChoreAssignment, error)
 	UpdateAssignment(assignment *entities.ChoreAssignment) error
+	DeleteAssignmentsByChoreID(choreID uint) error
 
 	// * rotation operations
 	CreateRotationUser(rotation *entities.ChoreRotationUser) error
+	GetAssignmentUserByChoreID(choreID uint) ([]entities.ChoreAssignment, error)
 	GetRotationUsersByChoreID(choreID uint) ([]entities.ChoreRotationUser, error)
 	DeleteRotationUsersByChoreID(choreID uint) error
 	GetNextAssignedUserInRotation(choreID uint, lastAssignedUserID uint) (*entities.ChoreRotationUser, error)
@@ -38,6 +40,4 @@ type ChoreRepository interface {
 
 	GetAssignmentsForRoomOnDate(roomID uint, date time.Time) ([]entities.ChoreAssignment, error)
 	GetAssignmentsForRoomOnDateByUser(roomID, userID uint, date time.Time) ([]entities.ChoreAssignment, error)
-
-	UpdateAssignedDates(assignmentID []uint, newStartDate time.Time, newEndDate time.Time) error
 }

@@ -322,7 +322,7 @@ func (s choreService) GenerateChoreAssignments(choreID uint, startDate, endDate 
 	var rotationUsers []entities.ChoreRotationUser
 	if v.BoolValue(chore.AutoRotate) {
 		rotationUsers, err = s.choreRepo.GetRotationUsersByChoreID(choreID)
-		if err != nil || len(rotationUsers) == 0 {
+		if err != nil {
 			log.Printf("no rotation users found for chore %d", choreID)
 			return nil
 		}
@@ -428,7 +428,7 @@ func (s choreService) UpdateChore(choreID uint, request *dtos.EditChoreRequest) 
 		return nil, err
 	}
 
-	// * update chore fields
+	// update fields
 	chore.ChoreTitle = request.ChoreTitle
 	chore.ChoreDescription = request.ChoreDescription
 	chore.Category = request.Category
@@ -436,45 +436,34 @@ func (s choreService) UpdateChore(choreID uint, request *dtos.EditChoreRequest) 
 	chore.DueTime = request.DueTime
 	chore.ReminderDayOfWeek = request.ReminderDayOfWeek
 	chore.ReminderTime = request.ReminderTime
-	chore.Recurrence = request.Recurrence
-	chore.AutoRotate = request.AutoRotate
 	chore.ChoreScore = request.ChoreScore
 	chore.UpdatedAt = time.Now()
 
-	err = s.choreRepo.UpdateChore(chore)
-	if err != nil {
+	if err := s.choreRepo.UpdateChore(chore); err != nil {
 		return nil, err
 	}
 
-	now := time.Now()
-	newStartDate := s.getStartOfWeek(now)
-	newEndDate := newStartDate.AddDate(0, 0, 28) // * 4 weeks
-	err = s.choreRepo.UpdateAssignedDates([]uint{choreID}, newStartDate, newEndDate)
-	if err != nil {
-		log.Printf("failed to update assigned date with current time: %v", err)
-	}
+	// clear old rotations
+	_ = s.choreRepo.DeleteRotationUsersByChoreID(choreID)
+	_ = s.choreRepo.DeleteAssignmentsByChoreID(choreID)
 
-	// * update rotation users
-	if v.BoolValue(request.AutoRotate) {
-		// * delete existing rotations
-		err = s.choreRepo.DeleteRotationUsersByChoreID(choreID)
-		if err != nil {
-			log.Printf("failed to delete existing rotations: %v", err)
+	// re-create rotation users if AutoRotate
+	for i, userID := range request.AssignedUserIDs {
+		rotation := &entities.ChoreRotationUser{
+			ChoreID:       v.Ptr(choreID),
+			UserID:        v.Ptr(userID),
+			RotationOrder: v.Ptr(i + 1),
 		}
-
-		// * create new rotations
-		for i, userID := range request.AssignedUserIDs {
-			rotation := &entities.ChoreRotationUser{
-				ChoreID:       v.Ptr(choreID),
-				UserID:        v.Ptr(userID),
-				RotationOrder: v.Ptr(i + 1),
-			}
-			err = s.choreRepo.CreateRotationUser(rotation)
-			if err != nil {
-				log.Printf("failed to create rotation user: %v", err)
-			}
+		if err := s.choreRepo.CreateRotationUser(rotation); err != nil {
+			return nil, err
 		}
 	}
+
+	// regenerate assignments
+	startDate := s.getStartOfWeek(time.Now())
+	endDate := startDate.AddDate(0, 0, 28) // 4 weeks ahead
+
+	err = s.GenerateChoreAssignments(choreID, startDate, endDate)
 
 	return &dtos.CreateChoreResponse{
 		ChoreID:           chore.ChoreID,
@@ -662,17 +651,15 @@ func (s choreService) GetChoreDetailByID(choreID uint) (*dtos.GetChoreDetailByID
 
 	// Get assigned users for this chore
 	assignedUsers := make([]dtos.AssignedUserInfo, 0)
-	if v.BoolValue(chore.AutoRotate) {
-		rotations, err := s.choreRepo.GetRotationUsersByChoreID(choreID)
-		if err == nil {
-			for _, rotation := range rotations {
-				if rotation.User != nil {
-					assignedUsers = append(assignedUsers, dtos.AssignedUserInfo{
-						UserID:      rotation.User.UserID,
-						Username:    rotation.User.Username,
-						UserPicture: rotation.User.UserPicture,
-					})
-				}
+	rotations, err := s.choreRepo.GetAssignmentUserByChoreID(choreID)
+	if err == nil {
+		for _, rotation := range rotations {
+			if rotation.User != nil {
+				assignedUsers = append(assignedUsers, dtos.AssignedUserInfo{
+					UserID:      rotation.User.UserID,
+					Username:    rotation.User.Username,
+					UserPicture: rotation.User.UserPicture,
+				})
 			}
 		}
 	}

@@ -108,6 +108,15 @@ func (r choreRepositoryDB) CreateRotationUser(rotation *entities.ChoreRotationUs
 	return r.db.Create(rotation).Error
 }
 
+func (r choreRepositoryDB) GetAssignmentUserByChoreID(choreID uint) ([]entities.ChoreAssignment, error) {
+	var assignments []entities.ChoreAssignment
+	err := r.db.Where("chore_id = ?", choreID).
+		Preload("User").
+		Order("user_id ASC").
+		Find(&assignments).Error
+	return assignments, err
+}
+
 func (r choreRepositoryDB) GetRotationUsersByChoreID(choreID uint) ([]entities.ChoreRotationUser, error) {
 	var rotations []entities.ChoreRotationUser
 	err := r.db.Where("chore_id = ?", choreID).
@@ -210,11 +219,6 @@ func (r choreRepositoryDB) GetAssignmentsForRoomOnDateByUser(roomID, userID uint
 	return rows, err
 }
 
-func (r choreRepositoryDB) UpdateAssignedDates(assignmentIDs []uint, newStartDate, newEndDate time.Time) error {
-	return r.db.Model(&entities.ChoreAssignment{}).
-		Where("chore_assignment_id IN ?", assignmentIDs).
-		Updates(map[string]interface{}{
-			"assigned_date": newStartDate,
-			"due_date_time": newEndDate,
-		}).Error
+func (r choreRepositoryDB) DeleteAssignmentsByChoreID(choreID uint) error {
+	return r.db.Where("chore_id = ?", choreID).Delete(&entities.ChoreAssignment{}).Error
 }
