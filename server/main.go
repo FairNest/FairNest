@@ -42,19 +42,26 @@ func main() {
 
 	// AutoMigrate all entities
 	err = db.AutoMigrate(
+		// Core entities
 		&entities.User{},
 		&entities.Lifestyle{},
-		&entities.RoomMember{},
 		&entities.Room{},
+		&entities.RoomMember{},
+
+		// Notification system
 		&entities.Notification{},
-		&entities.UserCompatibilityProfile{},
+
+		// Room joining system
+		&entities.RoomJoinRequest{},
+		&entities.RoomJoinVote{},
+
+		// * user compatibility
+		//&entities.UserCompatibilityProfile{},
+
+		// Chore management system
 		&entities.Chore{},
 		&entities.ChoreAssignment{},
 		&entities.ChoreRotationUser{},
-		//&entities.Bill{},
-		//&entities.BillSplit{},
-		//&entities.PaymentRequest{},
-		//&entities.SCBAccessToken{},
 	)
 	if err != nil {
 		panic("❌ Failed to AutoMigrate entities: " + err.Error())
@@ -81,6 +88,7 @@ func main() {
 	roomMemberRepositoryDB := repository.NewRoomMemberRepositoryDB(db)
 	notificationRepositoryDB := repository.NewNotificationRepositoryDB(db)
 	choreRepositoryDB := repository.NewChoreRepositoryDB(db)
+	roomJoinRepositoryDB := repository.NewRoomJoinRepositoryDB(db)
 
 	uploadService := service.NewUploadService(minioClient)
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
@@ -89,6 +97,7 @@ func main() {
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	notificationService := service.NewNotificationService(notificationRepositoryDB)
 	choreService := service.NewChoreService(choreRepositoryDB, userService)
+	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
 	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService)
@@ -96,6 +105,7 @@ func main() {
 	roomMemberHandler := handler.NewRoomMemberHandler(roomMemberService)
 	notificationHandler := handler.NewNotificationHandler(notificationService)
 	choreHandler := handler.NewChoreHandler(choreService, jwtSecret)
+	roomJoinHandler := handler.NewRoomJoinHandler(roomJoinService)
 
 	app := fiber.New()
 
@@ -157,7 +167,7 @@ func main() {
 	app.Get("/GetRoomDetailsByRoomId/:RoomID", roomHandler.GetRoomDetailsByRoomId)
 	app.Get("/GetRoomDetailsByRoomCode/:RoomCode", roomHandler.GetRoomDetailsByRoomCode)
 
-	app.Get("/CheckUserHasRoomOrNot/:UserID", roomMemberHandler.CheckUserHasRoomOrNot)
+	app.Get("/GetCheckUserHasRoomOrNotByUserId/:UserID", roomMemberHandler.GetCheckUserHasRoomOrNotByUserId)
 
 	app.Get("/GetHouseRulesByRoomId/:RoomID", roomHandler.GetHouseRulesByRoomId)
 	app.Patch("/PatchEditHouseRulesByRoomId/:RoomID", roomHandler.PatchEditHouseRulesByRoomId)
@@ -170,8 +180,12 @@ func main() {
 	app.Put("/PutMarkAsReadByNotificationId/:NotificationID", notificationHandler.PutMarkAsReadByNotificationId)
 	app.Get("/GetCountOfUnreadNotificationByUserId/:UserID", notificationHandler.GetCountOfUnreadNotificationByUserId)
 
+	// Notification Endpoints
 	app.Post("/CreateNotification/:SenderID/:ReceiverID", notificationHandler.CreateNotification)
 	app.Post("/CreateVoteNotification/:SenderID/:ReceiverID", notificationHandler.CreateVoteNotification)
+
+	// Room Join Request and Voting Endpoints
+	app.Post("/CreateRoomJoinRequestByUserIdRoomId/:UserID/:RoomID", roomJoinHandler.CreateRoomJoinRequestByUserIdRoomId)
 
 	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
 
