@@ -115,3 +115,37 @@ func (h *notificationHandler) GetCountOfUnreadNotificationByUserId(c *fiber.Ctx)
 	}
 	return c.JSON(countResponse)
 }
+
+func (h *notificationHandler) CreateNotification(c *fiber.Ctx) error {
+	senderIDReceive, err := strconv.Atoi(c.Params("SenderID"))
+	receiverIDReceive, err := strconv.Atoi(c.Params("ReceiverID"))
+
+	var req dtos.CreateNotificationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return err
+	}
+
+	notification, err := h.notificationSer.CreateNotification(senderIDReceive, receiverIDReceive, req)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(notification)
+}
+
+func (h *notificationHandler) CreateVoteNotification(c *fiber.Ctx) error {
+	senderIDReceive, err := strconv.Atoi(c.Params("SenderID"))
+	receiverIDReceive, err := strconv.Atoi(c.Params("ReceiverID"))
+
+	var req dtos.CreateVoteNotificationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return err
+	}
+
+	notification, err := h.notificationSer.CreateVoteNotification(senderIDReceive, receiverIDReceive, req)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(notification)
+}

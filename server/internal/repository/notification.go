@@ -10,4 +10,7 @@ type NotificationRepository interface {
 
 	PutMarkAsReadByNotificationId(notification *entities.Notification) error
 	GetCountOfUnreadNotificationByUserId(int) (int, error)
+
+	CreateNotification(notification *entities.Notification) error
+	CreateVoteNotification(notification *entities.Notification) error
 }

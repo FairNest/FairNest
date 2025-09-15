@@ -170,6 +170,9 @@ func main() {
 	app.Put("/PutMarkAsReadByNotificationId/:NotificationID", notificationHandler.PutMarkAsReadByNotificationId)
 	app.Get("/GetCountOfUnreadNotificationByUserId/:UserID", notificationHandler.GetCountOfUnreadNotificationByUserId)
 
+	app.Post("/CreateNotification/:SenderID/:ReceiverID", notificationHandler.CreateNotification)
+	app.Post("/CreateVoteNotification/:SenderID/:ReceiverID", notificationHandler.CreateVoteNotification)
+
 	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
 
 	// Chore Management
