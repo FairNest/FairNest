@@ -7,14 +7,7 @@ import 'package:fairnestui/util/DateStrip.dart';
 // NEW imports
 import 'package:fairnestui/services/api_client.dart';
 import 'package:fairnestui/services/user_profile_service.dart';
-import 'package:fairnestui/pages/Chores/EditChorePage.dart';
-
-class Chorespage extends StatefulWidget {
-  const Chorespage({super.key});
-
-  @override
-  State<Chorespage> createState() => _ChorespageState();
-}
+import 'package:fairnestui/pages/Chores/ViewChorePage.dart';
 
 /* ------------------- API model mapped from backend ------------------- */
 class _ChoreItem {
@@ -32,18 +25,14 @@ class _ChoreItem {
     this.completed = false,
   });
 
-  /// Always the chore_id (needed for GET/PUT/DELETE detail endpoints)
   final int choreId;
-
-  /// Optional chore_assignment_id (useful if you later complete a specific assignment)
   final int? assignmentId;
-
   final String title;
   final int points;
   final bool autoRotate;
   final String recurrence;
-  final String reminderTime; // derived from due_time or reminder_time
-  final String reminderRepeat; // derived from recurrence or weekday
+  final String reminderTime;
+  final String reminderRepeat;
   final String? assignedName;
   final String? assignedAvatarUrl;
 
@@ -66,7 +55,6 @@ class _ChoreItem {
         ? _prettyRecurrence(recurrence, weekday)
         : weekday;
 
-    // Parse IDs
     final int choreId = (j['chore_id'] is int)
         ? j['chore_id'] as int
         : int.tryParse('${j['chore_id'] ?? 0}') ?? 0;
@@ -113,23 +101,27 @@ class _ChoreItem {
   }
 }
 
+class Chorespage extends StatefulWidget {
+  const Chorespage({super.key});
+
+  @override
+  State<Chorespage> createState() => _ChorespageState();
+}
+
 class _ChorespageState extends State<Chorespage> {
-  // calendar state for DateStrip
   late DateTime _start;
   late DateTime _selected;
   final int _days = 30;
+  int _tab = 0;
 
-  // segmented pill state
-  int _tab = 0; // 0 = All Tasks, 1 = My Tasks
-
-  // runtime/user/room
   int? _roomId;
 
-  // remote data
   List<_ChoreItem> _allTasks = [];
   List<_ChoreItem> _myTasks = [];
   bool _loading = true;
   String? _error;
+
+  final Set<int> _completing = {}; // track which assignments are posting
 
   @override
   void initState() {
@@ -147,10 +139,7 @@ class _ChorespageState extends State<Chorespage> {
     });
 
     try {
-      // 1) Try cache first
       var profile = await UserProfileService.instance.getCachedProfile();
-
-      // 2) If cache is empty, fetch (this will populate the cache)
       profile ??= await UserProfileService.instance.getUserProfile();
 
       if (profile == null) {
@@ -163,8 +152,6 @@ class _ChorespageState extends State<Chorespage> {
       }
 
       _roomId = profile.roomId;
-
-      // 3) Fetch chores for the currently selected date
       await _fetchForDate(_selected);
     } catch (e) {
       setState(() {
@@ -188,7 +175,6 @@ class _ChorespageState extends State<Chorespage> {
     try {
       final ymd = _toYmd(d);
 
-      // All tasks
       final respAll = await ApiClient.get(
         '/rooms/${_roomId}/chores/day',
         queryParameters: {'date': ymd},
@@ -197,7 +183,6 @@ class _ChorespageState extends State<Chorespage> {
           .map((e) => _ChoreItem.fromJson(e as Map<String, dynamic>))
           .toList();
 
-      // My tasks
       final respMine = await ApiClient.get(
         '/rooms/${_roomId}/chores/day/mine',
         queryParameters: {'date': ymd},
@@ -219,12 +204,10 @@ class _ChorespageState extends State<Chorespage> {
     }
   }
 
-  // Pull-to-refresh & manual reload
   Future<void> _refresh() async {
     await _fetchForDate(_selected);
   }
 
-  // -------- open edit flow --------
   Future<void> _openEditFor(_ChoreItem c) async {
     if (_roomId == null || c.choreId <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -233,32 +216,57 @@ class _ChorespageState extends State<Chorespage> {
       return;
     }
 
-    // We can pass the data we already have; EditChorePage will fetch detail and prefill itself.
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => EditChorePage(
-          roomId: _roomId!, // ✅ required by EditChorePage
-          choreId: c.choreId, // ✅ required by EditChorePage
-          title: c.title, // placeholders (overridden by GET)
-          dateTime: DateTime.now(),
-          assignees: const [],
-          category: null,
-          recurrence: c.recurrence.isNotEmpty ? c.recurrence : null,
-          autoRotate: c.autoRotate,
+        builder: (_) => ViewChorePage(
+          roomId: _roomId!,
+          choreId: c.choreId,
         ),
       ),
     );
 
     if (!mounted) return;
-
-    if (result is Map &&
-        (result['action'] == 'saved' || result['action'] == 'deleted')) {
+    if (result is Map && result['action'] == 'deleted') {
       await _refresh();
     }
   }
 
-  /* ------------------- builders ------------------- */
+  Future<void> _markComplete(_ChoreItem c) async {
+    if (c.assignmentId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Missing chore_assignment_id')),
+      );
+      return;
+    }
+    if (_completing.contains(c.assignmentId)) return;
+
+    setState(() => _completing.add(c.assignmentId!));
+    try {
+      await ApiClient.post('/chores/complete', data: {
+        'chore_assignment_id': c.assignmentId,
+      });
+
+      setState(() {
+        c.completed = true;
+        _allTasks.removeWhere((x) => x.assignmentId == c.assignmentId);
+        _myTasks.removeWhere((x) => x.assignmentId == c.assignmentId);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Marked as completed ✅')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to complete: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _completing.remove(c.assignmentId));
+      }
+    }
+  }
+
   Widget _buildList(List<_ChoreItem> items) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
@@ -285,7 +293,6 @@ class _ChorespageState extends State<Chorespage> {
       );
     }
     if (items.isEmpty) {
-      // keep scrollable for pull-to-refresh even when empty
       return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: const _EmptyArea(label: 'No chores here 🎉'),
@@ -317,7 +324,14 @@ class _ChorespageState extends State<Chorespage> {
                   initiallyChecked: false,
                   onCheckedChanged: (checked) {
                     if (!checked) return;
-                    setState(() => c.completed = true);
+                    if (c.assignmentId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No assignment id')),
+                      );
+                      return;
+                    }
+                    if (_completing.contains(c.assignmentId)) return;
+                    _markComplete(c);
                   },
                 ),
               ),
@@ -339,7 +353,6 @@ class _ChorespageState extends State<Chorespage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title + manual refresh button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -356,27 +369,21 @@ class _ChorespageState extends State<Chorespage> {
               ],
             ),
             const SizedBox(height: 12),
-
-            // Horizontal date strip (drives data fetch)
             DateStrip(
               startDate: _start,
               days: _days,
               selectedDate: _selected,
               onDateSelected: (d) {
                 setState(() => _selected = d);
-                _fetchForDate(d); // fetch when user taps a date
+                _fetchForDate(d);
               },
             ),
             const SizedBox(height: 12),
-
-            // Segmented pill with LIVE counts
             _CountSegmentedPill(
               tabs: const ['All Tasks', 'My Tasks'],
               counts: [allCount, myCount],
               initialIndex: _tab,
               onChanged: (i) => setState(() => _tab = i),
-
-              // size controls
               height: 46,
               labelFontSize: 14,
               badgeHeight: 22,
@@ -384,18 +391,15 @@ class _ChorespageState extends State<Chorespage> {
               badgeRadius: 8,
               badgeHorizontalPadding: 7,
             ),
-
             const SizedBox(height: 16),
-
-            // Pull-to-refresh wrapper around the tab content
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _refresh,
                 child: IndexedStack(
                   index: _tab,
                   children: [
-                    _buildList(_allTasks), // All Tasks (incomplete only)
-                    _buildList(_myTasks), // My Tasks (incomplete + mine)
+                    _buildList(_allTasks),
+                    _buildList(_myTasks),
                   ],
                 ),
               ),
@@ -524,7 +528,6 @@ class _CountSegmentedPillState extends State<_CountSegmentedPill> {
             ),
             Row(
               children: List.generate(tabCount, (i) {
-                final selected = i == _index;
                 return Expanded(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(widget.height),
