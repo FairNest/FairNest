@@ -1,4 +1,9 @@
+import 'package:fairnestui/auth/welcome_page.dart';
 import 'package:fairnestui/components/MainButton.dart';
+import 'package:fairnestui/services/roommate_pdf_generator.dart'; // Your PDF generator
+import 'package:fairnestui/services/storage_service.dart';
+import 'package:fairnestui/services/user_profile_service.dart'; // Your existing service
+import 'package:fairnestui/services/api_client.dart'; // Your existing API client
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
@@ -11,6 +16,78 @@ class SettingsPage extends StatelessWidget {
 
   /// Optional: pass a callback to clear tokens, navigate to login, etc.
   final VoidCallback? onLogout;
+
+  // Method to generate roommate agreement PDF
+  Future<void> _generateRoommateAgreementPdf(BuildContext context) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      final cached = await UserProfileService.instance.getCachedProfile();
+      final profile =
+          cached ?? await UserProfileService.instance.getCurrentUserProfile();
+
+      // Hide loading indicator
+      Navigator.of(context).pop();
+
+      if (profile == null || profile.roomId == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No room found. Please join a room first.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final res =
+          await ApiClient.get('/GetHouseRulesByRoomId/${profile.roomId}');
+
+      // Handle the response based on your ApiClient implementation
+      if (res != null) {
+        // Your API returns the house rules data directly
+        final houseRules = res.data ?? res; // Get the actual response data
+
+        if (houseRules is Map<String, dynamic> &&
+            houseRules.containsKey('room_id')) {
+          await RoommateAgreementPdfGenerator.previewPdf(houseRules);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Invalid house rules data. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Unable to connect to server. Please check your internet connection.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Hide loading indicator if still showing
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error generating PDF: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   TextStyle get _titleStyle => const TextStyle(
         fontFamily: 'Krub',
@@ -98,6 +175,55 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
 
+          // Roommate Agreement
+          _SettingsCard(
+            leading: const Icon(Icons.assignment, color: Colors.black87),
+            title: 'Roommate Agreement',
+            titleStyle: _sectionTitleStyle,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('What is a Roommate Agreement?',
+                    style: _bodyStyle.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                Text(
+                  'A roommate agreement is a written document that outlines the rules, expectations, and responsibilities '
+                  'for all roommates living together. It helps prevent conflicts by clearly defining boundaries and agreements.',
+                  style: _bodyStyle,
+                ),
+                const SizedBox(height: 10),
+                Text('What\'s included',
+                    style: _bodyStyle.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                _Bullet(
+                    text: 'Quiet hours and noise policies for peaceful living.',
+                    style: _bodyStyle),
+                _Bullet(
+                    text: 'Guest policies and overnight stay rules.',
+                    style: _bodyStyle),
+                _Bullet(
+                    text: 'Cleaning responsibilities and shared space usage.',
+                    style: _bodyStyle),
+                _Bullet(
+                    text:
+                        'Cost splitting arrangements for utilities and expenses.',
+                    style: _bodyStyle),
+                const SizedBox(height: 12),
+                MainButton(
+                  text: 'Generate Agreement PDF',
+                  onPressed: () async {
+                    await _generateRoommateAgreementPdf(context);
+                  },
+                  backgroundColor: AppColors.primary,
+                  textColor: Colors.white,
+                  width: double.infinity,
+                  height: 44,
+                  fontWeight: FontWeight.w600,
+                ),
+              ],
+            ),
+          ),
+
           // About
           _SettingsCard(
             leading: const Icon(CupertinoIcons.question_circle,
@@ -160,12 +286,54 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
 
+// Updated logout button section
           const SizedBox(height: 16),
-          // Logout button
+// Logout button
           MainButton(
             text: 'Log Out',
             onPressed: onLogout ??
-                () {}, // replace with your auth sign-out + navigation
+                () async {
+                  try {
+                    // Show loading indicator
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+
+                    // Clear user profile cache
+                    await UserProfileService.instance.clearCache();
+
+                    // Clear all stored data (token, user data, etc.)
+                    await StorageService.clearAll();
+
+                    // Hide loading indicator
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
+
+                    // Navigate to welcome page and clear navigation stack
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (context) => const WelcomePage()),
+                      (route) => false,
+                    );
+                  } catch (e) {
+                    // Hide loading indicator if still showing
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error during logout: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
             backgroundColor: const Color(0xFFC34C04),
             textColor: Colors.white,
             width: double.infinity,
