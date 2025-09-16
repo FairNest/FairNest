@@ -34,7 +34,7 @@ func (r roomMemberRepositoryDB) CreateRoomMemberByRoomIdAndUserId(roomMember *en
 	return nil
 }
 
-func (r roomMemberRepositoryDB) CheckUserHasRoomOrNot(userId int) (*dtos.UserRoomCheck, error) {
+func (r roomMemberRepositoryDB) GetCheckUserHasRoomOrNotByUserId(userID int) (*dtos.UserRoomCheck, error) {
 	var result dtos.UserRoomCheck
 
 	err := r.db.
@@ -42,7 +42,7 @@ func (r roomMemberRepositoryDB) CheckUserHasRoomOrNot(userId int) (*dtos.UserRoo
 		Select(`
         EXISTS(SELECT 1 FROM users WHERE user_id = ?) AS user_exists,
         EXISTS(SELECT 1 FROM room_members WHERE user_id = ?) AS has_room
-    `, userId, userId).
+    `, userID, userID).
 		Scan(&result).Error
 	if err != nil {
 		return nil, err

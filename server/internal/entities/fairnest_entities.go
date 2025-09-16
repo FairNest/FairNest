@@ -119,32 +119,32 @@ type Notification struct {
 
 type RoomJoinRequest struct {
 	RoomJoinRequestID *uint `gorm:"primaryKey;autoIncrement"`
-	RoomID            *uint `gorm:"not null;index"`
-	RequesterUserID   *uint `gorm:"not null;index"`
+	RoomID            *uint `gorm:"not null;uniqueIndex:idx_user_room"`
+	RequesterUserID   *uint `gorm:"not null;uniqueIndex:idx_user_room"`
 
-	// Tri-state: nil=pending, true=approved, false=rejected
+	// * tri-state: nil=pending, true=approved, false=rejected
 	Status *bool `gorm:"index"`
 
 	EligibleVoterCount *int    `gorm:"not null"`
-	EligibleVoterIDs   *string // JSON snapshot of voter userIDs (optional but recommended)
-	CreatedAt          time.Time
+	EligibleVoterIDs   *string // * json snapshot of voter userIDs (optional but recommended)
+	CreatedAt          *time.Time
 
-	// Relations
-	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	// Relations with proper foreign key definitions
+	Room      *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Requester *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type RoomJoinVote struct {
 	RoomJoinVoteID    *uint `gorm:"primaryKey;autoIncrement"`
-	RoomJoinRequestID *uint `gorm:"not null;index"`
-	VoterUserID       *uint `gorm:"not null;index"`
+	RoomJoinRequestID *uint `gorm:"not null;uniqueIndex:idx_request_voter"`
+	VoterUserID       *uint `gorm:"not null;uniqueIndex:idx_request_voter"`
 
-	// Tri-state: nil=pending (hasn’t voted), true=approve, false=reject
 	Vote      *bool `gorm:"index"`
-	CreatedAt time.Time
+	CreatedAt *time.Time
 
 	// Relations
-	Request *RoomJoinRequest `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Voter   *User            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	RoomJoinRequest *RoomJoinRequest `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	VoterUser       *User            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type UserCompatibilityProfile struct {
@@ -216,68 +216,4 @@ type ChoreRotationUser struct {
 	// * relations
 	Chore *Chore `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-}
-
-type Bill struct {
-	BillID          *uint    `gorm:"primaryKey;autoIncrement"`
-	RoomID          *uint    `gorm:"not null"`
-	BillName        *string  // "Electricity", "Netflix", "Water"
-	Amount          *float64 // Total cost
-	Recurrence      *string  // "monthly", "weekly", "once"
-	DueDayOfMonth   *int     // 1-31, 3 = due on 3rd each month
-	IsSplitEvenly   *bool    // true -> split even, false -> use BillSplit
-	BillDescription *string
-
-	CreatedAt *time.Time
-	UpdatedAt *time.Time
-
-	// Relations
-	Room *Room `gorm:"foreignKey:RoomID"`
-}
-
-type BillSplit struct {
-	BillSplitID *uint    `gorm:"primaryKey;autoIncrement"`
-	BillID      *uint    `gorm:"not null"`
-	UserID      *uint    `gorm:"not null"`
-	Amount      *float64 // how much this user is responsible for
-
-	// Relations
-	User *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Bill *Bill `gorm:"foreignKey:BillID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-}
-
-type PaymentRequest struct {
-	PaymentRequestID *uint `gorm:"primaryKey;autoIncrement"`
-	BillID           *uint // link to original Bill
-	//BillID           *uint `gorm:"not null"` // link to original Bill
-	RequesterID *uint `gorm:"not null"` // the one who paid
-	PayerID     *uint `gorm:"not null"` // the one who owes
-
-	Amount      *float64
-	Description *string
-
-	IsPaid    *bool
-	PaidAt    *time.Time
-	CreatedAt *time.Time
-
-	QRCodeURL      *string // For SCB QR code payment
-	TransactionRef *string // Ref1 or transaction_id from SCB response
-	SlipVerifyCode *string // For verifying slip scan (optional)
-
-	// For async webhook (if SCB notifies you)
-	SCBStatus *string // "PENDING", "SUCCESS", "FAILED"
-
-	// Relations
-	Requester *User `gorm:"foreignKey:RequesterID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Payer     *User `gorm:"foreignKey:PayerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Bill      *Bill `gorm:"foreignKey:BillID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
-}
-
-type SCBAccessToken struct {
-	ID          *uint `gorm:"primaryKey;autoIncrement"`
-	AccessToken *string
-	TokenType   *string
-	ExpiresIn   *int
-	Scope       *string
-	CreatedAt   *time.Time
 }

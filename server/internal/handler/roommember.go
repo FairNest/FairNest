@@ -65,7 +65,7 @@ func (h *roomMemberHandler) FetchAllRoomMemberWithUserDetailsByRoomId(c *fiber.C
 	return c.JSON(roomMembersResponse)
 }
 
-func (h *roomMemberHandler) CheckUserHasRoomOrNot(c *fiber.Ctx) error {
+func (h *roomMemberHandler) GetCheckUserHasRoomOrNotByUserId(c *fiber.Ctx) error {
 	userID, err := strconv.Atoi(c.Params("userID"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -73,7 +73,7 @@ func (h *roomMemberHandler) CheckUserHasRoomOrNot(c *fiber.Ctx) error {
 		})
 	}
 
-	hasRoom, err := h.roomMemberSer.CheckUserHasRoomOrNot(userID)
+	hasRoom, err := h.roomMemberSer.GetCheckUserHasRoomOrNotByUserId(userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "user not found",

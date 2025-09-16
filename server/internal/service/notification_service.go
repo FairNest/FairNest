@@ -1,8 +1,10 @@
 package service
 
 import (
+	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
+	"fairnest/internal/utils/v"
 	"log"
 )
 
@@ -115,4 +117,58 @@ func (s notificationService) GetCountOfUnreadNotificationByUserId(userId int) (i
 		return 0, err
 	}
 	return count, nil
+}
+
+func (s notificationService) CreateNotification(senderId int, receiverId int, request dtos.CreateNotificationRequest) (*dtos.CreateNotificationResponse, error) {
+	isRead := false
+	isVoteNotification := false
+
+	notification := entities.Notification{
+		SenderID:            v.Ptr(uint(senderId)),
+		ReceiverID:          v.Ptr(uint(receiverId)),
+		NotificationMessage: request.NotificationMessage,
+		IsRead:              &isRead,
+		IsVoteNotification:  &isVoteNotification,
+	}
+
+	if err := s.notificationRepo.CreateNotification(&notification); err != nil {
+		return nil, err
+	}
+
+	return &dtos.CreateNotificationResponse{
+		NotificationID:      notification.NotificationID,
+		SenderID:            notification.SenderID,
+		ReceiverID:          notification.ReceiverID,
+		NotificationMessage: notification.NotificationMessage,
+		IsRead:              notification.IsRead,
+		IsVoteNotification:  notification.IsVoteNotification,
+		CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
+	}, nil
+}
+
+func (s notificationService) CreateVoteNotification(senderId int, receiverId int, request dtos.CreateVoteNotificationRequest) (*dtos.CreateVoteNotificationResponse, error) {
+	isRead := false
+	isVoteNotification := true
+
+	notification := entities.Notification{
+		SenderID:            v.Ptr(uint(senderId)),
+		ReceiverID:          v.Ptr(uint(receiverId)),
+		NotificationMessage: request.NotificationMessage,
+		IsRead:              &isRead,
+		IsVoteNotification:  &isVoteNotification,
+	}
+
+	if err := s.notificationRepo.CreateVoteNotification(&notification); err != nil {
+		return nil, err
+	}
+
+	return &dtos.CreateVoteNotificationResponse{
+		NotificationID:      notification.NotificationID,
+		SenderID:            notification.SenderID,
+		ReceiverID:          notification.ReceiverID,
+		NotificationMessage: notification.NotificationMessage,
+		IsRead:              notification.IsRead,
+		IsVoteNotification:  notification.IsVoteNotification,
+		CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
+	}, nil
 }

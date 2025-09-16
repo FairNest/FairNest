@@ -11,6 +11,6 @@ type RoomMemberRepository interface {
 	/////////////////////////////////////////////////////////////////
 
 	CreateRoomMemberByRoomIdAndUserId(roomMember *entities.RoomMember) error
-	CheckUserHasRoomOrNot(userId int) (*dtos.UserRoomCheck, error)
+	GetCheckUserHasRoomOrNotByUserId(userID int) (*dtos.UserRoomCheck, error)
 	GetUsersBasicByRoomId(roomID int) ([]dtos.RoomUserInfo, error)
 }

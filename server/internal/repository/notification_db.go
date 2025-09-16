@@ -69,3 +69,19 @@ func (r notificationRepositoryDB) GetCountOfUnreadNotificationByUserId(userId in
 	}
 	return int(count), nil
 }
+
+func (r notificationRepositoryDB) CreateNotification(notification *entities.Notification) error {
+	result := r.db.Create(notification)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (r notificationRepositoryDB) CreateVoteNotification(notification *entities.Notification) error {
+	result := r.db.Create(notification)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
