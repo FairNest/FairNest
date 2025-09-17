@@ -109,6 +109,73 @@ func (h *roomHandler) FetchAllPublicRoomSuitUserLifestyleByUserId(c *fiber.Ctx) 
 	return c.JSON(rooms)
 }
 
+func (h *roomHandler) FilterPublicRoomSuitUserLifestyleByUserId(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid user ID")
+	}
+
+	// Parse filter parameters
+	filters := h.parseFilterParams(c)
+
+	rooms, err := h.roomSer.FilterPublicRoomSuitUserLifestyleByUserId(userIDReceive, filters)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(rooms)
+}
+
+// Add this helper method to your handler
+func (h *roomHandler) parseFilterParams(c *fiber.Ctx) map[string]interface{} {
+	filters := make(map[string]interface{})
+
+	// Parse numeric filters
+	if maxCapacity := c.Query("maxCapacity"); maxCapacity != "" {
+		if val, err := strconv.Atoi(maxCapacity); err == nil {
+			filters["maxCapacity"] = val
+		}
+	}
+
+	if minRent := c.Query("minRent"); minRent != "" {
+		if val, err := strconv.ParseFloat(minRent, 64); err == nil {
+			filters["minRent"] = val
+		}
+	}
+
+	if maxRent := c.Query("maxRent"); maxRent != "" {
+		if val, err := strconv.ParseFloat(maxRent, 64); err == nil {
+			filters["maxRent"] = val
+		}
+	}
+
+	if maxElectricity := c.Query("maxElectricity"); maxElectricity != "" {
+		if val, err := strconv.ParseFloat(maxElectricity, 64); err == nil {
+			filters["maxElectricity"] = val
+		}
+	}
+
+	if maxWater := c.Query("maxWater"); maxWater != "" {
+		if val, err := strconv.ParseFloat(maxWater, 64); err == nil {
+			filters["maxWater"] = val
+		}
+	}
+
+	// Parse time filter
+	if quietHoursStart := c.Query("quietHoursStart"); quietHoursStart != "" {
+		filters["quietHoursStart"] = quietHoursStart
+	}
+
+	// Parse minimum compatibility
+	if minCompatibility := c.Query("minCompatibility"); minCompatibility != "" {
+		if val, err := strconv.ParseFloat(minCompatibility, 64); err == nil {
+			filters["minCompatibility"] = val
+		}
+	}
+
+	return filters
+}
+
 func (h *roomHandler) GetMyRoomByUserId(c *fiber.Ctx) error {
 	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
 

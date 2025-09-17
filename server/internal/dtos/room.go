@@ -164,6 +164,27 @@ type FetchAllPublicRoomSuitUserLifestyleByUserIdResponse struct {
 	CompatibilityPercent *float64 `json:"compatibility_percent"`
 }
 
+type FilterPublicRoomSuitUserLifestyleByUserIdResponse struct {
+	RoomID                 *uint   `json:"room_id" validate:"required"`
+	RoomName               *string `json:"room_name" validate:"required"`
+	RoomType               *bool   `json:"room_type" validate:"required"`
+	RoomMaxCapacity        *int    `json:"room_max_capacity" validate:"required"`
+	RoomCurrentCapacity    *int    `json:"room_current_capacity" validate:"required"`
+	RoomDescription        *string `json:"room_description" validate:"required"`
+	RoomCode               *string `json:"room_code" validate:"required"`
+	RoomCompatibilityScore *int    `json:"room_compatibility_score" validate:"required"`
+	RoomPicture            *string `json:"room_picture" validate:"required"`
+
+	// Fields needed for filtering
+	RentCost               *int    `json:"rent_cost"`
+	ElectricityCostPerUnit *int    `json:"electricity_cost_per_unit"`
+	WaterCostPerUnit       *int    `json:"water_cost_per_unit"`
+	QuietHoursStart        *string `json:"quiet_hours_start"`
+
+	// Compatibility calculation
+	CompatibilityPercent *float64 `json:"compatibility_percent"`
+}
+
 type GetMyRoomByUserIdResponse struct {
 	RoomID                 *uint   `json:"room_id" validate:"required"`
 	RoomName               *string `json:"room_name" validate:"required" `

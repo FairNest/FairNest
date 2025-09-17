@@ -162,6 +162,7 @@ func main() {
 	app.Post("/CreateRoomByUserId/:UserID", roomHandler.CreateRoomByUserId)
 
 	app.Get("/FetchAllPublicRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FetchAllPublicRoomSuitUserLifestyleByUserId)
+	app.Get("/FilterPublicRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FilterPublicRoomSuitUserLifestyleByUserId)
 	app.Get("/GetMyRoomByUserId/:UserID", roomHandler.GetMyRoomByUserId)
 
 	app.Get("/GetRoomDetailsByRoomId/:RoomID", roomHandler.GetRoomDetailsByRoomId)

@@ -17,6 +17,7 @@ type RoomService interface {
 	CreateRoomByUserId(int, dtos.CreateRoomByUserIdRequest) (*dtos.CreateRoomByUserIdResponse, error)
 
 	FetchAllPublicRoomSuitUserLifestyleByUserId(int) ([]dtos.FetchAllPublicRoomSuitUserLifestyleByUserIdResponse, error)
+	FilterPublicRoomSuitUserLifestyleByUserId(userId int, filters map[string]interface{}) ([]dtos.FetchAllPublicRoomSuitUserLifestyleByUserIdResponse, error)
 	GetMyRoomByUserId(int) (*dtos.GetMyRoomByUserIdResponse, error)
 
 	GetRoomDetailsByRoomId(int) (*dtos.GetRoomDetailsByRoomIdResponse, error)

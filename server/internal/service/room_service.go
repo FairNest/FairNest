@@ -6,11 +6,12 @@ import (
 	"fairnest/internal/repository"
 	"fairnest/internal/utils"
 	"fairnest/internal/utils/v"
-	"github.com/gofiber/fiber/v2"
 	"log"
 	"math/rand"
 	"sort"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type roomService struct {
@@ -355,6 +356,127 @@ func (s roomService) GetMyRoomByUserId(userId int) (*dtos.GetMyRoomByUserIdRespo
 	}
 
 	return response, nil
+}
+
+func (s roomService) FilterPublicRoomSuitUserLifestyleByUserId(userId int, filters map[string]interface{}) ([]dtos.FetchAllPublicRoomSuitUserLifestyleByUserIdResponse, error) {
+	// Step 1: fetch all rooms
+	rooms, err := s.roomRepo.FetchAllRoom()
+	if err != nil {
+		return nil, err
+	}
+
+	// Step 2: fetch user lifestyle
+	userLifestyle, err := s.lifestyleSer.GetUserLifestyleByUserId(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Step 3: Filter rooms at entity level BEFORE calculating compatibility
+	filteredRooms := s.applyFiltersToEntities(rooms, filters)
+
+	// Step 4: Calculate compatibility for filtered rooms and create response DTOs
+	responses := make([]dtos.FetchAllPublicRoomSuitUserLifestyleByUserIdResponse, 0, len(filteredRooms))
+	for _, r := range filteredRooms {
+		percent := utils.CalculateCompatibility(*userLifestyle, r)
+
+		responses = append(responses, dtos.FetchAllPublicRoomSuitUserLifestyleByUserIdResponse{
+			RoomID:                 r.RoomID,
+			RoomName:               r.RoomName,
+			RoomType:               r.RoomType,
+			RoomMaxCapacity:        r.RoomMaxCapacity,
+			RoomCurrentCapacity:    r.RoomCurrentCapacity,
+			RoomDescription:        r.RoomDescription,
+			RoomCode:               r.RoomCode,
+			RoomCompatibilityScore: r.RoomCompatibilityScore,
+			RoomPicture:            r.RoomPicture,
+			CompatibilityPercent:   v.Ptr(percent),
+		})
+	}
+
+	// Step 5: Apply compatibility filter if specified (after compatibility calculation)
+	finalResponses := s.applyCompatibilityFilter(responses, filters)
+
+	// Step 6: Sort by compatibility descending
+	sort.Slice(finalResponses, func(i, j int) bool {
+		return v.Float64Value(finalResponses[i].CompatibilityPercent) > v.Float64Value(finalResponses[j].CompatibilityPercent)
+	})
+
+	return finalResponses, nil
+}
+
+// Add these new helper methods to your service:
+func (s roomService) applyFiltersToEntities(rooms []entities.Room, filters map[string]interface{}) []entities.Room {
+	if len(filters) == 0 {
+		return rooms
+	}
+
+	filtered := make([]entities.Room, 0)
+
+	for _, room := range rooms {
+		if s.shouldIncludeRoomEntity(room, filters) {
+			filtered = append(filtered, room)
+		}
+	}
+
+	return filtered
+}
+
+func (s roomService) shouldIncludeRoomEntity(room entities.Room, filters map[string]interface{}) bool {
+	// Max capacity filter
+	if maxCap, ok := filters["maxCapacity"].(int); ok {
+		if room.RoomMaxCapacity != nil && *room.RoomMaxCapacity > maxCap {
+			return false
+		}
+	}
+
+	// Rent cost filters
+	if minRent, ok := filters["minRent"].(float64); ok {
+		if room.RentCost != nil && float64(*room.RentCost) < minRent {
+			return false
+		}
+	}
+	if maxRent, ok := filters["maxRent"].(float64); ok {
+		if room.RentCost != nil && float64(*room.RentCost) > maxRent {
+			return false
+		}
+	}
+
+	// Electricity cost filter
+	if maxElec, ok := filters["maxElectricity"].(float64); ok {
+		if room.ElectricityCostPerUnit != nil && float64(*room.ElectricityCostPerUnit) > maxElec {
+			return false
+		}
+	}
+
+	// Water cost filter
+	if maxWater, ok := filters["maxWater"].(float64); ok {
+		if room.WaterCostPerUnit != nil && float64(*room.WaterCostPerUnit) > maxWater {
+			return false
+		}
+	}
+
+	// Quiet hours filter
+	if quietStart, ok := filters["quietHoursStart"].(string); ok {
+		if room.QuietHoursStart != nil && *room.QuietHoursStart != quietStart {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (s roomService) applyCompatibilityFilter(responses []dtos.FetchAllPublicRoomSuitUserLifestyleByUserIdResponse, filters map[string]interface{}) []dtos.FetchAllPublicRoomSuitUserLifestyleByUserIdResponse {
+	if minCompat, ok := filters["minCompatibility"].(float64); !ok {
+		return responses // No compatibility filter
+	} else {
+		filtered := make([]dtos.FetchAllPublicRoomSuitUserLifestyleByUserIdResponse, 0)
+		for _, room := range responses {
+			if room.CompatibilityPercent != nil && *room.CompatibilityPercent >= minCompat {
+				filtered = append(filtered, room)
+			}
+		}
+		return filtered
+	}
 }
 
 func (s roomService) GetRoomDetailsByRoomId(roomId int) (*dtos.GetRoomDetailsByRoomIdResponse, error) {
