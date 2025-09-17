@@ -61,7 +61,8 @@ class _LoginPageState extends State<LoginPage> {
       // 4) Check whether the user already has a room
       bool hasRoom = false;
       try {
-        final resp = await ApiClient.get('/CheckUserHasRoomOrNot/$userId');
+        final resp =
+            await ApiClient.get('/GetCheckUserHasRoomOrNotByUserId/$userId');
         // Expecting: { "has_room": true/false }
         final data = resp.data;
         if (data is Map && data.containsKey('has_room')) {

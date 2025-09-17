@@ -1,5 +1,6 @@
 import 'package:fairnestui/auth/welcome_page.dart';
 import 'package:fairnestui/components/MainButton.dart';
+import 'package:fairnestui/pages/Settings/EmergencyContactTile.dart';
 import 'package:fairnestui/services/roommate_pdf_generator.dart'; // Your PDF generator
 import 'package:fairnestui/services/storage_service.dart';
 import 'package:fairnestui/services/user_profile_service.dart'; // Your existing service
@@ -7,6 +8,7 @@ import 'package:fairnestui/services/api_client.dart'; // Your existing API clien
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
+import 'package:url_launcher/url_launcher.dart'; // Add this import
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({
@@ -16,6 +18,23 @@ class SettingsPage extends StatelessWidget {
 
   /// Optional: pass a callback to clear tokens, navigate to login, etc.
   final VoidCallback? onLogout;
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        throw 'Could not launch phone app';
+      }
+    } catch (e) {
+      print('Error launching phone app: $e');
+    }
+  }
 
   // Method to generate roommate agreement PDF
   Future<void> _generateRoommateAgreementPdf(BuildContext context) async {
@@ -214,7 +233,7 @@ class SettingsPage extends StatelessWidget {
                   onPressed: () async {
                     await _generateRoommateAgreementPdf(context);
                   },
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: AppColors.darkPurple,
                   textColor: Colors.white,
                   width: double.infinity,
                   height: 44,
@@ -286,7 +305,112 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
 
-// Updated logout button section
+          _SettingsCard(
+            leading: const Icon(Icons.emergency, color: Colors.red),
+            title: 'Emergency Contacts',
+            titleStyle: _sectionTitleStyle,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Bangkok Emergency Services',
+                    style: _bodyStyle.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                Text(
+                  'Tap on any number to call directly. These numbers are available 24/7 in Bangkok, Thailand.',
+                  style: _bodyStyle.copyWith(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Police
+                EmergencyContactTile(
+                  icon: Icons.local_police,
+                  iconColor: Colors.blue,
+                  title: 'Police',
+                  number: '191',
+                  description: 'General emergency police services',
+                  onTap: () => _makePhoneCall('191'),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Fire Department
+                EmergencyContactTile(
+                  icon: Icons.local_fire_department,
+                  iconColor: Colors.red,
+                  title: 'Fire Department',
+                  number: '199',
+                  description: 'Fire emergency and rescue services',
+                  onTap: () => _makePhoneCall('199'),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Medical Emergency
+                EmergencyContactTile(
+                  icon: Icons.local_hospital,
+                  iconColor: Colors.green,
+                  title: 'Medical Emergency',
+                  number: '1669',
+                  description: 'Ambulance and medical emergency',
+                  onTap: () => _makePhoneCall('1669'),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Tourist Police
+                EmergencyContactTile(
+                  icon: Icons.support_agent,
+                  iconColor: Colors.purple,
+                  title: 'Tourist Police',
+                  number: '1155',
+                  description: 'Tourist assistance and support',
+                  onTap: () => _makePhoneCall('1155'),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Emergency Hotline
+                EmergencyContactTile(
+                  icon: Icons.phone_in_talk,
+                  iconColor: Colors.orange,
+                  title: 'Emergency Hotline',
+                  number: '1784',
+                  description: 'General emergency coordination center',
+                  onTap: () => _makePhoneCall('1784'),
+                ),
+
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.red[600], size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'In case of immediate danger, call 191 (Police) first',
+                          style: _bodyStyle.copyWith(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           const SizedBox(height: 16),
 // Logout button
           MainButton(
