@@ -150,109 +150,124 @@ class _LoginPageState extends State<LoginPage> {
                         bottomRight: Radius.circular(12),
                       ),
                     ),
+// inside the Container(...), replace:
+// child: Form(
+//   key: _formKey,
+//   child: Column(
+//     crossAxisAlignment: CrossAxisAlignment.start,
+//     children: [ ... ],
+//   ),
+// ),
+
                     child: Form(
                       key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
+                      child: SingleChildScrollView(
+                        // lets the panel scroll when keyboard opens
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                        ),
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
 
-                          // Email
-                          const _FieldLabel('Email'),
-                          const SizedBox(height: 12),
-                          _Input(
-                            controller: _emailCtrl,
-                            hint: 'Your Email',
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) {
-                                return 'Email is required';
-                              }
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                  .hasMatch(v.trim())) {
-                                return 'Please enter a valid email';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Password
-                          const _FieldLabel('Password'),
-                          const SizedBox(height: 12),
-                          _Input(
-                            controller: _pwCtrl,
-                            hint: '••••••••••',
-                            obscureText: _obscure,
-                            suffix: IconButton(
-                              icon: Icon(
-                                _obscure
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                                color: Colors.grey[600],
-                                size: 20,
-                              ),
-                              onPressed: () =>
-                                  setState(() => _obscure = !_obscure),
+                            // Email
+                            const _FieldLabel('Email'),
+                            const SizedBox(height: 12),
+                            _Input(
+                              controller: _emailCtrl,
+                              hint: 'Your Email',
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty)
+                                  return 'Email is required';
+                                if (!RegExp(
+                                        r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$')
+                                    .hasMatch(v.trim()))
+                                  return 'Please enter a valid email';
+                                return null;
+                              },
                             ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Password is required';
-                              }
-                              return null;
-                            },
-                          ),
+                            const SizedBox(height: 20),
 
-                          const SizedBox(height: 45),
-
-                          // Login Button
-                          MainButton(
-                            text: _isLoading ? 'Logging in...' : 'Log In',
-                            backgroundColor: const Color(0xFFE8B86D),
-                            textColor: const Color(0xFF000000),
-                            width: double.infinity,
-                            height: 52,
-                            borderRadius: 12,
-                            onPressed: _isLoading ? null : _handleLogin,
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Register link
-                          Center(
-                            child: Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                const Text(
-                                  "Don't have an account? ",
-                                  style: TextStyle(
-                                    color: AppColors.textDark,
-                                    fontSize: 12,
-                                  ),
+                            // Password
+                            const _FieldLabel('Password'),
+                            const SizedBox(height: 12),
+                            _Input(
+                              controller: _pwCtrl,
+                              hint: '••••••••••',
+                              obscureText: _obscure,
+                              suffix: IconButton(
+                                icon: Icon(
+                                  _obscure
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: Colors.grey[600],
+                                  size: 20,
                                 ),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const SignUpPage(),
-                                      ),
-                                    );
-                                  },
-                                  child: const Text(
-                                    'Register here',
+                                onPressed: () =>
+                                    setState(() => _obscure = !_obscure),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.isEmpty)
+                                  return 'Password is required';
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 45),
+
+                            // Login Button
+                            MainButton(
+                              text: _isLoading ? 'Logging in...' : 'Log In',
+                              backgroundColor: const Color(0xFFE8B86D),
+                              textColor: const Color(0xFF000000),
+                              width: double.infinity,
+                              height: 52,
+                              borderRadius: 12,
+                              onPressed: _isLoading ? null : _handleLogin,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Register link
+                            Center(
+                              child: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  const Text(
+                                    "Don't have an account? ",
                                     style: TextStyle(
-                                      fontSize: 13,
-                                      color: AppColors.textOrange,
-                                      decoration: TextDecoration.underline,
-                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textDark,
+                                      fontSize: 12,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const SignUpPage(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      'Register here',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textOrange,
+                                        decoration: TextDecoration.underline,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

@@ -12,12 +12,13 @@ import 'package:fairnestui/pages/Finance/AddFinancePage.dart';
 // ---- Your widgets ----
 import 'package:fairnestui/widgets/app_bottom_nav.dart';
 import 'package:fairnestui/widgets/room_header_appbar.dart';
+import 'package:fairnestui/widgets/loading_3d_widget.dart';
 
 // ---- Header centralization helpers ----
 import 'package:fairnestui/shell/header_controller.dart';
 import 'package:fairnestui/shell/header_scope.dart';
 
-// ---- Profile service & model (paths aligned to your service snippet) ----
+// ---- Profile service & model ----
 import 'package:fairnestui/services/user_profile_service.dart';
 import 'package:fairnestui/model/user_profile_model.dart';
 
@@ -31,41 +32,56 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   late int _index = widget.initialIndex;
+  bool _isLoading = true;
 
   /// Single source of truth for the header (score, progress, icons, avatar).
   final HeaderController _header = HeaderController();
 
   // Order must match your AppBottomNav icons:
   // 0 Home, 1 List, 2 Add (center), 3 Cash, 4 User
-  late final List<Widget> _tabs = const [
-    RoomDashboardPage(), // 0
-    Chorespage(), // 1
-    SizedBox.shrink(), // 2 (center Add handled separately)
-    Financepage(), // 3
-    CompatibilityPage(), // 4
+  late final List<Widget> _tabs = [
+    const RoomDashboardPage(), // 0
+    const Chorespage(), // 1
+    const SizedBox.shrink(), // 2 (center Add handled separately)
+    const Financepage(), // 3
+    const CompatibilityPage(), // 4
   ];
 
   @override
   void initState() {
     super.initState();
-
-    // Neutral header fast (will be replaced by cached/fresh).
-    _header.set(const HeaderConfig(
-      scoreText: '0 Points',
-      progress: 0.0,
-      showNotifications: true,
-      showSettings: true,
-      // avatarImage: null (fallback handled in builder)
-    ));
-
-    // Cache-first, then refresh to keep it correct.
-    _loadProfileCacheThenRefresh();
+    _initializeApp();
   }
 
   @override
   void dispose() {
     _header.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializeApp() async {
+    // Show loading for minimum time to display the animation
+    final loadingFuture = Future.delayed(const Duration(milliseconds: 1500));
+
+    // Set initial neutral header
+    _header.set(const HeaderConfig(
+      scoreText: '0 Points',
+      progress: 0.0,
+      showNotifications: true,
+      showSettings: true,
+    ));
+
+    // Load profile data
+    final profileFuture = _loadProfileCacheThenRefresh();
+
+    // Wait for both loading animation and profile data
+    await Future.wait([loadingFuture, profileFuture]);
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   /// Public helper if pages want to trigger a refresh after actions.
@@ -153,8 +169,7 @@ class _AppShellState extends State<AppShell> {
                     MaterialPageRoute(builder: (_) => const AddChorePage()),
                   );
                   if (result != null) {
-                    // Optionally refresh if score changes:
-                    // await reloadProfile();
+                    await reloadProfile();
                   }
                 },
               ),
@@ -168,8 +183,7 @@ class _AppShellState extends State<AppShell> {
                     MaterialPageRoute(builder: (_) => const AddFinancePage()),
                   );
                   if (result != null) {
-                    // Optionally refresh if score changes:
-                    // await reloadProfile();
+                    await reloadProfile();
                   }
                 },
               ),
@@ -180,29 +194,69 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
+  /// Only the active tab is allowed to tick animations.
+  List<Widget> _stackedTabs() {
+    final effectiveIndex = _index == 2 ? 0 : _index; // ignore center slot
+    return List<Widget>.generate(_tabs.length, (i) {
+      final active = i == effectiveIndex;
+      return TickerMode(
+        enabled: active,
+        child: KeyedSubtree(
+          key: PageStorageKey('tab_$i'),
+          child: _tabs[i],
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return HeaderScope(
-      controller: _header, // expose header to descendants if needed
-      child: Scaffold(
-        // Centralized AppBar that rebuilds immediately on header changes.
-        appBar: const PreferredSize(
-          preferredSize: Size.fromHeight(88),
-          child: _HeaderAppBarBuilder(),
-        ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 280),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: _isLoading
+          ? Scaffold(
+              key: const ValueKey('loading'),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              body: const RepaintBoundary(
+                  child: Loading3DWidget(
+                message: 'Loading your space...',
+                primaryColor: Color(0xFFC7BDE2),
+                secondaryColor: Color(0xFF645A80),
+                size: 110,
+                showOrbit: false, // ← hide bubbles for a crisp house
+                showSparkles: true,
+                showLogo: false,
+              )),
+            )
+          : HeaderScope(
+              key: const ValueKey('main'),
+              controller: _header,
+              child: Scaffold(
+                // Centralized AppBar that rebuilds immediately on header changes.
+                appBar: const PreferredSize(
+                  preferredSize: Size.fromHeight(88),
+                  child: RepaintBoundary(
+                    child: _HeaderAppBarBuilder(),
+                  ),
+                ),
 
-        // Keep all tabs alive; only the active one is visible.
-        body: IndexedStack(
-          index: _index == 2 ? 0 : _index, // ignore center slot visually
-          children: _tabs,
-        ),
+                // Keep all tabs alive; only the active one ticks & is visible.
+                body: IndexedStack(
+                  index: _index == 2 ? 0 : _index,
+                  children: _stackedTabs(),
+                ),
 
-        bottomNavigationBar: AppBottomNav(
-          currentIndex: _index,
-          onTabSelected: _onTabSelected,
-          onCenterAction: _onCenterAction,
-        ),
-      ),
+                bottomNavigationBar: RepaintBoundary(
+                  child: AppBottomNav(
+                    currentIndex: _index,
+                    onTabSelected: _onTabSelected,
+                    onCenterAction: _onCenterAction,
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }
