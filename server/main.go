@@ -100,7 +100,7 @@ func main() {
 	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
-	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService)
+	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService, lifestyleRepositoryDB)
 	roomHandler := handler.NewRoomHandler(roomService)
 	roomMemberHandler := handler.NewRoomMemberHandler(roomMemberService)
 	notificationHandler := handler.NewNotificationHandler(notificationService)
@@ -170,11 +170,15 @@ func main() {
 
 	app.Get("/GetCheckUserHasRoomOrNotByUserId/:UserID", roomMemberHandler.GetCheckUserHasRoomOrNotByUserId)
 
+	// House Rules Endpoints
 	app.Get("/GetHouseRulesByRoomId/:RoomID", roomHandler.GetHouseRulesByRoomId)
 	app.Patch("/PatchEditHouseRulesByRoomId/:RoomID", roomHandler.PatchEditHouseRulesByRoomId)
 
+	// Lifestyle & Compatibility Endpoints
 	app.Get("/GetRoomOverallLifestyleByRoomId/:RoomID", roomHandler.GetRoomOverallLifestyleByRoomId)
 	app.Get("/GetUserOverallLifestyleByUserId/:UserID", lifestyleHandler.GetUserOverallLifestyleByUserId)
+	app.Get("/GetRoomAverageCompatibilityByRoomId/:RoomID", lifestyleHandler.GetRoomAverageCompatibilityByRoomId)
+	app.Get("/GetCompatibilityMatchesByRoomAndUser/:RoomID/:UserID", lifestyleHandler.GetCompatibilityMatchesByRoomAndUser)
 
 	app.Get("/FetchAllUnreadNotificationByUserId/:UserID", notificationHandler.FetchAllUnreadNotificationByUserId)
 	app.Get("/FetchThreeNotificationByUserId/:UserID", notificationHandler.FetchThreeNotificationByUserId)

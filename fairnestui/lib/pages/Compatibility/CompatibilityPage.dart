@@ -13,6 +13,84 @@ import 'package:fairnestui/widgets/LifestyleOverview.dart';
 import 'package:fairnestui/services/user_profile_service.dart';
 import 'package:fairnestui/services/api_client.dart';
 
+/// ---- Models for the 2 new compatibility endpoints ----
+
+class CompatibilityPairDto {
+  final int userAId;
+  final String userAName;
+  final int userBId;
+  final String userBName;
+  final double scorePct; // 0..100
+
+  CompatibilityPairDto({
+    required this.userAId,
+    required this.userAName,
+    required this.userBId,
+    required this.userBName,
+    required this.scorePct,
+  });
+
+  factory CompatibilityPairDto.fromJson(Map<String, dynamic> j) {
+    double _num(v) => (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+    return CompatibilityPairDto(
+      userAId: (j['user_a_id'] as num).toInt(),
+      userAName: (j['user_a_name'] ?? '') as String,
+      userBId: (j['user_b_id'] as num).toInt(),
+      userBName: (j['user_b_name'] ?? '') as String,
+      scorePct: _num(j['score']),
+    );
+  }
+}
+
+class RoomCompatibilitySummaryDto {
+  final double scorePct; // 0..100
+  final CompatibilityPairDto bestMatched;
+  final CompatibilityPairDto mostDivergent;
+
+  RoomCompatibilitySummaryDto({
+    required this.scorePct,
+    required this.bestMatched,
+    required this.mostDivergent,
+  });
+
+  factory RoomCompatibilitySummaryDto.fromJson(Map<String, dynamic> j) {
+    return RoomCompatibilitySummaryDto(
+      scorePct: (j['score'] as num).toDouble(),
+      bestMatched: CompatibilityPairDto.fromJson(
+          j['best_matched'] as Map<String, dynamic>),
+      mostDivergent: CompatibilityPairDto.fromJson(
+          j['most_divergent'] as Map<String, dynamic>),
+    );
+  }
+}
+
+class CompatibilityMatchItemDto {
+  final int userId;
+  final String username;
+  final String? profilePicture;
+  final double scorePct; // 0..100
+  final String matchLabel;
+
+  CompatibilityMatchItemDto({
+    required this.userId,
+    required this.username,
+    required this.profilePicture,
+    required this.scorePct,
+    required this.matchLabel,
+  });
+
+  factory CompatibilityMatchItemDto.fromJson(Map<String, dynamic> j) {
+    double _num(v) => (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+    return CompatibilityMatchItemDto(
+      userId: (j['user_id'] as num).toInt(),
+      username: (j['username'] ?? '') as String,
+      profilePicture: j['profile_picture'] as String?,
+      scorePct: _num(j['score']),
+      matchLabel: (j['match'] ?? '') as String,
+    );
+  }
+}
+
 class CompatibilityPage extends StatefulWidget {
   const CompatibilityPage({super.key});
 
@@ -30,6 +108,10 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
   // Data to render
   List<LifestyleMetric> _roomMetrics = const [];
   List<LifestyleMetric> _userMetrics = const [];
+
+  // NEW: compatibility summary + per-roommate matches
+  RoomCompatibilitySummaryDto? _roomSummary;
+  List<CompatibilityMatchItemDto> _matches = const [];
 
   @override
   void initState() {
@@ -88,38 +170,62 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
 
   Future<void> _fetchLifestyleFor(int userId, int roomId) async {
     try {
-      // Fetch both in parallel
+      // Fetch lifestyle + both compatibility endpoints in parallel
       final results = await Future.wait([
         ApiClient.get('/GetRoomOverallLifestyleByRoomId/$roomId'),
         ApiClient.get('/GetUserOverallLifestyleByUserId/$userId'),
+        ApiClient.get('/GetRoomAverageCompatibilityByRoomId/$roomId'),
+        ApiClient.get('/GetCompatibilityMatchesByRoomAndUser/$roomId/$userId'),
       ]);
 
       final roomResp = results[0];
       final userResp = results[1];
+      final compSummaryResp = results[2];
+      final compMatchesResp = results[3];
 
       if (!mounted) return;
 
       final roomOk = roomResp.statusCode == 200;
       final userOk = userResp.statusCode == 200;
+      final sumOk = compSummaryResp.statusCode == 200;
+      final matOk = compMatchesResp.statusCode == 200;
 
-      if (!roomOk && !userOk) {
+      if (!roomOk && !userOk && !sumOk && !matOk) {
         throw Exception(
-            'Failed to load lifestyle data (${roomResp.statusCode}/${userResp.statusCode}).');
+          'Failed to load lifestyle/compatibility data '
+          '(${roomResp.statusCode}/${userResp.statusCode}/'
+          '${compSummaryResp.statusCode}/${compMatchesResp.statusCode}).',
+        );
       }
 
-      final roomJson = roomOk ? (roomResp.data as Map<String, dynamic>) : null;
-      final userJson = userOk ? (userResp.data as Map<String, dynamic>) : null;
+      final roomMetrics = roomOk
+          ? _parseRoomLifestyle(roomResp.data as Map<String, dynamic>)
+          : const <LifestyleMetric>[];
+      final userMetrics = userOk
+          ? _parseUserLifestyle(userResp.data as Map<String, dynamic>)
+          : const <LifestyleMetric>[];
 
-      final roomMetrics = roomJson != null
-          ? _parseRoomLifestyle(roomJson)
-          : const <LifestyleMetric>[];
-      final userMetrics = userJson != null
-          ? _parseUserLifestyle(userJson)
-          : const <LifestyleMetric>[];
+      RoomCompatibilitySummaryDto? summary;
+      if (sumOk && compSummaryResp.data is Map<String, dynamic>) {
+        summary = RoomCompatibilitySummaryDto.fromJson(
+            compSummaryResp.data as Map<String, dynamic>);
+      }
+
+      List<CompatibilityMatchItemDto> matches = const [];
+      if (matOk && compMatchesResp.data is Map<String, dynamic>) {
+        final map = compMatchesResp.data as Map<String, dynamic>;
+        final list = (map['matches'] as List<dynamic>? ?? const []);
+        matches = list
+            .whereType<Map<String, dynamic>>()
+            .map(CompatibilityMatchItemDto.fromJson)
+            .toList();
+      }
 
       setState(() {
         _roomMetrics = roomMetrics;
         _userMetrics = userMetrics;
+        _roomSummary = summary;
+        _matches = matches;
         _loading = false;
         _error = null;
       });
@@ -247,9 +353,11 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // If you later get an overall compatibility % from backend,
-                                // pass it here instead of the placeholder 0.66.
-                                const RoomCompatibilityCard(value: 0.66),
+                                RoomCompatibilityCard(
+                                  // widget expects 0..1; backend returns % → divide by 100
+                                  value:
+                                      ((_roomSummary?.scorePct ?? 0.0) / 100.0),
+                                ),
                                 const SizedBox(height: 12),
 
                                 // Light panel inside lavender card
@@ -268,10 +376,18 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
                                               color: AppColors.textPurple)),
                                       const SizedBox(height: 8),
                                       _insightRow(
-                                          'Best Matched Pair:', 'Max & Lando'),
+                                        'Best Matched Pair:',
+                                        _roomSummary == null
+                                            ? '-'
+                                            : '${_roomSummary!.bestMatched.userAName} & ${_roomSummary!.bestMatched.userBName}',
+                                      ),
                                       const SizedBox(height: 6),
-                                      _insightRow('Most Divergent Lifestyle:',
-                                          'Max & George'),
+                                      _insightRow(
+                                        'Most Divergent Lifestyle:',
+                                        _roomSummary == null
+                                            ? '-'
+                                            : '${_roomSummary!.mostDivergent.userAName} & ${_roomSummary!.mostDivergent.userBName}',
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -282,29 +398,54 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
 
                         const SizedBox(height: 18),
 
-                        // ===== Roommate Compatibility Cards (still sample) =====
+                        // ===== Roommate Compatibility Cards =====
                         Text('Roommate Compatibility',
                             style: AppFonts.heading3
                                 .copyWith(color: AppColors.textDark)),
                         const SizedBox(height: 8),
-                        const Roommatecompatibilitycard(
-                          avatarImage: AssetImage('assets/images/char.png'),
-                          name: 'Max',
-                          compatibilityPercent: 72,
-                          traits: ['Very Good Match'],
-                          insights: [
-                            'You and Max share a strong co-living rhythm. Keep up the great streak by maintaining consistent chore completion and clear communication.',
-                          ],
-                        ),
-                        const Roommatecompatibilitycard(
-                          avatarImage: AssetImage('assets/images/pikachu.png'),
-                          name: 'Lando',
-                          compatibilityPercent: 68,
-                          traits: ['A good match'],
-                          insights: [
-                            "You're mostly in sync, but small differences in guest preferences may cause tension. Consider aligning on quiet hours or visitor expectations.",
-                          ],
-                        ),
+
+                        if (_matches.isEmpty)
+                          Text('No roommate matches to show.',
+                              style: AppFonts.body1
+                                  .copyWith(color: AppColors.textPurple))
+                        else
+                          Column(
+                            children: _matches.map((m) {
+                              final img = (m.profilePicture?.isNotEmpty ??
+                                      false)
+                                  ? NetworkImage(m.profilePicture!)
+                                  : const AssetImage(
+                                          'assets/images/default_avatar.png')
+                                      as ImageProvider;
+
+                              // temporary advice text per label (hard-coded)
+                              final adviceByLabel = <String, String>{
+                                'Perfect':
+                                    'Great synergy—keep up the communication streak!',
+                                'Very Good':
+                                    'Strong rhythm—align on goals to keep it smooth.',
+                                'Good':
+                                    'Mostly in sync—clarify expectations occasionally.',
+                                'Average':
+                                    'Some gaps—set shared norms for chores/quiet hours.',
+                                'Bad':
+                                    'Big differences—talk and set clear boundaries soon.',
+                              };
+                              final advice = adviceByLabel[m.matchLabel] ??
+                                  'Keep communicating and align on shared routines.';
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Roommatecompatibilitycard(
+                                  avatarImage: img,
+                                  name: m.username,
+                                  compatibilityPercent: m.scorePct.round(),
+                                  traits: [m.matchLabel],
+                                  insights: [advice],
+                                ),
+                              );
+                            }).toList(),
+                          ),
                         const SizedBox(height: 8),
                       ],
                     ),

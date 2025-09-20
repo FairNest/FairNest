@@ -57,7 +57,7 @@ func (r roomRepositoryDB) GetMyRoomByUserId(userId int) (*entities.Room, error) 
 
 	result := r.db.
 		Joins("JOIN room_members ON room_members.room_id = rooms.room_id").
-		Where("room_members.user_id = ? AND room_members.is_host = ?", userId, true).
+		Where("room_members.user_id = ?", userId).
 		First(&room) // <- first matching row
 
 	if result.Error != nil {

@@ -37,3 +37,31 @@ type GetUserOverallLifestyleByUserIdResponse struct {
 	UserTaskStructure  *float64 `json:"user_task_structure" validate:"required"`
 	UserMoneyAttitude  *float64 `json:"user_money_attitude" validate:"required"`
 }
+
+type CompatibilityPair struct {
+	UserAID   uint    `json:"user_a_id"`
+	UserAName string  `json:"user_a_name"`
+	UserBID   uint    `json:"user_b_id"`
+	UserBName string  `json:"user_b_name"`
+	Score     float64 `json:"score"` // percentage (0–100)
+}
+
+type RoomCompatibilitySummaryResponse struct {
+	Score         float64           `json:"score"`          // average percentage (0–100)
+	BestMatched   CompatibilityPair `json:"best_matched"`   // highest pairwise
+	MostDivergent CompatibilityPair `json:"most_divergent"` // lowest pairwise
+}
+
+type CompatibilityMatchItem struct {
+	UserID         uint    `json:"user_id"`
+	Username       string  `json:"username"`
+	ProfilePicture *string `json:"profile_picture,omitempty"`
+	Score          float64 `json:"score"` // percentage (0–100)
+	Match          string  `json:"match"` // Bad/Average/Good/Very Good/Perfect
+}
+
+type CompatibilityMatchResponse struct {
+	RoomID  uint                     `json:"room_id"`
+	UserID  uint                     `json:"user_id"`
+	Matches []CompatibilityMatchItem `json:"matches"`
+}
