@@ -97,7 +97,7 @@ func main() {
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	notificationService := service.NewNotificationService(notificationRepositoryDB)
 	choreService := service.NewChoreService(choreRepositoryDB, userService)
-	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService)
+	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService, lifestyleService)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
 	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService, lifestyleRepositoryDB)
@@ -191,6 +191,7 @@ func main() {
 
 	// Room Join Request and Voting Endpoints
 	app.Post("/CreateRoomJoinRequestByUserIdRoomId/:UserID/:RoomID", roomJoinHandler.CreateRoomJoinRequestByUserIdRoomId)
+	app.Get("/GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID/:roomJoinRequestID/:voterUserID", roomJoinHandler.GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID)
 
 	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
 
