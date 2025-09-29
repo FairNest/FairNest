@@ -38,6 +38,30 @@ func (h *roomJoinHandler) CreateRoomJoinRequestByUserIdRoomId(c *fiber.Ctx) erro
 		})
 	}
 
-	return c.JSON(roomJoinRequest)
-	//return c.Status(fiber.StatusCreated).JSON(roomJoinRequest)
+	return c.Status(fiber.StatusCreated).JSON(roomJoinRequest)
+}
+
+func (h *roomJoinHandler) GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID(c *fiber.Ctx) error {
+	roomJoinRequestID, err := strconv.Atoi(c.Params("roomJoinRequestID"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid requester room join request id",
+		})
+	}
+
+	voterUserID, err := strconv.Atoi(c.Params("voterUserID"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid voter user id",
+		})
+	}
+
+	response, err := h.roomJoinSer.GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID(roomJoinRequestID, voterUserID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(response)
 }
