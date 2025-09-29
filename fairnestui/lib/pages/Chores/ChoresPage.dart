@@ -1,4 +1,5 @@
 import 'package:fairnestui/components/ChoresTaskCard.dart';
+import 'package:fairnestui/widgets/celebration_pop_up.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -253,9 +254,11 @@ class _ChorespageState extends State<Chorespage> {
         _myTasks.removeWhere((x) => x.assignmentId == c.assignmentId);
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Marked as completed ✅')),
-      );
+      CelebrationPopup.show(context,
+          message: 'Task Completed!\nGreat job! 🎉',
+          backgroundColor: const Color(0xFFF8F9FA),
+          textColor: const Color(0xFF2D3748),
+          autoCloseDuration: const Duration(seconds: 2));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to complete: $e')),

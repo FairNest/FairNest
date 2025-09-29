@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'dart:math' as math;
 
 class Loading3DWidget extends StatefulWidget {
@@ -29,12 +30,10 @@ class Loading3DWidget extends StatefulWidget {
 
 class _Loading3DWidgetState extends State<Loading3DWidget>
     with TickerProviderStateMixin {
-  late AnimationController _buildController;
   late AnimationController _pulseController;
   late AnimationController _roommateController;
   late AnimationController _bounceController;
 
-  late Animation<double> _buildAnimation;
   late Animation<double> _pulseAnimation;
   late Animation<double> _roommateAnimation;
   late Animation<double> _bounceAnimation;
@@ -42,14 +41,6 @@ class _Loading3DWidgetState extends State<Loading3DWidget>
   @override
   void initState() {
     super.initState();
-
-    _buildController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-    _buildAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _buildController, curve: Curves.easeInOut),
-    );
 
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
@@ -75,7 +66,6 @@ class _Loading3DWidgetState extends State<Loading3DWidget>
       CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
     );
 
-    _buildController.forward(); // build once
     _pulseController.repeat(reverse: true);
     _roommateController.repeat();
     _bounceController.repeat(reverse: true);
@@ -83,7 +73,6 @@ class _Loading3DWidgetState extends State<Loading3DWidget>
 
   @override
   void dispose() {
-    _buildController.dispose();
     _pulseController.dispose();
     _roommateController.dispose();
     _bounceController.dispose();
@@ -98,7 +87,6 @@ class _Loading3DWidgetState extends State<Loading3DWidget>
         children: [
           AnimatedBuilder(
             animation: Listenable.merge([
-              _buildAnimation,
               _pulseAnimation,
               _roommateAnimation,
               _bounceAnimation,
@@ -159,260 +147,31 @@ class _Loading3DWidgetState extends State<Loading3DWidget>
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          if (widget.showOrbit && _buildAnimation.value > 0.3)
-            ..._buildOrbitingRoommates(behind: true),
-          if (widget.showOrbit && _buildAnimation.value > 0.6)
-            ..._buildFloatingActivities(behind: true),
-          _buildHouseStructure(),
-          if (widget.showSparkles && _buildAnimation.value < 1.0)
-            ..._buildConstructionEffects(),
+          if (widget.showOrbit) ..._buildOrbitingRoommates(behind: true),
+          if (widget.showOrbit) ..._buildFloatingActivities(behind: true),
+          _buildLottieHouse(),
+          if (widget.showOrbit) ..._buildOrbitingRoommates(behind: false),
+          if (widget.showOrbit) ..._buildFloatingActivities(behind: false),
         ],
       ),
     );
   }
 
-  Widget _buildHouseStructure() {
-    final progress = _buildAnimation.value;
-
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          if (progress > 0.0)
-            AnimatedOpacity(
-              opacity: (progress * 4).clamp(0.0, 1.0),
-              duration: const Duration(milliseconds: 350),
-              child: _foundation(),
-            ),
-          if (progress > 0.25)
-            AnimatedOpacity(
-              opacity: ((progress - 0.25) * 4).clamp(0.0, 1.0),
-              duration: const Duration(milliseconds: 350),
-              child: _walls(),
-            ),
-          if (progress > 0.5)
-            AnimatedOpacity(
-              opacity: ((progress - 0.5) * 4).clamp(0.0, 1.0),
-              duration: const Duration(milliseconds: 350),
-              child: _roof(),
-            ),
-          if (progress > 0.75)
-            AnimatedOpacity(
-              opacity: ((progress - 0.75) * 4).clamp(0.0, 1.0),
-              duration: const Duration(milliseconds: 350),
-              child: _interior(),
-            ),
-        ],
-      ),
-    );
-  }
-
-  // --- HOUSE PARTS ----------------------------------------------------------
-
-  Widget _foundation() {
-    return Positioned(
-      bottom: widget.size * 0.12,
-      child: Container(
-        width: widget.size * 0.98,
-        height: widget.size * 0.12,
-        decoration: BoxDecoration(
-          color: widget.secondaryColor.withAlpha(210),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: widget.secondaryColor.withAlpha(70),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _walls() {
-    final w = widget.size * 0.8;
-    final h = widget.size * 0.72;
-
-    return Container(
-      width: w,
-      height: h,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6F1EC),
-        borderRadius: BorderRadius.circular(18),
-        border:
-            Border.all(color: widget.primaryColor.withAlpha(140), width: 2.5),
-        boxShadow: [
-          BoxShadow(
-            color: widget.secondaryColor.withAlpha(50),
-            blurRadius: 14,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _roof() {
-    final roofW = widget.size * 0.98; // wider overhang
-    final roofH = widget.size * 0.36;
-
-    return Positioned(
-      top: widget.size * 0.0,
-      child: SizedBox(
-        width: roofW,
-        height: roofH,
-        child: CustomPaint(
-          painter: _RoofPainter(const Color(0xFFD28B40),
-              stroke: const Color(0xFFB57835)),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // chimney
-              Positioned(
-                right: roofW * 0.14,
-                top: -roofH * 0.28,
-                child: Container(
-                  width: 14,
-                  height: roofH * 0.62,
-                  decoration: BoxDecoration(
-                    color: widget.secondaryColor,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _interior() {
-    final inset = widget.size * 0.12;
-
+  Widget _buildLottieHouse() {
     return Center(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(inset, inset * 1.05, inset, inset * 0.9),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            if (widget.showLogo) ...[
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: Image.asset('assets/images/fairnest.png'),
-                ),
-              ),
-              const SizedBox(height: 6),
-            ],
-            // windows
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [_window(), _window()],
-            ),
-            const SizedBox(height: 10),
-            // door
-            Container(
-              width: widget.size * 0.20,
-              height: widget.size * 0.24,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE6D0BE),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                    color: widget.secondaryColor.withAlpha(150), width: 2.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.secondaryColor.withAlpha(40),
-                    blurRadius: 6,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 2),
-                  )
-                ],
-              ),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  width: 4,
-                  height: 4,
-                  margin: const EdgeInsets.only(right: 6),
-                  decoration: BoxDecoration(
-                    color: widget.secondaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _window() {
-    return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: widget.primaryColor.withAlpha(70),
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: widget.primaryColor, width: 2.5),
-      ),
-      child: Stack(
-        children: [
-          Center(
-              child:
-                  Container(width: 2, height: 14, color: widget.primaryColor)),
-          Center(
-              child:
-                  Container(width: 14, height: 2, color: widget.primaryColor)),
-        ],
+      child: Lottie.asset(
+        'assets/animations/house_popup_fairnest.json', // Make sure to add this to your assets
+        width: widget.size * 4,
+        height: widget.size * 4,
+        fit: BoxFit.contain,
+        repeat: true,
+        reverse: false,
+        animate: true,
       ),
     );
   }
 
   // --- EFFECTS & ORBITS -----------------------------------------------------
-
-  List<Widget> _buildConstructionEffects() {
-    return List.generate(6, (index) {
-      return AnimatedBuilder(
-        animation: _buildController,
-        builder: (context, _) {
-          final p = (_buildController.value * 3 + index * 0.33) % 1.0;
-          final angle = index * math.pi / 3;
-          final radius = widget.size * 0.42 * p;
-          final x = math.cos(angle) * radius;
-          final y = math.sin(angle) * radius;
-
-          return Positioned(
-            left: widget.size * 0.5 + x - 4,
-            top: widget.size * 0.5 + y - 4,
-            child: Opacity(
-              opacity: (1 - p).clamp(0.0, 1.0),
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD28B40),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFD28B40).withAlpha(120),
-                      blurRadius: 4,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    });
-  }
 
   List<Widget> _buildOrbitingRoommates({bool behind = false}) {
     final icons = [
@@ -446,7 +205,7 @@ class _Loading3DWidgetState extends State<Loading3DWidget>
             child: Transform.scale(
               scale: 0.9 + math.sin(_roommateAnimation.value * 2 + i) * 0.12,
               child: Opacity(
-                opacity: behind ? 0.8 : 1.0,
+                opacity: behind ? 0.6 : 1.0,
                 child: Container(
                   width: 40,
                   height: 40,
@@ -483,21 +242,20 @@ class _Loading3DWidgetState extends State<Loading3DWidget>
 
     return List.generate(6, (i) {
       return AnimatedBuilder(
-        animation: _buildController,
+        animation: _roommateAnimation,
         builder: (context, _) {
-          final angle =
-              (_buildController.value * 2 * math.pi * 0.5) + (i * math.pi / 3);
+          final angle = (_roommateAnimation.value * 0.5) + (i * math.pi / 3);
           final radius = widget.size * (behind ? 1.25 : 1.05) +
-              math.sin(_buildController.value * 4 * math.pi + i) * 10;
+              math.sin(_roommateAnimation.value * 4 + i) * 10;
           final cx = widget.size * 0.80;
           final cy = widget.size * 0.78 - 6;
           final x = math.cos(angle) * radius;
           final y = math.sin(angle) * radius;
 
           final scale =
-              0.65 + math.sin(_buildController.value * 3 * math.pi + i) * 0.25;
-          final opacity = ((behind ? 0.55 : 0.8) +
-                  math.sin(_buildController.value * 2 * math.pi + i) * 0.15)
+              0.65 + math.sin(_roommateAnimation.value * 3 + i) * 0.25;
+          final opacity = ((behind ? 0.4 : 0.8) +
+                  math.sin(_roommateAnimation.value * 2 + i) * 0.15)
               .clamp(0.0, 1.0);
 
           return Positioned(
@@ -543,7 +301,8 @@ class _Loading3DWidgetState extends State<Loading3DWidget>
         _activityDot(
             'Finance', Icons.receipt_long_rounded, const Color(0xFFFF96B4)),
         const SizedBox(width: 16),
-        _activityDot('Chat', Icons.chat_bubble_rounded, widget.primaryColor),
+        _activityDot(
+            'Compatibility', Icons.chat_bubble_rounded, widget.primaryColor),
       ],
     );
   }
@@ -588,37 +347,4 @@ class _Loading3DWidgetState extends State<Loading3DWidget>
       },
     );
   }
-}
-
-// Triangular roof painter with an outline stroke for readability
-class _RoofPainter extends CustomPainter {
-  final Color fill;
-  final Color stroke;
-  _RoofPainter(this.fill, {this.stroke = const Color(0xFFB57835)});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(0, size.height)
-      ..lineTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height)
-      ..close();
-
-    // subtle drop shadow
-    canvas.drawShadow(path, fill.withAlpha(110), 8, true);
-
-    // fill
-    final paintFill = Paint()..color = fill;
-    canvas.drawPath(path, paintFill);
-
-    // stroke/outline
-    final paintStroke = Paint()
-      ..color = stroke
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-    canvas.drawPath(path, paintStroke);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
