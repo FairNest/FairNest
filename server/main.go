@@ -94,9 +94,9 @@ func main() {
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
 	userService := service.NewUserService(userRepositoryDB, jwtSecret, lifestyleService)
 	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB, userService)
-	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	notificationService := service.NewNotificationService(notificationRepositoryDB)
 	choreService := service.NewChoreService(choreRepositoryDB, userService)
+	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService, lifestyleService)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
@@ -150,6 +150,8 @@ func main() {
 	app.Get("/FetchAllVotesByRoomJoinRequestID/:RoomJoinRequestID", roomJoinHandler.FetchAllVotesByRoomJoinRequestID)
 	app.Get("/FetchAllNotificationsByRoomJoinRequestID/:RoomJoinRequestID", notificationHandler.FetchAllNotificationsByRoomJoinRequestID)
 
+	app.Get("/GetVotingStatisticsByRoomJoinRequestID/:RoomJoinRequestID", roomJoinHandler.GetVotingStatisticsByRoomJoinRequestID)
+
 	//////////////////////////////////////////////////////////////////////////////////////
 
 	// Endpoints for project
@@ -169,6 +171,7 @@ func main() {
 	app.Get("/GetMyRoomByUserId/:UserID", roomHandler.GetMyRoomByUserId)
 
 	app.Get("/GetMyPendingRoomByUserID/:UserID", roomHandler.GetMyPendingRoomByUserID)
+	app.Get("/GetMyPendingRoomDetailsByRoomIdRoomJoinRequestID/:RoomID/:RoomJoinRequestID", roomHandler.GetMyPendingRoomDetailsByRoomIdRoomJoinRequestID)
 
 	app.Get("/GetRoomDetailsByRoomId/:RoomID", roomHandler.GetRoomDetailsByRoomId)
 	app.Get("/GetRoomDetailsByRoomCode/:RoomCode", roomHandler.GetRoomDetailsByRoomCode)

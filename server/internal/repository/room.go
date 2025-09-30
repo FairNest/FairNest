@@ -23,4 +23,7 @@ type RoomRepository interface {
 	GetRoomOverallLifestyleByRoomId(roomId int) (*entities.Room, error)
 
 	GetMyPendingRoomByUserID(userID int) (*dtos.GetMyPendingRoomByUserIDResponse, error)
+
+	// * get voting statistics
+	GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID int) (*dtos.VotingStatus, error)
 }

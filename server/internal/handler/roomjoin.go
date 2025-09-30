@@ -127,3 +127,21 @@ func (h *roomJoinHandler) FetchAllVotesByRoomJoinRequestID(c *fiber.Ctx) error {
 	}
 	return c.JSON(roomJoinsResponse)
 }
+
+func (h *roomJoinHandler) GetVotingStatisticsByRoomJoinRequestID(c *fiber.Ctx) error {
+	roomJoinRequestID, err := strconv.Atoi(c.Params("RoomJoinRequestID"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid room join request id",
+		})
+	}
+
+	response, err := h.roomJoinSer.GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(response)
+}

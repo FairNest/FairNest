@@ -17,4 +17,7 @@ type RoomJoinService interface {
 
 	// * get votes by room join request ID
 	FetchAllVotesByRoomJoinRequestID(int) ([]entities.RoomJoinVote, error)
+
+	// * get voting statistics
+	GetVotingStatisticsByRoomJoinRequestID(int) (*dtos.VotingStatus, error)
 }

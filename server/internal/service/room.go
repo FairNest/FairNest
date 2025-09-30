@@ -29,4 +29,5 @@ type RoomService interface {
 	GetRoomOverallLifestyleByRoomId(int) (*entities.Room, error)
 
 	GetMyPendingRoomByUserID(int) (*dtos.GetMyPendingRoomByUserIDResponse, error)
+	GetMyPendingRoomDetailsByRoomIdRoomJoinRequestID(int, int) (*dtos.GetMyPendingRoomDetailsByRoomIdResponse, error)
 }

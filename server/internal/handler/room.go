@@ -290,3 +290,23 @@ func (h *roomHandler) GetMyPendingRoomByUserID(c *fiber.Ctx) error {
 
 	return c.JSON(room)
 }
+
+func (h *roomHandler) GetMyPendingRoomDetailsByRoomIdRoomJoinRequestID(c *fiber.Ctx) error {
+	roomIDReceive, err := strconv.Atoi(c.Params("RoomID"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
+
+	}
+
+	roomJoinRequestIDReceive, err := strconv.Atoi(c.Params("RoomJoinRequestID"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid room join request id")
+	}
+
+	room, err := h.roomSer.GetMyPendingRoomDetailsByRoomIdRoomJoinRequestID(roomIDReceive, roomJoinRequestIDReceive)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(room)
+}

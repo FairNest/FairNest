@@ -3,6 +3,7 @@ package repository
 import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
+	"fairnest/internal/utils/v"
 
 	"gorm.io/gorm"
 )
@@ -134,4 +135,55 @@ func (r roomRepositoryDB) GetMyPendingRoomByUserID(userID int) (*dtos.GetMyPendi
 		return nil, result.Error
 	}
 	return &room, nil
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+
+func (r roomRepositoryDB) GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID int) (*dtos.VotingStatus, error) {
+	stats := &dtos.VotingStatus{}
+
+	var totalVoters, approveCount, rejectCount, pendingCount int64
+
+	// total voters
+	err := r.db.Model(&entities.RoomJoinVote{}).
+		Where("room_join_request_id = ?", roomJoinRequestID).
+		Count(&totalVoters).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// approve count
+	err = r.db.Model(&entities.RoomJoinVote{}).
+		Where("room_join_request_id = ? AND vote = ?", roomJoinRequestID, true).
+		Count(&approveCount).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// reject count
+	err = r.db.Model(&entities.RoomJoinVote{}).
+		Where("room_join_request_id = ? AND vote = ?", roomJoinRequestID, false).
+		Count(&rejectCount).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// pending count
+	err = r.db.Model(&entities.RoomJoinVote{}).
+		Where("room_join_request_id = ? AND vote IS NULL", roomJoinRequestID).
+		Count(&pendingCount).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// assign to pointers
+	stats.TotalVoters = v.Ptr(int(totalVoters))
+	stats.ApproveCount = v.Ptr(int(approveCount))
+	stats.RejectCount = v.Ptr(int(rejectCount))
+	stats.PendingCount = v.Ptr(int(pendingCount))
+
+	voted := int(approveCount + rejectCount)
+	stats.VotedCount = v.Ptr(voted)
+
+	return stats, nil
 }

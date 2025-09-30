@@ -710,3 +710,68 @@ func (s roomService) GetMyPendingRoomByUserID(userID int) (*dtos.GetMyPendingRoo
 
 	return response, nil
 }
+
+func (s roomService) GetMyPendingRoomDetailsByRoomIdRoomJoinRequestID(roomID int, roomJoinRequestID int) (*dtos.GetMyPendingRoomDetailsByRoomIdResponse, error) {
+	room, err := s.roomRepo.GetRoomDetailsByRoomId(roomID)
+	if err != nil {
+		return nil, err
+	}
+
+	status, err := s.roomRepo.GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID)
+	if err != nil {
+		return nil, err
+	}
+
+	members := make([]dtos.FetchAllRoomMemberWithUserDetailsResponse, 0, len(room.RoomMembers))
+	for _, m := range room.RoomMembers {
+		members = append(members, dtos.FetchAllRoomMemberWithUserDetailsResponse{
+			RoomMemberID: m.RoomMemberID,
+			UserID:       m.UserID,
+			IsHost:       m.IsHost,
+			Username:     m.User.Username,
+			Email:        m.User.Email,
+			Firstname:    m.User.Firstname,
+			Lastname:     m.User.Lastname,
+			PhoneNumber:  m.User.PhoneNumber,
+			UserPicture:  m.User.UserPicture,
+			UserAboutMe:  m.User.UserAboutMe,
+		})
+	}
+
+	return &dtos.GetMyPendingRoomDetailsByRoomIdResponse{
+		RoomID:                 room.RoomID,
+		RoomName:               room.RoomName,
+		RoomType:               room.RoomType,
+		RoomMaxCapacity:        room.RoomMaxCapacity,
+		RoomCurrentCapacity:    room.RoomCurrentCapacity,
+		RoomDescription:        room.RoomDescription,
+		RoomCode:               room.RoomCode,
+		RoomCompatibilityScore: room.RoomCompatibilityScore,
+		RoomPicture:            room.RoomPicture,
+		// LivingSpaceDetails
+		LivingSpaceName:        room.LivingSpaceName,
+		RentCost:               room.RentCost,
+		ElectricityCostPerUnit: room.ElectricityCostPerUnit,
+		WaterCostPerUnit:       room.WaterCostPerUnit,
+		OtherUtilityDetails:    room.OtherUtilityDetails,
+		// RoommateAgreements
+		QuietHoursStart: room.QuietHoursStart,
+		GuestStayOver:   room.GuestStayOver,
+		HandleCleaning:  room.HandleCleaning,
+		SharedSpace:     room.SharedSpace,
+		SplitCosts:      room.SplitCosts,
+		// Personality Averages
+		AvgTidiness:       room.AvgTidiness,
+		AvgNoiseActivity:  room.AvgNoiseActivity,
+		AvgSchedule:       room.AvgSchedule,
+		AvgGuestFrequency: room.AvgGuestFrequency,
+		AvgTaskStructure:  room.AvgTaskStructure,
+		AvgMoneyAttitude:  room.AvgMoneyAttitude,
+
+		// Voting status
+		VotingStatus: status,
+
+		// Members with user details
+		Members: members,
+	}, nil
+}

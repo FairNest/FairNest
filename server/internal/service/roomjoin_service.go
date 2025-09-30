@@ -399,6 +399,39 @@ func (s roomJoinService) FetchAllVotesByRoomJoinRequestID(roomJoinRequestID int)
 	return voteResponses, nil
 }
 
+// * get voting statistics
+func (s roomJoinService) GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID int) (*dtos.VotingStatus, error) {
+	stats, err := s.roomJoinRepo.GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID)
+	if err != nil {
+		return nil, err
+	}
+
+	// * determine final result
+	finalResult := "pending"
+	isCompleted := false
+	if *stats.RejectCount > 0 {
+		finalResult = "rejected"
+		isCompleted = true
+	} else if *stats.VotedCount == *stats.TotalVoters && *stats.ApproveCount == *stats.TotalVoters && *stats.TotalVoters > 0 {
+		finalResult = "approved"
+		isCompleted = true
+	}
+
+	if *stats.TotalVoters == 0 && *stats.VotedCount == 0 && *stats.ApproveCount == 0 && *stats.RejectCount == 0 && *stats.PendingCount == 0 {
+		return nil, fmt.Errorf("no voting data found for this request")
+	}
+
+	return &dtos.VotingStatus{
+		TotalVoters:  stats.TotalVoters,
+		VotedCount:   stats.VotedCount,
+		ApproveCount: stats.ApproveCount,
+		RejectCount:  stats.RejectCount,
+		PendingCount: stats.PendingCount,
+		IsCompleted:  v.Ptr(isCompleted),
+		FinalResult:  v.Ptr(finalResult),
+	}, nil
+}
+
 // ----------------------------------------- Private Helper Functions -----------------------------------------//
 // * check and finalize voting if complete
 func (s roomJoinService) CheckAndFinalizeVoting(roomJoinRequestID int) error {
