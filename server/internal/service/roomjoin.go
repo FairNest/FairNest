@@ -1,6 +1,9 @@
 package service
 
-import "fairnest/internal/dtos"
+import (
+	"fairnest/internal/dtos"
+	"fairnest/internal/entities"
+)
 
 type RoomJoinService interface {
 	// * create join request and send notifications
@@ -11,4 +14,7 @@ type RoomJoinService interface {
 
 	// * submit vote (approve/reject)
 	SubmitVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID int, voterUserID int, request *dtos.SubmitRoomJoinVoteRequest) (*dtos.SubmitRoomJoinVoteResponse, error)
+
+	// * get votes by room join request ID
+	FetchAllVotesByRoomJoinRequestID(int) ([]entities.RoomJoinVote, error)
 }

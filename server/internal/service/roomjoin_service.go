@@ -475,3 +475,26 @@ func (s roomJoinService) ProcessJoinRequest(roomJoinRequestID int, isApproved bo
 
 	return nil
 }
+
+// * get votes by room join request ID
+func (s roomJoinService) FetchAllVotesByRoomJoinRequestID(roomJoinRequestID int) ([]entities.RoomJoinVote, error) {
+	votes, err := s.roomJoinRepo.FetchAllVotesByRoomJoinRequestID(roomJoinRequestID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	voteResponses := []entities.RoomJoinVote{}
+	for _, vote := range votes {
+		voteResponse := entities.RoomJoinVote{
+			RoomJoinVoteID:    vote.RoomJoinVoteID,
+			RoomJoinRequestID: vote.RoomJoinRequestID,
+			VoterUserID:       vote.VoterUserID,
+			Vote:              vote.Vote,
+			CreatedAt:         vote.CreatedAt,
+		}
+		voteResponses = append(voteResponses, voteResponse)
+	}
+
+	return voteResponses, nil
+}

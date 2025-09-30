@@ -3,6 +3,7 @@ package handler
 import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/service"
+	"fairnest/internal/utils/v"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 )
@@ -104,4 +105,25 @@ func (h *roomJoinHandler) SubmitVoteByRoomJoinRequestIDVoterUserID(c *fiber.Ctx)
 	}
 
 	return c.JSON(response)
+}
+
+func (h *roomJoinHandler) FetchAllVotesByRoomJoinRequestID(c *fiber.Ctx) error {
+	roomJoinsResponse := make([]dtos.FetchAllVotesByRoomJoinRequestIDResponse, 0)
+	RoomJoinRequestIDReceive, err := strconv.Atoi(c.Params("RoomJoinRequestID"))
+
+	roomJoins, err := h.roomJoinSer.FetchAllVotesByRoomJoinRequestID(RoomJoinRequestIDReceive)
+	if err != nil {
+		return err
+	}
+
+	for _, roomJoin := range roomJoins {
+		roomJoinsResponse = append(roomJoinsResponse, dtos.FetchAllVotesByRoomJoinRequestIDResponse{
+			RoomJoinVoteID:    roomJoin.RoomJoinVoteID,
+			RoomJoinRequestID: roomJoin.RoomJoinRequestID,
+			VoterUserID:       roomJoin.VoterUserID,
+			Vote:              roomJoin.Vote,
+			VotedAt:           v.TimePtrToRFC3339Ptr(roomJoin.CreatedAt),
+		})
+	}
+	return c.JSON(roomJoinsResponse)
 }

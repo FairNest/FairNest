@@ -141,3 +141,17 @@ func (r roomJoinRepositoryDB) GetVotingStatisticsByRoomJoinRequestID(roomJoinReq
 
 	return stats, nil
 }
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+func (r roomJoinRepositoryDB) FetchAllVotesByRoomJoinRequestID(roomJoinRequestID int) ([]entities.RoomJoinVote, error) {
+	votes := []entities.RoomJoinVote{}
+	result := r.db.
+		Where("room_join_request_id = ?", roomJoinRequestID).
+		Order("created_at DESC").
+		Find(&votes)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return votes, nil
+}

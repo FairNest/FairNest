@@ -27,5 +27,5 @@ type RoomJoinRepository interface {
 	GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID int) (*dtos.VotingStatus, error)
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+	FetchAllVotesByRoomJoinRequestID(int) ([]entities.RoomJoinVote, error)
 }

@@ -77,12 +77,20 @@ type VotingStatus struct {
 	RejectCount  *int    `json:"reject_count"`
 	PendingCount *int    `json:"pending_count"`
 	IsCompleted  *bool   `json:"is_completed"`
-	FinalResult  *string `json:"final_result"` // * "approved", "rejected", "pending"
+	FinalResult  *string `json:"final_result"` // * "null = pending", "true = approved", "false = rejected"
 }
 
 type RoomJoinVoteDetail struct {
 	VoterUserID   *uint   `json:"voter_user_id"`
 	VoterUsername *string `json:"voter_username"`
-	Vote          *string `json:"vote"` // * "pending", "approve", "reject"
+	Vote          *string `json:"vote"` // * "null = pending", "true = approve", "false = reject"
 	VotedAt       *string `json:"voted_at"`
+}
+
+type FetchAllVotesByRoomJoinRequestIDResponse struct {
+	RoomJoinVoteID    *uint   `json:"room_join_vote_id"`
+	RoomJoinRequestID *uint   `json:"room_join_request_id"`
+	VoterUserID       *uint   `json:"voter_user_id"`
+	Vote              *bool   `json:"vote"` // * "null = pending", "true = approve", "false = reject"
+	VotedAt           *string `json:"voted_at"`
 }
