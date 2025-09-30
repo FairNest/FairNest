@@ -8,4 +8,7 @@ type RoomJoinService interface {
 
 	// * get join request details for voting
 	GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID(roomJoinRequestID int, voterUserID int) (*dtos.GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserIDResponse, error)
+
+	// * submit vote (approve/reject)
+	SubmitVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID int, voterUserID int, request *dtos.SubmitRoomJoinVoteRequest) (*dtos.SubmitRoomJoinVoteResponse, error)
 }

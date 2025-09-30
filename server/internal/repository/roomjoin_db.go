@@ -3,6 +3,7 @@ package repository
 import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
+	"fairnest/internal/utils/v"
 	"gorm.io/gorm"
 )
 
@@ -23,13 +24,21 @@ func (r roomJoinRepositoryDB) CreateRoomJoinRequestByUserIdRoomId(request *entit
 	return nil
 }
 
-func (r roomJoinRepositoryDB) GetRoomJoinRequestByRequesterUserID(requesterUserID int) (*entities.RoomJoinRequest, error) {
+func (r roomJoinRepositoryDB) GetRoomJoinRequestByRoomJoinRequestID(roomJoinRequestID int) (*entities.RoomJoinRequest, error) {
 	var request entities.RoomJoinRequest
-	result := r.db.First(&request, "room_join_request_id = ?", requesterUserID)
+	result := r.db.First(&request, "room_join_request_id = ?", roomJoinRequestID)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &request, nil
+}
+
+func (r roomJoinRepositoryDB) UpdateRoomJoinRequestStatusByRoomJoinRequestID(vote *entities.RoomJoinRequest) error {
+	result := r.db.Updates(vote)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -62,6 +71,15 @@ func (r roomJoinRepositoryDB) GetVoteByRoomJoinRequestIDVoterUserID(roomJoinRequ
 	return &vote, nil
 }
 
+func (r roomJoinRepositoryDB) UpdateVote(vote *entities.RoomJoinVote) error {
+	result := r.db.Updates(vote)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
 func (r roomJoinRepositoryDB) GetVotesByRoomJoinRequestID(roomJoinRequestID int) ([]entities.RoomJoinVote, error) {
 	var votes []entities.RoomJoinVote
 	result := r.db.Where("room_join_request_id = ?", roomJoinRequestID).
@@ -75,42 +93,51 @@ func (r roomJoinRepositoryDB) GetVotesByRoomJoinRequestID(roomJoinRequestID int)
 
 //------------------------------------------------------------------------------------------------------------------------------
 
-func (r roomJoinRepositoryDB) GetVotingStatisticsByRequesterID(requesterID int) (*dtos.VotingStats, error) {
-	stats := &dtos.VotingStats{}
+func (r roomJoinRepositoryDB) GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID int) (*dtos.VotingStatus, error) {
+	stats := &dtos.VotingStatus{}
 
-	// * get total voters
+	var totalVoters, approveCount, rejectCount, pendingCount int64
+
+	// total voters
 	err := r.db.Model(&entities.RoomJoinVote{}).
-		Where("room_join_request_id = ?", requesterID).
-		Count(&[]int64{int64(stats.TotalVoters)}[0]).Error
+		Where("room_join_request_id = ?", roomJoinRequestID).
+		Count(&totalVoters).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// * get approve count
+	// approve count
 	err = r.db.Model(&entities.RoomJoinVote{}).
-		Where("room_join_request_id = ? AND vote = ?", requesterID, true).
-		Count(&[]int64{int64(stats.ApproveCount)}[0]).Error
+		Where("room_join_request_id = ? AND vote = ?", roomJoinRequestID, true).
+		Count(&approveCount).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// * get reject count
+	// reject count
 	err = r.db.Model(&entities.RoomJoinVote{}).
-		Where("room_join_request_id = ? AND vote = ?", requesterID, false).
-		Count(&[]int64{int64(stats.RejectCount)}[0]).Error
+		Where("room_join_request_id = ? AND vote = ?", roomJoinRequestID, false).
+		Count(&rejectCount).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// * get pending count
+	// pending count
 	err = r.db.Model(&entities.RoomJoinVote{}).
-		Where("room_join_request_id = ? AND vote IS NULL", requesterID).
-		Count(&[]int64{int64(stats.PendingCount)}[0]).Error
+		Where("room_join_request_id = ? AND vote IS NULL", roomJoinRequestID).
+		Count(&pendingCount).Error
 	if err != nil {
 		return nil, err
 	}
 
-	stats.VotedCount = stats.ApproveCount + stats.RejectCount
+	// assign to pointers
+	stats.TotalVoters = v.Ptr(int(totalVoters))
+	stats.ApproveCount = v.Ptr(int(approveCount))
+	stats.RejectCount = v.Ptr(int(rejectCount))
+	stats.PendingCount = v.Ptr(int(pendingCount))
+
+	voted := int(approveCount + rejectCount)
+	stats.VotedCount = v.Ptr(voted)
 
 	return stats, nil
 }

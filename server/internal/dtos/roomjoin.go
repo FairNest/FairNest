@@ -54,13 +54,30 @@ type GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserIDResponse struct {
 	VoteDetails []RoomJoinVoteDetail `json:"vote_details"`
 }
 
-// * helper struct for voting statistics
-type VotingStats struct {
-	TotalVoters  int
-	VotedCount   int
-	ApproveCount int
-	RejectCount  int
-	PendingCount int
+// * submit vote request
+type SubmitRoomJoinVoteRequest struct {
+	Vote *bool `json:"vote" validate:"required"` // * true = approve, false = reject
+}
+
+// * submit vote response
+type SubmitRoomJoinVoteResponse struct {
+	RoomJoinVoteID    *uint         `json:"room_join_vote_id" validate:"required"`
+	RoomJoinRequestID *uint         `json:"room_join_request_id" validate:"required"`
+	VoterUserID       *uint         `json:"voter_user_id" validate:"required"`
+	Vote              *string       `json:"vote" validate:"required"`
+	VotedAt           *string       `json:"voted_at" validate:"required"`
+	VotingStatus      *VotingStatus `json:"voting_status" validate:"required"`
+	Message           *string       `json:"message" validate:"required"`
+}
+
+type VotingStatus struct {
+	TotalVoters  *int    `json:"total_voters"`
+	VotedCount   *int    `json:"voted_count"`
+	ApproveCount *int    `json:"approve_count"`
+	RejectCount  *int    `json:"reject_count"`
+	PendingCount *int    `json:"pending_count"`
+	IsCompleted  *bool   `json:"is_completed"`
+	FinalResult  *string `json:"final_result"` // * "approved", "rejected", "pending"
 }
 
 type RoomJoinVoteDetail struct {

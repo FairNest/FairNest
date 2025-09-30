@@ -191,7 +191,8 @@ func main() {
 
 	// Room Join Request and Voting Endpoints
 	app.Post("/CreateRoomJoinRequestByUserIdRoomId/:UserID/:RoomID", roomJoinHandler.CreateRoomJoinRequestByUserIdRoomId)
-	app.Get("/GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID/:roomJoinRequestID/:voterUserID", roomJoinHandler.GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID)
+	app.Get("/GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID/:RoomJoinRequestID/:VoterUserID", roomJoinHandler.GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID)
+	app.Put("/SubmitVoteByRoomJoinRequestIDVoterUserID/:RoomJoinRequestID/:VoterUserID", roomJoinHandler.SubmitVoteByRoomJoinRequestIDVoterUserID)
 
 	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
 

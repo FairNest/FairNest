@@ -147,7 +147,7 @@ func (s roomJoinService) CreateRoomJoinRequestByUserIdRoomId(requesterUserID int
 // * get join request details for voting, including room details, requester details, compatibility, voting stats, my vote, and all votes
 func (s roomJoinService) GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID(roomJoinRequestID int, voterUserID int) (*dtos.GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserIDResponse, error) {
 	// * get join request
-	joinRequest, err := s.roomJoinRepo.GetRoomJoinRequestByRequesterUserID(roomJoinRequestID)
+	joinRequest, err := s.roomJoinRepo.GetRoomJoinRequestByRoomJoinRequestID(roomJoinRequestID)
 	if err != nil {
 		return nil, fmt.Errorf("join request not found")
 	}
@@ -182,7 +182,7 @@ func (s roomJoinService) GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUser
 	compatibilityPercent := utils.CalculateCompatibility(*requesterLifestyle, roomEntity)
 
 	// * get voting statistics
-	stats, err := s.roomJoinRepo.GetVotingStatisticsByRequesterID(roomJoinRequestID)
+	stats, err := s.roomJoinRepo.GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID)
 	if err != nil {
 		return nil, err
 	}
@@ -190,10 +190,10 @@ func (s roomJoinService) GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUser
 	// * determine final result
 	finalResult := "pending"
 	isCompleted := false
-	if stats.RejectCount > 0 {
+	if *stats.RejectCount > 0 {
 		finalResult = "rejected"
 		isCompleted = true
-	} else if stats.VotedCount == stats.TotalVoters && stats.ApproveCount == stats.TotalVoters {
+	} else if *stats.VotedCount == *stats.TotalVoters && *stats.ApproveCount == *stats.TotalVoters && *stats.TotalVoters > 0 {
 		finalResult = "approved"
 		isCompleted = true
 	}
@@ -201,7 +201,10 @@ func (s roomJoinService) GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUser
 	// * get voter's own vote
 	myVote := "pending"
 	voterVote, err := s.roomJoinRepo.GetVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID, voterUserID)
-	if err == nil && voterVote.Vote != nil {
+	if err != nil {
+		return nil, fmt.Errorf("you're not eligible to vote on this request")
+	}
+	if voterVote.Vote != nil {
 		if *voterVote.Vote {
 			myVote = "approve"
 		} else {
@@ -281,11 +284,11 @@ func (s roomJoinService) GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUser
 		CompatibilityPercent: v.Ptr(compatibilityPercent),
 
 		// Voting statistics
-		TotalVoters:  v.Ptr(stats.TotalVoters),
-		VotedCount:   v.Ptr(stats.VotedCount),
-		ApproveCount: v.Ptr(stats.ApproveCount),
-		RejectCount:  v.Ptr(stats.RejectCount),
-		PendingCount: v.Ptr(stats.PendingCount),
+		TotalVoters:  stats.TotalVoters,
+		VotedCount:   stats.VotedCount,
+		ApproveCount: stats.ApproveCount,
+		RejectCount:  stats.RejectCount,
+		PendingCount: stats.PendingCount,
 		IsCompleted:  v.Ptr(isCompleted),
 		FinalResult:  v.Ptr(finalResult),
 
@@ -293,4 +296,182 @@ func (s roomJoinService) GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUser
 		MyVote:      v.Ptr(myVote),
 		VoteDetails: voteDetails,
 	}, nil
+}
+
+// * submit vote (approve/reject)
+func (s roomJoinService) SubmitVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID int, voterUserID int, request *dtos.SubmitRoomJoinVoteRequest) (*dtos.SubmitRoomJoinVoteResponse, error) {
+	// * get existing vote
+	vote, err := s.roomJoinRepo.GetVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID, voterUserID)
+	if err != nil {
+		return nil, fmt.Errorf("vote not found or you're not eligible to vote on this request")
+	}
+
+	// * check if already voted
+	if vote.Vote != nil {
+		return nil, fmt.Errorf("you have already voted on this request")
+	}
+
+	vote.Vote = request.Vote
+
+	err = s.roomJoinRepo.UpdateVote(vote)
+	if err != nil {
+		return nil, err
+	}
+
+	// * check if voting is complete and finalize if needed
+	err = s.CheckAndFinalizeVoting(roomJoinRequestID)
+	if err != nil {
+		log.Printf("error finalizing voting: %v", err)
+	}
+
+	// * get updated voting statistics
+	stats, err := s.roomJoinRepo.GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID)
+	if err != nil {
+		return nil, err
+	}
+
+	// * determine final result
+	finalResult := "pending"
+	isCompleted := false
+	if *stats.RejectCount > 0 {
+		finalResult = "rejected"
+		isCompleted = true
+	} else if *stats.VotedCount == *stats.TotalVoters && *stats.ApproveCount == *stats.TotalVoters && *stats.TotalVoters > 0 {
+		finalResult = "approved"
+		isCompleted = true
+	}
+
+	votingStatus := &dtos.VotingStatus{
+		TotalVoters:  stats.TotalVoters,
+		VotedCount:   stats.VotedCount,
+		ApproveCount: stats.ApproveCount,
+		RejectCount:  stats.RejectCount,
+		PendingCount: stats.PendingCount,
+		IsCompleted:  v.Ptr(isCompleted),
+		FinalResult:  v.Ptr(finalResult),
+	}
+
+	voteString := "reject"
+	if *request.Vote {
+		voteString = "approve"
+	}
+
+	message := fmt.Sprintf("Vote submitted successfully. You voted to %s this request.", voteString)
+	if isCompleted {
+		if finalResult == "approved" {
+			message += " The request has been approved and the user has been added to the room."
+		} else {
+			message += " The request has been rejected."
+		}
+	}
+
+	return &dtos.SubmitRoomJoinVoteResponse{
+		RoomJoinVoteID:    vote.RoomJoinVoteID,
+		RoomJoinRequestID: vote.RoomJoinRequestID,
+		VoterUserID:       vote.VoterUserID,
+		Vote:              v.Ptr(voteString),
+		VotedAt:           v.Ptr(vote.CreatedAt.Format(time.RFC3339)),
+		VotingStatus:      votingStatus,
+		Message:           v.Ptr(message),
+	}, nil
+}
+
+// ----------------------------------------- Private Helper Functions -----------------------------------------//
+// * check and finalize voting if complete
+func (s roomJoinService) CheckAndFinalizeVoting(roomJoinRequestID int) error {
+	stats, err := s.roomJoinRepo.GetVotingStatisticsByRoomJoinRequestID(roomJoinRequestID)
+	if err != nil {
+		return err
+	}
+
+	// * if any rejection, reject the request
+	if *stats.RejectCount > 0 {
+		return s.ProcessJoinRequest(roomJoinRequestID, false)
+	}
+
+	// * if all voted and all approved, approve the request
+	if *stats.VotedCount == *stats.TotalVoters && *stats.ApproveCount == *stats.TotalVoters && *stats.TotalVoters > 0 {
+		return s.ProcessJoinRequest(roomJoinRequestID, true)
+	}
+
+	// * still pending
+	return nil
+}
+
+// * process final join request result
+func (s roomJoinService) ProcessJoinRequest(roomJoinRequestID int, isApproved bool) error {
+	// * get join request
+	joinRequest, err := s.roomJoinRepo.GetRoomJoinRequestByRoomJoinRequestID(roomJoinRequestID)
+	if err != nil {
+		return err
+	}
+
+	joinRequest.Status = v.Ptr(isApproved)
+
+	log.Println(joinRequest)
+
+	// * update request status
+	err = s.roomJoinRepo.UpdateRoomJoinRequestStatusByRoomJoinRequestID(joinRequest)
+	if err != nil {
+		return err
+	}
+
+	if isApproved {
+		// * add user to room as member (not host)
+		roomMember := &entities.RoomMember{
+			RoomID: joinRequest.RoomID,
+			UserID: joinRequest.RequesterUserID,
+			IsHost: v.Ptr(false), // * new member, not host
+		}
+
+		_, err = s.roomMemberSer.CreateRoomMemberByRoomIdAndUserId(int(*roomMember.RoomID), int(*roomMember.UserID))
+		if err != nil {
+			return fmt.Errorf("failed to add user to room: %v", err)
+		}
+
+		// * get room details for notification
+		roomDetails, _ := s.roomSer.GetRoomDetailsByRoomId(int(*joinRequest.RoomID))
+		roomName := "the room"
+		if roomDetails != nil && roomDetails.RoomName != nil {
+			roomName = *roomDetails.RoomName
+		}
+
+		// * send approval notification to requester
+		notificationMessage := fmt.Sprintf("Congratulations! Your request to join room '%s' has been approved by all members. Welcome to the room!", roomName)
+
+		approvalNotification := dtos.CreateNotificationRequest{
+			NotificationMessage: v.Ptr(notificationMessage),
+		}
+
+		_, err = s.notificationSer.CreateNotification(1, int(*joinRequest.RequesterUserID), approvalNotification)
+		if err != nil {
+			log.Printf("failed to create approval notification: %v", err)
+		}
+
+		log.Printf("user %d successfully joined room %d", *joinRequest.RequesterUserID, *joinRequest.RoomID)
+	} else {
+		// * get room details for notification
+		roomDetails, _ := s.roomSer.GetRoomDetailsByRoomId(int(*joinRequest.RoomID))
+		roomName := "the room"
+		if roomDetails != nil && roomDetails.RoomName != nil {
+			roomName = *roomDetails.RoomName
+		}
+
+		// * send rejection notification to requester
+		notificationMessage := fmt.Sprintf("Sorry, your request to join room '%s' has been declined by the room members.", roomName)
+
+		rejectionNotification := dtos.CreateNotificationRequest{
+			NotificationMessage: v.Ptr(notificationMessage),
+		}
+
+		_, err = s.notificationSer.CreateNotification(1, int(*joinRequest.RequesterUserID), rejectionNotification)
+		if err != nil {
+			log.Printf("failed to create rejection notification: %v", err)
+		}
+
+		log.Printf("user %d's request to join room %d was rejected", *joinRequest.RequesterUserID, *joinRequest.RoomID)
+
+	}
+
+	return nil
 }
