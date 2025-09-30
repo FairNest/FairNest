@@ -69,7 +69,7 @@ func (h *roomJoinHandler) GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUse
 }
 
 // * submit vote
-func (h *roomJoinHandler) SubmitVoteByRoomJoinRequestIDVoterUserID(c *fiber.Ctx) error {
+func (h *roomJoinHandler) PutSubmitVoteByRoomJoinRequestIDVoterUserID(c *fiber.Ctx) error {
 	roomJoinRequestID, err := strconv.Atoi(c.Params("RoomJoinRequestID"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -97,7 +97,7 @@ func (h *roomJoinHandler) SubmitVoteByRoomJoinRequestIDVoterUserID(c *fiber.Ctx)
 		})
 	}
 
-	response, err := h.roomJoinSer.SubmitVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID, voterUserID, &request)
+	response, err := h.roomJoinSer.PutSubmitVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID, voterUserID, &request)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),

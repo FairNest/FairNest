@@ -299,7 +299,7 @@ func (s roomJoinService) GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUser
 }
 
 // * submit vote (approve/reject)
-func (s roomJoinService) SubmitVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID int, voterUserID int, request *dtos.SubmitRoomJoinVoteRequest) (*dtos.SubmitRoomJoinVoteResponse, error) {
+func (s roomJoinService) PutSubmitVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID int, voterUserID int, request *dtos.SubmitRoomJoinVoteRequest) (*dtos.SubmitRoomJoinVoteResponse, error) {
 	// * get existing vote
 	vote, err := s.roomJoinRepo.GetVoteByRoomJoinRequestIDVoterUserID(roomJoinRequestID, voterUserID)
 	if err != nil {
