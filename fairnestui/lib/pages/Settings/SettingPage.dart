@@ -36,6 +36,26 @@ class SettingsPage extends StatelessWidget {
     }
   }
 
+  Future<void> _launchYouTube() async {
+    // Replace with your actual YouTube video URL
+    final Uri youtubeUrl =
+        Uri.parse('https://www.youtube.com/watch?v=YOUR_VIDEO_ID');
+
+    try {
+      if (await canLaunchUrl(youtubeUrl)) {
+        await launchUrl(
+          youtubeUrl,
+          mode:
+              LaunchMode.externalApplication, // Opens in YouTube app or browser
+        );
+      } else {
+        throw 'Could not launch YouTube';
+      }
+    } catch (e) {
+      print('Error launching YouTube: $e');
+    }
+  }
+
   // Method to generate roommate agreement PDF
   Future<void> _generateRoommateAgreementPdf(BuildContext context) async {
     try {
@@ -301,6 +321,58 @@ class SettingsPage extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text('App version: 0.1.0 (dev)  •  Build channel: debug',
                     style: _bodyStyle),
+              ],
+            ),
+          ),
+
+          // Add this after the Emergency Contacts section, before the Log Out button
+
+          _SettingsCard(
+            leading: const Icon(Icons.menu_book, color: Colors.black87),
+            title: 'User Manual',
+            titleStyle: _sectionTitleStyle,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Learn how to use FairNest with our video tutorials. Watch step-by-step guides on managing tasks, expenses, house rules, and more.',
+                  style: _bodyStyle,
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.play_circle_outline,
+                          color: Colors.red[600], size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Video tutorials cover all features including task creation, expense splitting, and roommate management.',
+                          style: _bodyStyle.copyWith(
+                            fontSize: 13,
+                            color: Colors.red[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                MainButton(
+                  text: 'Watch Tutorial on YouTube',
+                  onPressed: () => _launchYouTube(),
+                  backgroundColor: Colors.red,
+                  textColor: Colors.white,
+                  width: double.infinity,
+                  height: 44,
+                  fontWeight: FontWeight.w600,
+                ),
               ],
             ),
           ),

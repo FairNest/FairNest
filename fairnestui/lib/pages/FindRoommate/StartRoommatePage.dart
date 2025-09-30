@@ -5,20 +5,19 @@ import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 
 import 'package:fairnestui/widgets/app_header.dart';
-import 'package:fairnestui/components/MainButton.dart';
 import 'package:fairnestui/components/RoomComponentsCard.dart';
 
 class StartRoommatePage extends StatelessWidget {
   const StartRoommatePage({
     super.key,
-    this.onStartJourney,
-    this.onInviteTap,
     this.showBack = true,
+    this.votedCount = 2,
+    this.memberMax = 3,
   });
 
-  final VoidCallback? onStartJourney;
-  final VoidCallback? onInviteTap;
   final bool showBack;
+  final int votedCount; // how many people agreed
+  final int memberMax; // total members in room
 
   static const _lavender = Color(0xFF645A80);
 
@@ -68,7 +67,7 @@ class StartRoommatePage extends StatelessWidget {
                   RoomComponentsCard(
                     title: 'Wonderful Trio Casa',
                     description:
-                        "We’re early risers, prefer a quiet space, and rotate chores weekly.",
+                        "We're early risers, prefer a quiet space, and rotate chores weekly.",
                     memberCount: 2,
                     memberMax: 3,
                     compatibilityPct: 87,
@@ -131,30 +130,21 @@ class StartRoommatePage extends StatelessWidget {
                   // Roommates
                   const _SectionTitle('Roommates'),
                   const SizedBox(height: 8),
-                  _RoommatesRow(
-                    members: const [
+                  const _RoommatesRow(
+                    members: [
                       ('assets/images/fairnest.png', 'Max'),
                       ('assets/images/fairnest.png', 'George'),
                     ],
-                    onInviteTap: onInviteTap,
                   ),
 
                   const SizedBox(height: 22),
 
-                  // CTA
-                  MainButton(
-                    text: 'Start Roommate Journey',
-                    backgroundColor: AppColors.accent,
-                    textColor: Colors.black,
-                    width: double.infinity,
-                    height: 54,
-                    borderRadius: 12,
-                    onPressed: onStartJourney ??
-                        () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Starting…')),
-                          );
-                        },
+                  // Voting Progress Indicator
+                  Center(
+                    child: _VotingProgressIndicator(
+                      voted: votedCount,
+                      total: memberMax,
+                    ),
                   ),
                 ],
               ),
@@ -178,6 +168,60 @@ class _SectionTitle extends StatelessWidget {
       text,
       style: AppFonts.heading3.copyWith(
         color: const Color(0xFF645A80),
+      ),
+    );
+  }
+}
+
+/// Voting progress indicator showing how many people agreed
+class _VotingProgressIndicator extends StatelessWidget {
+  const _VotingProgressIndicator({
+    required this.voted,
+    required this.total,
+  });
+
+  final int voted;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE9E4DF),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD1CBC4), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Voting in Progress',
+            style: TextStyle(
+              fontFamily: 'Krub',
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+              color: Color(0xFF7B7486),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$voted/$total',
+            style: const TextStyle(
+              fontFamily: 'Krub',
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Image.asset(
+            'assets/images/PersonVector.png',
+            width: 16,
+            height: 16,
+            fit: BoxFit.contain,
+          ),
+        ],
       ),
     );
   }
@@ -286,10 +330,9 @@ class _RowLine extends StatelessWidget {
 }
 
 class _RoommatesRow extends StatelessWidget {
-  const _RoommatesRow({required this.members, this.onInviteTap});
+  const _RoommatesRow({required this.members});
 
   final List<(String, String)> members;
-  final VoidCallback? onInviteTap;
 
   static const _lavender = Color(0xFF645A80);
 
@@ -309,22 +352,6 @@ class _RoommatesRow extends StatelessWidget {
             const SizedBox(width: 8),
           ],
           const Spacer(),
-          GestureDetector(
-            onTap: onInviteTap ??
-                () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invite tapped')),
-                    ),
-            child: Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: const Color(0xFFD9D9D9),
-                shape: BoxShape.circle,
-                border: Border.all(color: _lavender, width: 1),
-              ),
-              child: const Icon(Icons.add, size: 20, color: _lavender),
-            ),
-          ),
         ],
       ),
     );

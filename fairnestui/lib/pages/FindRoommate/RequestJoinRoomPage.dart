@@ -16,13 +16,11 @@ class Requestjoinroompage extends StatefulWidget {
     super.key,
     required this.roomId,
     this.onRequestJoin,
-    this.onInviteTap,
     this.showBack = true,
   });
 
   final int roomId; // 🔑 passed from the card
   final VoidCallback? onRequestJoin;
-  final VoidCallback? onInviteTap;
   final bool showBack;
 
   @override
@@ -244,7 +242,6 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
                                       m["name"]?.toString() ?? "Member"
                                     ))
                                 .toList(),
-                            onInviteTap: widget.onInviteTap,
                           ),
 
                           const SizedBox(height: 22),
@@ -409,11 +406,9 @@ class _RowLine extends StatelessWidget {
 }
 
 class _RoommatesRow extends StatelessWidget {
-  const _RoommatesRow({required this.members, this.onInviteTap});
+  const _RoommatesRow({required this.members});
 
   final List<(String, String)> members;
-  final VoidCallback? onInviteTap;
-
   static const _lavender = Color(0xFF645A80);
 
   @override
@@ -432,22 +427,6 @@ class _RoommatesRow extends StatelessWidget {
             const SizedBox(width: 8),
           ],
           const Spacer(),
-          GestureDetector(
-            onTap: onInviteTap ??
-                () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invite tapped')),
-                    ),
-            child: Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: const Color(0xFFD9D9D9),
-                shape: BoxShape.circle,
-                border: Border.all(color: _lavender, width: 1),
-              ),
-              child: const Icon(Icons.add, size: 20, color: _lavender),
-            ),
-          ),
         ],
       ),
     );

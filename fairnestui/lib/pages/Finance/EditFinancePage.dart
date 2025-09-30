@@ -442,7 +442,7 @@ class _EditFinancePageState extends State<EditFinancePage> {
         centerTitle: true,
         leadingWidth: 80,
         title: const Text(
-          'Edit Task',
+          'View Task',
           style: TextStyle(
             fontFamily: 'Krub',
             fontWeight: FontWeight.w700,
@@ -459,21 +459,6 @@ class _EditFinancePageState extends State<EditFinancePage> {
             ),
           ),
         ),
-        actions: [
-          Opacity(
-            opacity: _canSave ? 1 : 0.5,
-            child: TextButton(
-              onPressed: _canSave ? _onSave : null,
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  color: Color(0xFF000000),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
       body: SafeArea(
         child: Form(

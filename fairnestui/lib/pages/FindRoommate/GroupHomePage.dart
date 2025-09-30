@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:fairnestui/pages/FindRoommate/RequestJoinRoomPage.dart';
+import 'package:fairnestui/pages/FindRoommate/StartRoommatePage.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/widgets/app_header.dart';
 import 'package:fairnestui/theme/app_colors.dart';
@@ -579,145 +580,36 @@ class _FilterButton extends StatelessWidget {
 }
 
 /* -----------------------------------------------------------
- * Tab: My room
+ * Tab: My room - TEMPORARY CARD VERSION
  * ---------------------------------------------------------*/
-class _MyRoomTab extends StatefulWidget {
+class _MyRoomTab extends StatelessWidget {
   const _MyRoomTab();
 
   @override
-  State<_MyRoomTab> createState() => _MyRoomTabState();
-}
-
-class _MyRoomTabState extends State<_MyRoomTab> {
-  late Future<Map<String, dynamic>?> _myRoomFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _myRoomFuture = _fetchMyRoom();
-  }
-
-  Future<Map<String, dynamic>?> _fetchMyRoom() async {
-    final userId = await UserService.getUserIdFromToken();
-    if (userId == null) throw Exception("User not authenticated");
-
-    final resp = await ApiClient.get("/GetMyRoomByUserId/$userId");
-    final data = resp.data;
-
-    if (data == null) return null;
-
-    Map<String, dynamic> map;
-    if (data is Map<String, dynamic>) {
-      map = data;
-    } else if (data is List && data.isNotEmpty) {
-      map = data.first;
-    } else {
-      return null;
-    }
-
-    return {
-      "id": map["room_id"], // 🔑 include id for navigation
-      "name": map["room_name"],
-      "desc": map["room_description"],
-      "current": map["room_current_capacity"],
-      "max": map["room_max_capacity"],
-      "compat": (map["compatibility_percent"] is num)
-          ? (map["compatibility_percent"] as num).round()
-          : null,
-      "picture": map["room_picture"],
-    };
-  }
-
-  Future<void> _refresh() async {
-    final newFuture = _fetchMyRoom();
-    setState(() {
-      _myRoomFuture = newFuture;
-    });
-    await newFuture;
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: _myRoomFuture,
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final room = snap.data;
-        final hasError = snap.hasError;
-
-        return RefreshIndicator(
-          onRefresh: _refresh,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            children: [
-              if (hasError)
-                Builder(
-                  builder: (_) {
-                    final err = snap.error;
-
-                    // Default generic error text
-                    Widget genericError() => Text(
-                          "❌ Failed to load your room: $err",
-                          style: const TextStyle(color: Colors.red),
-                        );
-
-                    if (err is DioException) {
-                      final status = err.response?.statusCode;
-                      final data = err.response?.data;
-                      // Try to read message as string or from a map
-                      final msg = data is String
-                          ? data.trim()
-                          : (data is Map && data['message'] != null
-                              ? data['message'].toString().trim()
-                              : data?.toString().trim());
-
-                      if (status == 500 && msg == 'record not found') {
-                        return const Text("You don't have a room yet.");
-                      }
-                    }
-                    return genericError();
-                  },
-                ),
-
-              // When no error and room exists, show the card
-              if (!hasError && room != null)
-                RoomComponentsCard(
-                  title: room["name"] ?? "-",
-                  description: room["desc"] ?? "-",
-                  memberCount: room["current"] ?? 0,
-                  memberMax: room["max"] ?? 0,
-                  compatibilityPct: room["compat"] ?? 0,
-                  imageUrl: room["picture"],
-                  width: double.infinity,
-                  height: 210,
-                  onTap: () {
-                    final id = (room["id"] as num?)?.toInt();
-                    if (id == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Room ID not available')),
-                      );
-                      return;
-                    }
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => Requestjoinroompage(roomId: id),
-                      ),
-                    );
-                  },
-                ),
-
-              // Silence the old "room == null" branch; we only show message on 500/not-found
-              if (!hasError && room == null) const SizedBox.shrink(),
-
-              const SizedBox(height: 600),
-            ],
-          ),
-        );
-      },
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      children: [
+        // Temporary card - click to navigate to StartRoommatePage
+        RoomComponentsCard(
+          title: 'Wonderful Trio Casa',
+          description:
+              "We're early risers, prefer a quiet space, and rotate chores weekly.",
+          memberCount: 2,
+          memberMax: 3,
+          compatibilityPct: 87,
+          width: double.infinity,
+          height: 210,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const StartRoommatePage(),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 600),
+      ],
     );
   }
 }

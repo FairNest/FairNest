@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:fairnestui/widgets/error_pop_up.dart';
+import 'package:fairnestui/widgets/success_pop_up.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
@@ -440,14 +442,21 @@ class _AddChorePageState extends State<AddChorePage> {
     try {
       await ApiClient.post('/rooms/${_roomId}/chores', data: body);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chore created successfully')),
-      );
-      Navigator.pop(context, true);
+
+      setState(() => _submitting = false);
+
+      SuccessPopup.show(context, message: 'Task created successfully!',
+          onClose: () {
+        Navigator.of(context).pop(); // Close popup
+        Navigator.pop(context, true); // Close page
+      }, autoCloseDuration: const Duration(seconds: 2));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create chore: $e')),
+      ErrorPopup.show(
+        context,
+        message: 'Failed to create task\nPlease try again',
+        showRetryButton: true,
+        onRetry: () => _onCreate(), // Retry the same action
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
