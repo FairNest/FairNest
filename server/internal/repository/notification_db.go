@@ -85,3 +85,23 @@ func (r notificationRepositoryDB) CreateVoteNotification(notification *entities.
 	}
 	return nil
 }
+
+func (r notificationRepositoryDB) PutMarkAllAsReadByRoomJoinRequestID(roomJoinRequestID int) error {
+	result := r.db.Model(&entities.Notification{}).
+		Where("vote_notification_room_join_request_id = ? AND is_read = ?", roomJoinRequestID, false).
+		Update("is_read", true)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (r notificationRepositoryDB) FetchAllNotificationsByRoomJoinRequestID(roomJoinRequestID int) ([]entities.Notification, error) {
+	var notifications []entities.Notification
+	err := r.db.Where("vote_notification_room_join_request_id = ?", roomJoinRequestID).Find(&notifications).Error
+	if err != nil {
+		return nil, err
+	}
+	return notifications, nil
+}

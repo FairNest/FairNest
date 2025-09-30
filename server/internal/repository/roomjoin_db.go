@@ -155,3 +155,16 @@ func (r roomJoinRepositoryDB) FetchAllVotesByRoomJoinRequestID(roomJoinRequestID
 	}
 	return votes, nil
 }
+
+func (r roomJoinRepositoryDB) FetchAllPendingVotesByRoomJoinRequestID(roomJoinRequestID int) ([]entities.RoomJoinVote, error) {
+	votes := []entities.RoomJoinVote{}
+	result := r.db.
+		Where("room_join_request_id = ?", roomJoinRequestID).
+		Where("vote IS NULL").
+		Order("room_join_vote_id ASC").
+		Find(&votes)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return votes, nil
+}

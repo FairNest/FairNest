@@ -128,7 +128,7 @@ func (s roomJoinService) CreateRoomJoinRequestByUserIdRoomId(requesterUserID int
 		}
 
 		// Create notification
-		_, err = s.notificationSer.CreateVoteNotification(int(*requesterUser.UserID), int(*member.UserID), notification)
+		_, err = s.notificationSer.CreateVoteNotification(int(*requesterUser.UserID), int(*member.UserID), notification, int(*joinRequest.RoomJoinRequestID))
 		if err != nil {
 			log.Printf("failed to create notification for user %d: %v", *member.UserID, err)
 		}
@@ -494,6 +494,10 @@ func (s roomJoinService) ProcessJoinRequest(roomJoinRequestID int, isApproved bo
 
 		log.Printf("user %d's request to join room %d was rejected", *joinRequest.RequesterUserID, *joinRequest.RoomID)
 
+		_, err = s.notificationSer.PutMarkAllAsReadByRoomJoinRequestID(roomJoinRequestID)
+		if err != nil {
+			log.Printf("failed to mark notifications as read for roomJoinRequest %d: %v", roomJoinRequestID, err)
+		}
 	}
 
 	return nil

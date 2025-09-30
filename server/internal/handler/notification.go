@@ -25,13 +25,13 @@ func (h *notificationHandler) GetNotificationByNotificationId(c *fiber.Ctx) erro
 	}
 
 	notificationResponse := dtos.GetNotificationByNotificationIdResponse{
-		NotificationID:      notification.NotificationID,
-		SenderID:            notification.SenderID,
-		ReceiverID:          notification.ReceiverID,
-		NotificationMessage: notification.NotificationMessage,
-		IsRead:              notification.IsRead,
-		IsVoteNotification:  notification.IsVoteNotification,
-		CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
+		NotificationID:                    notification.NotificationID,
+		SenderID:                          notification.SenderID,
+		ReceiverID:                        notification.ReceiverID,
+		NotificationMessage:               notification.NotificationMessage,
+		IsRead:                            notification.IsRead,
+		VoteNotificationRoomJoinRequestID: notification.VoteNotificationRoomJoinRequestID,
+		CreatedAt:                         v.TimePtrToRFC3339Ptr(notification.CreatedAt),
 	}
 	return c.JSON(notificationResponse)
 }
@@ -47,13 +47,13 @@ func (h *notificationHandler) FetchAllUnreadNotificationByUserId(c *fiber.Ctx) e
 
 	for _, notification := range notifications {
 		notificationsResponse = append(notificationsResponse, dtos.FetchAllUnreadNotificationByUserIdResponse{
-			NotificationID:      notification.NotificationID,
-			SenderID:            notification.SenderID,
-			ReceiverID:          notification.ReceiverID,
-			NotificationMessage: notification.NotificationMessage,
-			IsRead:              notification.IsRead,
-			IsVoteNotification:  notification.IsVoteNotification,
-			CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
+			NotificationID:                    notification.NotificationID,
+			SenderID:                          notification.SenderID,
+			ReceiverID:                        notification.ReceiverID,
+			NotificationMessage:               notification.NotificationMessage,
+			IsRead:                            notification.IsRead,
+			VoteNotificationRoomJoinRequestID: notification.VoteNotificationRoomJoinRequestID,
+			CreatedAt:                         v.TimePtrToRFC3339Ptr(notification.CreatedAt),
 		})
 	}
 	return c.JSON(notificationsResponse)
@@ -70,13 +70,13 @@ func (h *notificationHandler) FetchThreeNotificationByUserId(c *fiber.Ctx) error
 
 	for _, notification := range notifications {
 		notificationsResponse = append(notificationsResponse, dtos.FetchThreeNotificationByUserIdResponse{
-			NotificationID:      notification.NotificationID,
-			SenderID:            notification.SenderID,
-			ReceiverID:          notification.ReceiverID,
-			NotificationMessage: notification.NotificationMessage,
-			IsRead:              notification.IsRead,
-			IsVoteNotification:  notification.IsVoteNotification,
-			CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
+			NotificationID:                    notification.NotificationID,
+			SenderID:                          notification.SenderID,
+			ReceiverID:                        notification.ReceiverID,
+			NotificationMessage:               notification.NotificationMessage,
+			IsRead:                            notification.IsRead,
+			VoteNotificationRoomJoinRequestID: notification.VoteNotificationRoomJoinRequestID,
+			CreatedAt:                         v.TimePtrToRFC3339Ptr(notification.CreatedAt),
 		})
 	}
 	return c.JSON(notificationsResponse)
@@ -91,13 +91,13 @@ func (h *notificationHandler) PutMarkAsReadByNotificationId(c *fiber.Ctx) error 
 	}
 
 	notificationResponse := dtos.PutMarkAsReadByNotificationIdResponse{
-		NotificationID:      notification.NotificationID,
-		SenderID:            notification.SenderID,
-		ReceiverID:          notification.ReceiverID,
-		NotificationMessage: notification.NotificationMessage,
-		IsRead:              notification.IsRead,
-		IsVoteNotification:  notification.IsVoteNotification,
-		CreatedAt:           v.TimePtrToRFC3339Ptr(notification.CreatedAt),
+		NotificationID:                    notification.NotificationID,
+		SenderID:                          notification.SenderID,
+		ReceiverID:                        notification.ReceiverID,
+		NotificationMessage:               notification.NotificationMessage,
+		IsRead:                            notification.IsRead,
+		VoteNotificationRoomJoinRequestID: notification.VoteNotificationRoomJoinRequestID,
+		CreatedAt:                         v.TimePtrToRFC3339Ptr(notification.CreatedAt),
 	}
 	return c.JSON(notificationResponse)
 }
@@ -136,16 +136,40 @@ func (h *notificationHandler) CreateNotification(c *fiber.Ctx) error {
 func (h *notificationHandler) CreateVoteNotification(c *fiber.Ctx) error {
 	senderIDReceive, err := strconv.Atoi(c.Params("SenderID"))
 	receiverIDReceive, err := strconv.Atoi(c.Params("ReceiverID"))
+	roomJoinRequestIDReceive, err := strconv.Atoi(c.Params("RoomJoinRequestID"))
 
 	var req dtos.CreateVoteNotificationRequest
 	if err := c.BodyParser(&req); err != nil {
 		return err
 	}
 
-	notification, err := h.notificationSer.CreateVoteNotification(senderIDReceive, receiverIDReceive, req)
+	notification, err := h.notificationSer.CreateVoteNotification(senderIDReceive, receiverIDReceive, req, roomJoinRequestIDReceive)
 	if err != nil {
 		return err
 	}
 
 	return c.JSON(notification)
+}
+
+func (h *notificationHandler) FetchAllNotificationsByRoomJoinRequestID(c *fiber.Ctx) error {
+	notificationsResponse := make([]dtos.GetNotificationByNotificationIdResponse, 0)
+	roomJoinRequestIDReceive, err := strconv.Atoi(c.Params("RoomJoinRequestID"))
+
+	notifications, err := h.notificationSer.FetchAllNotificationsByRoomJoinRequestID(roomJoinRequestIDReceive)
+	if err != nil {
+		return err
+	}
+
+	for _, notification := range notifications {
+		notificationsResponse = append(notificationsResponse, dtos.GetNotificationByNotificationIdResponse{
+			NotificationID:                    notification.NotificationID,
+			SenderID:                          notification.SenderID,
+			ReceiverID:                        notification.ReceiverID,
+			NotificationMessage:               notification.NotificationMessage,
+			IsRead:                            notification.IsRead,
+			VoteNotificationRoomJoinRequestID: notification.VoteNotificationRoomJoinRequestID,
+			CreatedAt:                         v.TimePtrToRFC3339Ptr(notification.CreatedAt),
+		})
+	}
+	return c.JSON(notificationsResponse)
 }

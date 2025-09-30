@@ -106,15 +106,16 @@ type Notification struct {
 	ReceiverID     *uint `gorm:"not null"` // user who receives the notice
 
 	//NotificationTitle *string
-	NotificationMessage *string
-	IsRead              *bool // true = read, false = unread
-	IsVoteNotification  *bool // true = related to vote, false = normal notice
+	NotificationMessage               *string
+	IsRead                            *bool // true = read, false = unread
+	VoteNotificationRoomJoinRequestID *uint
 
 	CreatedAt *time.Time
 
 	// Relations
-	Receiver *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Sender   *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Receiver        *User            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Sender          *User            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	RoomJoinRequest *RoomJoinRequest `gorm:"foreignKey:VoteNotificationRoomJoinRequestID;references:RoomJoinRequestID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
 }
 
 type RoomJoinRequest struct {

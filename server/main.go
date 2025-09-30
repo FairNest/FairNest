@@ -148,6 +148,7 @@ func main() {
 	app.Get("/rooms/:RoomID/users/basic", roomMemberHandler.GetUsersBasicByRoomId)
 
 	app.Get("/FetchAllVotesByRoomJoinRequestID/:RoomJoinRequestID", roomJoinHandler.FetchAllVotesByRoomJoinRequestID)
+	app.Get("/FetchAllNotificationsByRoomJoinRequestID/:RoomJoinRequestID", notificationHandler.FetchAllNotificationsByRoomJoinRequestID)
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
@@ -189,7 +190,7 @@ func main() {
 
 	// Notification Endpoints
 	app.Post("/CreateNotification/:SenderID/:ReceiverID", notificationHandler.CreateNotification)
-	app.Post("/CreateVoteNotification/:SenderID/:ReceiverID", notificationHandler.CreateVoteNotification) // DON'T USE, ALREADY AUTO IN SERVICE
+	app.Post("/CreateVoteNotification/:SenderID/:ReceiverID/:RoomJoinRequestID", notificationHandler.CreateVoteNotification) // DON'T USE, ALREADY AUTO IN SERVICE
 
 	// Room Join Request and Voting Endpoints
 	app.Post("/CreateRoomJoinRequestByUserIdRoomId/:UserID/:RoomID", roomJoinHandler.CreateRoomJoinRequestByUserIdRoomId)

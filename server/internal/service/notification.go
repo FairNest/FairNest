@@ -17,5 +17,8 @@ type NotificationService interface {
 	GetCountOfUnreadNotificationByUserId(int) (int, error)
 
 	CreateNotification(int, int, dtos.CreateNotificationRequest) (*dtos.CreateNotificationResponse, error)
-	CreateVoteNotification(int, int, dtos.CreateVoteNotificationRequest) (*dtos.CreateVoteNotificationResponse, error)
+	CreateVoteNotification(int, int, dtos.CreateVoteNotificationRequest, int) (*dtos.CreateVoteNotificationResponse, error)
+
+	PutMarkAllAsReadByRoomJoinRequestID(int) ([]entities.Notification, error)
+	FetchAllNotificationsByRoomJoinRequestID(int) ([]entities.Notification, error)
 }

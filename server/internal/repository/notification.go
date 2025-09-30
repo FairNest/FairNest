@@ -13,4 +13,7 @@ type NotificationRepository interface {
 
 	CreateNotification(notification *entities.Notification) error
 	CreateVoteNotification(notification *entities.Notification) error
+
+	PutMarkAllAsReadByRoomJoinRequestID(int) error
+	FetchAllNotificationsByRoomJoinRequestID(int) ([]entities.Notification, error)
 }

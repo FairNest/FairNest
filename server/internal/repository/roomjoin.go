@@ -28,4 +28,5 @@ type RoomJoinRepository interface {
 
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	FetchAllVotesByRoomJoinRequestID(int) ([]entities.RoomJoinVote, error)
+	FetchAllPendingVotesByRoomJoinRequestID(int) ([]entities.RoomJoinVote, error)
 }
