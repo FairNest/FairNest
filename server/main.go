@@ -168,6 +168,8 @@ func main() {
 	app.Get("/FilterPublicRoomSuitUserLifestyleByUserId/:UserID", roomHandler.FilterPublicRoomSuitUserLifestyleByUserId)
 	app.Get("/GetMyRoomByUserId/:UserID", roomHandler.GetMyRoomByUserId)
 
+	app.Get("/GetMyPendingRoomByUserID/:UserID", roomHandler.GetMyPendingRoomByUserID)
+
 	app.Get("/GetRoomDetailsByRoomId/:RoomID", roomHandler.GetRoomDetailsByRoomId)
 	app.Get("/GetRoomDetailsByRoomCode/:RoomCode", roomHandler.GetRoomDetailsByRoomCode)
 

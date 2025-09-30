@@ -27,4 +27,6 @@ type RoomService interface {
 	PatchEditHouseRulesByRoomId(int, dtos.PatchEditHouseRulesByRoomIdRequest) (*entities.Room, error)
 
 	GetRoomOverallLifestyleByRoomId(int) (*entities.Room, error)
+
+	GetMyPendingRoomByUserID(int) (*dtos.GetMyPendingRoomByUserIDResponse, error)
 }

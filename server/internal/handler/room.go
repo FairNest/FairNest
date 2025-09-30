@@ -279,3 +279,14 @@ func (h *roomHandler) GetRoomOverallLifestyleByRoomId(c *fiber.Ctx) error {
 
 	return c.JSON(roomResponse)
 }
+
+func (h *roomHandler) GetMyPendingRoomByUserID(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+
+	room, err := h.roomSer.GetMyPendingRoomByUserID(userIDReceive)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(room)
+}

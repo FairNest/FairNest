@@ -18,4 +18,6 @@ type RoomRepository interface {
 	PatchEditHouseRulesByRoomId(room *entities.Room) error
 
 	GetRoomOverallLifestyleByRoomId(roomId int) (*entities.Room, error)
+
+	GetMyPendingRoomByUserID(userId int) (*entities.Room, error)
 }

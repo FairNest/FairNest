@@ -117,3 +117,18 @@ func (r roomRepositoryDB) GetRoomOverallLifestyleByRoomId(roomId int) (*entities
 	}
 	return &room, nil
 }
+
+func (r roomRepositoryDB) GetMyPendingRoomByUserID(userId int) (*entities.Room, error) {
+	room := entities.Room{}
+
+	result := r.db.
+		Joins("JOIN room_join_requests rjr ON rjr.room_id = rooms.room_id").
+		Where("rjr.requester_user_id = ? AND rjr.status IS NULL", userId).
+		Order("rjr.room_join_request_id DESC"). // newest request first
+		First(&room)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &room, nil
+}
