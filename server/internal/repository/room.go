@@ -1,6 +1,9 @@
 package repository
 
-import "fairnest/internal/entities"
+import (
+	"fairnest/internal/dtos"
+	"fairnest/internal/entities"
+)
 
 type RoomRepository interface {
 	FetchAllRoom() ([]entities.Room, error)
@@ -19,5 +22,5 @@ type RoomRepository interface {
 
 	GetRoomOverallLifestyleByRoomId(roomId int) (*entities.Room, error)
 
-	GetMyPendingRoomByUserID(userId int) (*entities.Room, error)
+	GetMyPendingRoomByUserID(userID int) (*dtos.GetMyPendingRoomByUserIDResponse, error)
 }

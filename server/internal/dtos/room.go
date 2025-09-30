@@ -318,4 +318,6 @@ type GetMyPendingRoomByUserIDResponse struct {
 
 	// New field
 	CompatibilityPercent *float64 `json:"compatibility_percent"`
+
+	RoomJoinRequestID *uint `json:"room_join_request_id" validate:"required"`
 }

@@ -665,21 +665,32 @@ func (s roomService) GetRoomOverallLifestyleByRoomId(roomId int) (*entities.Room
 	return &roomResponse, nil
 }
 
-func (s roomService) GetMyPendingRoomByUserID(userId int) (*dtos.GetMyPendingRoomByUserIDResponse, error) {
+func (s roomService) GetMyPendingRoomByUserID(userID int) (*dtos.GetMyPendingRoomByUserIDResponse, error) {
 	// Step 1: fetch room
-	room, err := s.roomRepo.GetMyPendingRoomByUserID(userId)
+	room, err := s.roomRepo.GetMyPendingRoomByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Step 2: fetch user lifestyle
-	userLifestyle, err := s.lifestyleSer.GetUserLifestyleByUserId(userId)
+	userLifestyle, err := s.lifestyleSer.GetUserLifestyleByUserId(userID)
 	if err != nil {
 		return nil, err
 	}
 
+	roomToCalculateCompatibility := &entities.Room{
+		RoomID:                 room.RoomID,
+		RoomName:               room.RoomName,
+		RoomType:               room.RoomType,
+		RoomMaxCapacity:        room.RoomMaxCapacity,
+		RoomCurrentCapacity:    room.RoomCurrentCapacity,
+		RoomDescription:        room.RoomDescription,
+		RoomCode:               room.RoomCode,
+		RoomCompatibilityScore: room.RoomCompatibilityScore,
+		RoomPicture:            room.RoomPicture,
+	}
 	// Step 3: calculate compatibility
-	percent := utils.CalculateCompatibility(*userLifestyle, *room)
+	percent := utils.CalculateCompatibility(*userLifestyle, *roomToCalculateCompatibility)
 
 	// Step 4: build response
 	response := &dtos.GetMyPendingRoomByUserIDResponse{
@@ -693,6 +704,8 @@ func (s roomService) GetMyPendingRoomByUserID(userId int) (*dtos.GetMyPendingRoo
 		RoomCompatibilityScore: room.RoomCompatibilityScore,
 		RoomPicture:            room.RoomPicture,
 		CompatibilityPercent:   v.Ptr(percent),
+
+		RoomJoinRequestID: room.RoomJoinRequestID,
 	}
 
 	return response, nil

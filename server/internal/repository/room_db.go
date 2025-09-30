@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 
 	"gorm.io/gorm"
@@ -118,13 +119,15 @@ func (r roomRepositoryDB) GetRoomOverallLifestyleByRoomId(roomId int) (*entities
 	return &room, nil
 }
 
-func (r roomRepositoryDB) GetMyPendingRoomByUserID(userId int) (*entities.Room, error) {
-	room := entities.Room{}
+func (r roomRepositoryDB) GetMyPendingRoomByUserID(userID int) (*dtos.GetMyPendingRoomByUserIDResponse, error) {
+	room := dtos.GetMyPendingRoomByUserIDResponse{}
 
 	result := r.db.
+		Table("rooms").
+		Select("rooms.*, rjr.room_join_request_id").
 		Joins("JOIN room_join_requests rjr ON rjr.room_id = rooms.room_id").
-		Where("rjr.requester_user_id = ? AND rjr.status IS NULL", userId).
-		Order("rjr.room_join_request_id DESC"). // newest request first
+		Where("rjr.requester_user_id = ? AND rjr.status IS NULL", userID).
+		Order("rjr.room_join_request_id DESC").
 		First(&room)
 
 	if result.Error != nil {
