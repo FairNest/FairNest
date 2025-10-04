@@ -1,44 +1,65 @@
-// ignore_for_file: deprecated_member_use
-
+// room_header_app_bar.dart
 import 'package:fairnestui/Notification/NotificationPage.dart';
 import 'package:fairnestui/pages/Settings/SettingPage.dart';
 import 'package:fairnestui/pages/UserProfilePage.dart';
+import 'package:fairnestui/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 
-class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
+class RoomHeaderAppBar extends StatefulWidget {
   const RoomHeaderAppBar({
     super.key,
-    this.avatarImage =
-        const AssetImage('assets/images/poke.png'), // 👈 default profile image
+    this.avatarImage = const AssetImage('assets/images/poke.png'),
     this.avatarColor,
     required this.scoreText,
-    required this.progress, // 0..1 (real value)
+    required this.progress,
     this.onTapNotifications,
     this.onTapProfile,
     this.onTapSettings,
     this.height = 88,
   });
 
-  final ImageProvider avatarImage; // ✅ no longer nullable, always has a value
-  final Color? avatarColor; // ring/bg color behind avatar
-  final String scoreText; // e.g., "78 Points"
-  final double progress; // 0..1 (real value)
+  final ImageProvider avatarImage;
+  final Color? avatarColor;
+  final String scoreText;
+  final double progress;
   final VoidCallback? onTapNotifications;
   final VoidCallback? onTapSettings;
   final VoidCallback? onTapProfile;
   final double height;
 
   @override
-  Size get preferredSize => Size.fromHeight(height);
+  State<RoomHeaderAppBar> createState() => _RoomHeaderAppBarState();
+}
+
+class _RoomHeaderAppBarState extends State<RoomHeaderAppBar> {
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    final count = await NotificationService.getUnreadNotificationCount();
+    if (mounted) {
+      setState(() {
+        _unreadCount = count;
+      });
+    }
+  }
+
+  @override
+  Size get preferredSize => Size.fromHeight(widget.height);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       elevation: 0,
       backgroundColor: AppColors.background,
-      toolbarHeight: height,
+      toolbarHeight: widget.height,
       automaticallyImplyLeading: false,
       flexibleSpace: SafeArea(
         child: Padding(
@@ -54,19 +75,18 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
                       MaterialPageRoute(
                           builder: (context) => const MyProfilePage()),
                     );
-                  }, // 🔗 fires your navigation
+                  },
                   borderRadius: BorderRadius.circular(28),
                   child: CircleAvatar(
                     radius: 24,
-                    backgroundColor: avatarColor ??
+                    backgroundColor: widget.avatarColor ??
                         AppColors.textOrange.withValues(alpha: .6),
-                    backgroundImage: avatarImage,
+                    backgroundImage: widget.avatarImage,
                   ),
                 ),
               ),
               const SizedBox(width: 12),
 
-              // Label + pill
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -82,28 +102,63 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    // Use visualOffset to compensate the rounded-ends illusion
                     ScorePill(
-                      scoreText: scoreText,
-                      progress: progress,
-                      visualOffset: 0.10, // ← tweak (e.g., 0.08–0.12) to taste
+                      scoreText: widget.scoreText,
+                      progress: widget.progress,
+                      visualOffset: 0.10,
                     ),
                   ],
                 ),
               ),
 
               const SizedBox(width: 12),
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const Notificationpage()),
-                  );
-                },
-                icon: const Icon(Icons.notifications_none_rounded),
-                color: AppColors.textPurple.withValues(alpha: .8),
+
+              // Notification button with badge
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const Notificationpage()),
+                      );
+                      // Refresh count when returning from notification page
+                      _loadUnreadCount();
+                    },
+                    icon: const Icon(Icons.notifications_none_rounded),
+                    color: AppColors.textPurple.withValues(alpha: .8),
+                  ),
+                  if (_unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Center(
+                          child: Text(
+                            _unreadCount > 99 ? '99+' : '$_unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
+
               IconButton(
                 onPressed: () {
                   Navigator.push(
@@ -123,18 +178,19 @@ class RoomHeaderAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+// ScorePill remains the same...
 class ScorePill extends StatelessWidget {
   const ScorePill({
     super.key,
     required this.scoreText,
-    required this.progress, // real value 0..1
-    this.visualOffset = 0.08, // max mid-range boost
+    required this.progress,
+    this.visualOffset = 0.08,
     this.duration = const Duration(milliseconds: 400),
     this.curve = Curves.easeInOut,
   });
 
   final String scoreText;
-  final double progress; // real value 0..1
+  final double progress;
   final double visualOffset;
   final Duration duration;
   final Curve curve;
@@ -143,8 +199,6 @@ class ScorePill extends StatelessWidget {
   Widget build(BuildContext context) {
     const double h = 28;
     final double pReal = progress.clamp(0.0, 1.0);
-
-    // Fade the boost as we approach 1.0 (so 0.9 doesn't look like 1.0)
     final double scaledOffset = visualOffset * (1 - pReal);
     final double pVisual = (pReal + scaledOffset).clamp(0.0, 1.0);
 
@@ -152,13 +206,10 @@ class ScorePill extends StatelessWidget {
       borderRadius: BorderRadius.circular(h / 2),
       child: Stack(
         children: [
-          // Track
           Container(
             height: h,
             color: const Color(0xFF3E3A4B),
           ),
-
-          // Animate the FRACTION directly (keeps the “looks right” geometry)
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: pVisual),
             duration: duration,
@@ -167,7 +218,7 @@ class ScorePill extends StatelessWidget {
               return Align(
                 alignment: Alignment.centerLeft,
                 child: FractionallySizedBox(
-                  widthFactor: animatedP, // ← animate the fraction
+                  widthFactor: animatedP,
                   child: Container(
                     height: h,
                     color: const Color(0xFF645A80),
@@ -176,8 +227,6 @@ class ScorePill extends StatelessWidget {
               );
             },
           ),
-
-          // Centered text
           SizedBox(
             height: h,
             child: Center(

@@ -10,6 +10,10 @@ import 'package:fairnestui/components/RoomComponentsCard.dart';
 
 // services
 import 'package:fairnestui/services/api_client.dart';
+import 'package:fairnestui/services/user_service.dart';
+
+// Import the GroupHomePage
+import 'package:fairnestui/pages/FindRoommate/GroupHomePage.dart';
 
 class Requestjoinroompage extends StatefulWidget {
   const Requestjoinroompage({
@@ -19,7 +23,7 @@ class Requestjoinroompage extends StatefulWidget {
     this.showBack = true,
   });
 
-  final int roomId; // 🔑 passed from the card
+  final int roomId;
   final VoidCallback? onRequestJoin;
   final bool showBack;
 
@@ -29,6 +33,7 @@ class Requestjoinroompage extends StatefulWidget {
 
 class _RequestjoinroompageState extends State<Requestjoinroompage> {
   late Future<Map<String, dynamic>> _detailsFuture;
+  bool _isSubmitting = false;
 
   static const _lavender = Color(0xFF645A80);
 
@@ -56,7 +61,7 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
 
       // Overview
       "living_space_name": data["living_space_name"],
-      "rent_cost": data["rent_cost"], // per month
+      "rent_cost": data["rent_cost"],
       "electricity": data["electricity_cost_per_unit"],
       "water": data["water_cost_per_unit"],
       "other_utils": data["other_utility_details"],
@@ -91,6 +96,62 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
     };
   }
 
+  Future<void> _handleRequestJoin() async {
+    if (_isSubmitting) return;
+
+    // Show house rules dialog
+    final confirmed = await showHouseRulesDialog(context);
+    if (confirmed != true) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // Get user ID from token
+      final userId = await UserService.getUserIdFromToken();
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      // Call the API endpoint
+      final response = await ApiClient.post(
+        '/CreateRoomJoinRequestByUserIdRoomId/$userId/${widget.roomId}',
+      );
+
+      if (response.statusCode == 201 && mounted) {
+        // Success - navigate to GroupHomePage
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Join request sent successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate back to GroupHomePage and remove all previous routes
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const GroupHomePage()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send request: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
   Future<void> _refresh() async {
     final newF = _fetchRoomDetails(widget.roomId);
     setState(() {
@@ -105,7 +166,7 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
       backgroundColor: const Color(0xFFE9E0EC),
       body: Column(
         children: [
-          // Header (bell hidden by passing null)
+          // Header
           const Stack(
             children: [
               AppHeader(
@@ -141,7 +202,7 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
                             style: const TextStyle(color: Colors.red),
                           ),
                         if (data != null) ...[
-                          // Room card (uses backend data)
+                          // Room card
                           RoomComponentsCard(
                             title: data["name"] ?? "-",
                             description: data["desc"] ?? "-",
@@ -248,24 +309,17 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
 
                           // CTA
                           MainButton(
-                            text: 'Request to Join Room',
-                            backgroundColor: AppColors.accent,
+                            text: _isSubmitting
+                                ? 'Sending Request...'
+                                : 'Request to Join Room',
+                            backgroundColor:
+                                _isSubmitting ? Colors.grey : AppColors.accent,
                             textColor: Colors.black,
                             width: double.infinity,
                             height: 54,
                             borderRadius: 12,
-                            onPressed: widget.onRequestJoin ??
-                                () async {
-                                  final confirmed =
-                                      await showHouseRulesDialog(context);
-                                  if (confirmed == true) {
-                                    // TODO: send join request API call here
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('Request sent!')),
-                                    );
-                                  }
-                                },
+                            onPressed:
+                                _isSubmitting ? null : _handleRequestJoin,
                           ),
                         ],
                         if (!hasError && data == null)
@@ -289,7 +343,7 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
   }
 }
 
-/* ----------------- Small pieces (unchanged styles) ----------------- */
+/* ----------------- Small pieces (unchanged) ----------------- */
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
@@ -306,7 +360,6 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-/// Room overview card with bold/bigger apartment name and smaller details
 class _OverviewCard extends StatelessWidget {
   const _OverviewCard({
     required this.apartmentName,

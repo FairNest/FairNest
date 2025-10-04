@@ -1,4 +1,5 @@
 import 'package:fairnestui/Notification/NotificationPage.dart';
+import 'package:fairnestui/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
@@ -9,15 +10,14 @@ enum AppHeaderRightType {
   profile,
 }
 
-class AppHeader extends StatelessWidget {
+class AppHeader extends StatefulWidget {
   final String title;
   final AppHeaderRightType rightType;
   final VoidCallback? onNotificationTap;
   final VoidCallback? onProfileTap;
-  final String? profileImageAsset; // asset path for profile picture
-
-  final bool showBack; // NEW
-  final VoidCallback? onBackTap; // NEW
+  final String? profileImageAsset;
+  final bool showBack;
+  final VoidCallback? onBackTap;
 
   const AppHeader({
     super.key,
@@ -26,9 +26,43 @@ class AppHeader extends StatelessWidget {
     this.onNotificationTap,
     this.onProfileTap,
     this.profileImageAsset,
-    this.showBack = false, // default no back arrow
+    this.showBack = false,
     this.onBackTap,
   });
+
+  @override
+  State<AppHeader> createState() => _AppHeaderState();
+}
+
+class _AppHeaderState extends State<AppHeader> {
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.rightType == AppHeaderRightType.notification) {
+      _loadUnreadCount();
+    }
+  }
+
+  @override
+  void didUpdateWidget(AppHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload if rightType changed to notification
+    if (widget.rightType == AppHeaderRightType.notification &&
+        oldWidget.rightType != AppHeaderRightType.notification) {
+      _loadUnreadCount();
+    }
+  }
+
+  Future<void> _loadUnreadCount() async {
+    final count = await NotificationService.getUnreadNotificationCount();
+    if (mounted) {
+      setState(() {
+        _unreadCount = count;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +78,7 @@ class AppHeader extends StatelessWidget {
         children: [
           // Title (centered)
           Text(
-            title,
+            widget.title,
             style: AppFonts.heading1.copyWith(
               color: const Color(0xFF645A80),
             ),
@@ -52,52 +86,85 @@ class AppHeader extends StatelessWidget {
           ),
 
           // Back arrow (if enabled)
-          if (showBack)
+          if (widget.showBack)
             Positioned(
               left: 0,
               child: IconButton(
                 icon: const Icon(Icons.arrow_back_ios,
                     size: 20, color: Colors.black87),
-                onPressed: onBackTap ?? () => Navigator.of(context).maybePop(),
+                onPressed:
+                    widget.onBackTap ?? () => Navigator.of(context).maybePop(),
               ),
             ),
 
           // Right-side widget (notification, profile, or none)
           Positioned(
             right: 0,
-            child: _buildRightWidget(context), // ← pass context in
+            child: _buildRightWidget(context),
           ),
         ],
       ),
     );
   }
 
-  // Accept BuildContext so Navigator works here
   Widget _buildRightWidget(BuildContext context) {
-    switch (rightType) {
+    switch (widget.rightType) {
       case AppHeaderRightType.notification:
-        return GestureDetector(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const Notificationpage()),
-            );
-          },
-          child: Image.asset(
-            'assets/images/Notification.png',
-            width: 40,
-            height: 40,
-          ),
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            GestureDetector(
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const Notificationpage()),
+                );
+                // Refresh count when returning from notification page
+                _loadUnreadCount();
+              },
+              child: Image.asset(
+                'assets/images/Notification.png',
+                width: 40,
+                height: 40,
+              ),
+            ),
+            if (_unreadCount > 0)
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 18,
+                    minHeight: 18,
+                  ),
+                  child: Center(
+                    child: Text(
+                      _unreadCount > 99 ? '99+' : '$_unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         );
 
       case AppHeaderRightType.profile:
         return GestureDetector(
-          onTap: onProfileTap,
+          onTap: widget.onProfileTap,
           child: CircleAvatar(
             radius: 16,
             backgroundColor: Colors.white,
             child: ClipOval(
               child: Image.asset(
-                profileImageAsset ?? 'assets/images/fairnest.png',
+                widget.profileImageAsset ?? 'assets/images/fairnest.png',
                 width: 30,
                 height: 30,
                 fit: BoxFit.cover,

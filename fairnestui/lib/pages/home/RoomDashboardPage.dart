@@ -8,6 +8,9 @@ import 'package:fairnestui/components/YourProgressNowCard.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:fairnestui/util/EditHouseRules.dart';
 import 'package:fairnestui/widgets/TaskNavFolder.dart';
+import 'package:fairnestui/services/user_profile_service.dart';
+import 'package:fairnestui/services/notification_service.dart';
+import 'package:fairnestui/model/notification_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 
@@ -19,21 +22,71 @@ class RoomDashboardPage extends StatefulWidget {
 }
 
 class _RoomDashboardPageState extends State<RoomDashboardPage> {
-  int _tab = 0; // pill tabs: 0 = Room, 1 = Your
-  int _bottomIndex = 0; // bottom nav: 0..4 (Home, List, Center, Cash, Profile)
+  int _tab = 0;
+  int _bottomIndex = 0;
+  String _firstName = "User";
+  List<NotificationModel> _recentNotifications = [];
+  bool _isLoadingNotifications = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+    _loadRecentNotifications();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      // Try cache first for instant load
+      final cachedProfile =
+          await UserProfileService.instance.getCachedProfile();
+      if (cachedProfile != null && mounted) {
+        setState(() {
+          _firstName = cachedProfile.firstname ?? "User";
+        });
+      }
+
+      // Then fetch fresh data in background
+      final profile = await UserProfileService.instance.getCurrentUserProfile();
+      if (profile != null && mounted) {
+        setState(() {
+          _firstName = profile.firstname ?? "User";
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading user profile: $e');
+    }
+  }
+
+  Future<void> _loadRecentNotifications() async {
+    setState(() {
+      _isLoadingNotifications = true;
+    });
+
+    try {
+      final notifications =
+          await NotificationService.getThreeRecentNotifications();
+      if (mounted) {
+        setState(() {
+          _recentNotifications = notifications;
+          _isLoadingNotifications = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading notifications: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingNotifications = false;
+        });
+      }
+    }
+  }
 
   void _onBottomTab(int i) {
     setState(() => _bottomIndex = i);
-
-    // TODO: handle navigation per index (examples):
-    // if (i == 0) { /* already on Home/RoomDashboard */ }
-    // if (i == 1) { Navigator.push(context, MaterialPageRoute(builder: (_) => const ListPage())); }
-    // if (i == 3) { Navigator.push(context, MaterialPageRoute(builder: (_) => const CashPage())); }
-    // if (i == 4) { Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilePage())); }
   }
 
   void _onCenterAction() {
-    // Example: open compose/add sheet
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -58,7 +111,7 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Welcome Back, George!",
+              "Welcome Back, $_firstName!",
               style: AppFonts.heading1.copyWith(color: AppColors.textPurple),
             ),
             const SizedBox(height: 12),
@@ -71,9 +124,13 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
             Expanded(
               child: IndexedStack(
                 index: _tab,
-                children: const [
-                  _RoomDashContent(),
-                  _YourDashContent(),
+                children: [
+                  _RoomDashContent(
+                    notifications: _recentNotifications,
+                    isLoadingNotifications: _isLoadingNotifications,
+                    onRefreshNotifications: _loadRecentNotifications,
+                  ),
+                  const _YourDashContent(),
                 ],
               ),
             ),
@@ -85,7 +142,31 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
 }
 
 class _RoomDashContent extends StatelessWidget {
-  const _RoomDashContent({super.key});
+  const _RoomDashContent({
+    super.key,
+    required this.notifications,
+    required this.isLoadingNotifications,
+    required this.onRefreshNotifications,
+  });
+
+  final List<NotificationModel> notifications;
+  final bool isLoadingNotifications;
+  final VoidCallback onRefreshNotifications;
+
+  String _getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,71 +193,58 @@ class _RoomDashContent extends StatelessWidget {
               borderRadius: BorderRadius.circular(15),
               border: Border.all(color: Colors.black54),
             ),
-            child: Stack(
-              children: [
-                Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 13, 10, 10),
-                    child: Container(
-                      height: 34,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                          color: const Color(0xFFFAEDE5),
-                          borderRadius: BorderRadius.circular(5)),
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
+            child: isLoadingNotifications
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.textPink,
+                    ),
+                  )
+                : notifications.isEmpty
+                    ? const Center(
                         child: Text(
-                          "Max added a new bill: Electricity ฿1,200 — due in 5 days ⚡",
+                          'No recent notifications',
                           style: TextStyle(
-                              color: AppColors.textPink,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12),
+                            color: AppColors.textPink,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      )
+                    : Stack(
+                        children: List.generate(
+                          notifications.length,
+                          (index) {
+                            final notification = notifications[index];
+                            return Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                  10, 13 + (index * 44.0), 10, 10),
+                              child: Container(
+                                height: 34,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFAEDE5),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    notification.notificationMessage,
+                                    style: const TextStyle(
+                                      color: AppColors.textPink,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                    )),
-                Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 56, 10, 10),
-                    child: Container(
-                      height: 34,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                          color: const Color(0xFFFAEDE5),
-                          borderRadius: BorderRadius.circular(5)),
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          "Lando settled his part of the water bill 💧",
-                          style: TextStyle(
-                              color: AppColors.textPink,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12),
-                        ),
-                      ),
-                    )),
-                Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 100, 10, 10),
-                    child: Container(
-                      height: 34,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                          color: const Color(0xFFFAEDE5),
-                          borderRadius: BorderRadius.circular(5)),
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          "New payment reminder: Rent due in 3 days 🏠",
-                          style: TextStyle(
-                              color: AppColors.textPink,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12),
-                        ),
-                      ),
-                    )),
-              ],
-            ),
           ),
-          const SizedBox(
-            height: 15,
-          ),
+          const SizedBox(height: 15),
           Row(
             children: [
               const Padding(
@@ -195,7 +263,6 @@ class _RoomDashContent extends StatelessWidget {
                   onPressed: () async {
                     final confirmed = await showEditHouseRulesDialog(context);
 
-                    // you can react to result here if needed
                     if (confirmed == true) {
                       debugPrint("User clicked Edit House Rule");
                     } else {
@@ -203,8 +270,8 @@ class _RoomDashContent extends StatelessWidget {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.background, // cream bg
-                    foregroundColor: AppColors.darkPurple, // text color
+                    backgroundColor: AppColors.background,
+                    foregroundColor: AppColors.darkPurple,
                     elevation: 3,
                     padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
                     shape: const StadiumBorder(
@@ -228,25 +295,19 @@ class _RoomDashContent extends StatelessWidget {
                 child: const Column(
                   children: [
                     RoomCompatibilityCard(value: 0.5),
-                    SizedBox(
-                      height: 10,
-                    ),
+                    SizedBox(height: 10),
                     ChoresProgressCard(
                       totalTasks: 6,
                       completedTasks: 5,
                     ),
-                    SizedBox(
-                      height: 10,
-                    ),
+                    SizedBox(height: 10),
                     FinancesProgressCard(completedFinances: 2, totalFinances: 6)
                   ],
                 ),
               ),
             ],
           )),
-          const SizedBox(
-            height: 15,
-          ),
+          const SizedBox(height: 15),
           Container(
             child: const Text(
               "Roommate Overview",
@@ -280,9 +341,7 @@ class _RoomDashContent extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(
-            height: 15,
-          ),
+          const SizedBox(height: 15),
         ],
       ),
     );
@@ -296,13 +355,9 @@ class _YourDashContent extends StatelessWidget {
     return const SingleChildScrollView(
       child: Column(
         children: [
-          SizedBox(
-            height: 10,
-          ),
+          SizedBox(height: 10),
           YourProgressNowCard(completedTasks: 4, totalTasks: 6),
-          SizedBox(
-            height: 20,
-          ),
+          SizedBox(height: 20),
           TaskNavFolder(
             todayUnfinishedCount: 1,
             completedCount: 2,
@@ -336,25 +391,23 @@ class _PillSegmentedControl extends StatefulWidget {
 class _PillSegmentedControlState extends State<_PillSegmentedControl> {
   late int _index = widget.initialIndex;
 
-  // Baked-in brand colors
-  static const Color _pink = Color(0xFFFF8FB5); // track
-  static const Color _cream = Color(0xFFFFF1E8); // thumb
+  static const Color _pink = Color(0xFFFF8FB5);
+  static const Color _cream = Color(0xFFFFF1E8);
   static const EdgeInsets _padding = EdgeInsets.all(6);
 
   Alignment _alignmentFor(int i, int len) {
-    // Map index to alignmentX in [-1, 1]
     if (len <= 1) return Alignment.center;
-    final step = 2.0 / (len - 1); // distance between slots
+    final step = 2.0 / (len - 1);
     final x = -1.0 + (i * step);
     return Alignment(x, 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final tabCount = widget.tabs.length.clamp(1, 6); // safety
+    final tabCount = widget.tabs.length.clamp(1, 6);
 
     return SizedBox(
-      width: double.infinity, // ensure full width so fractions work
+      width: double.infinity,
       child: Container(
         height: widget.height,
         padding: _padding,
@@ -364,7 +417,6 @@ class _PillSegmentedControlState extends State<_PillSegmentedControl> {
         ),
         child: Stack(
           children: [
-            // Cream thumb under labels (now using AnimatedAlign + FractionallySizedBox)
             AnimatedAlign(
               alignment: _alignmentFor(_index, tabCount),
               duration: const Duration(milliseconds: 200),
@@ -388,8 +440,6 @@ class _PillSegmentedControlState extends State<_PillSegmentedControl> {
                 ),
               ),
             ),
-
-            // Labels layer
             Row(
               children: List.generate(tabCount, (i) {
                 final selected = i == _index;

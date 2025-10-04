@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:fairnestui/components/MainButton.dart';
+import 'package:fairnestui/shell/app_shell.dart' show AppShell;
 
 class GenerateInviteCodePage extends StatelessWidget {
   const GenerateInviteCodePage({
@@ -15,7 +16,7 @@ class GenerateInviteCodePage extends StatelessWidget {
   /// The invite code returned from the backend (room_code).
   final String? roomCode;
 
-  /// Optional callback when the “See your Room” button is pressed.
+  /// Optional callback when the "See your Room" button is pressed.
   final void Function(String inviteCode)? onCreateRoom;
 
   Future<void> _copy(BuildContext context) async {
@@ -24,6 +25,18 @@ class GenerateInviteCodePage extends StatelessWidget {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Invite code copied')),
+    );
+  }
+
+  void _navigateToRoom(BuildContext context, String code) {
+    // Call the optional callback first if provided
+    onCreateRoom?.call(code);
+
+    // Navigate to AppShell
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const AppShell(),
+      ),
     );
   }
 
@@ -129,7 +142,7 @@ class GenerateInviteCodePage extends StatelessWidget {
                   const SizedBox(height: 12),
                   const Center(
                     child: Text(
-                      "Now let’s see your room!",
+                      "Now let's see your room!",
                       style: TextStyle(
                         fontFamily: 'Krub',
                         fontSize: 12,
@@ -147,8 +160,9 @@ class GenerateInviteCodePage extends StatelessWidget {
                     width: double.infinity,
                     height: 52,
                     borderRadius: 12,
-                    onPressed:
-                        code.isEmpty ? null : () => onCreateRoom?.call(code),
+                    onPressed: code.isEmpty
+                        ? null
+                        : () => _navigateToRoom(context, code),
                   ),
                 ],
               ),

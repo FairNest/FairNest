@@ -269,22 +269,6 @@ class _MyProfilePageState extends State<MyProfilePage> {
                       ),
 
                       const SizedBox(height: 28),
-
-                      // Edit Profile button
-                      MainButton(
-                        text: 'Edit Profile',
-                        backgroundColor: const Color(0xFFD8A85B),
-                        textColor: Colors.black,
-                        width: double.infinity,
-                        height: 56,
-                        borderRadius: 12,
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Edit Profile tapped')),
-                          );
-                        },
-                      ),
                     ],
                   ),
                 );

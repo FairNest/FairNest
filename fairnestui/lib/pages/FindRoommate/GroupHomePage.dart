@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:fairnestui/Notification/NotificationPage.dart';
+import 'package:fairnestui/model/pending_room_model.dart';
 import 'package:fairnestui/pages/FindRoommate/RequestJoinRoomPage.dart';
 import 'package:fairnestui/pages/FindRoommate/StartRoommatePage.dart';
 import 'package:flutter/material.dart';
@@ -115,9 +117,12 @@ class _GroupHomePageState extends State<GroupHomePage> {
           // Header
           AppHeader(
             title: 'Find Roommate',
+            rightType: AppHeaderRightType.notification,
             onNotificationTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications tapped')),
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const Notificationpage(),
+                ),
               );
             },
           ),
@@ -255,13 +260,13 @@ class _FilterDialogState extends State<_FilterDialog> {
     return AlertDialog(
       backgroundColor: AppColors.background,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(
+      title: const Text(
         'Filter Rooms',
         style: TextStyle(
           fontFamily: 'Krub',
           fontWeight: FontWeight.w700,
           fontSize: 20,
-          color: AppColors.primary,
+          color: AppColors.darkPurple,
         ),
       ),
       content: SingleChildScrollView(
@@ -286,7 +291,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                 fontFamily: 'Krub',
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
-                color: AppColors.primary,
+                color: AppColors.darkPurple,
               ),
             ),
             const SizedBox(height: 8),
@@ -341,7 +346,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                 fontFamily: 'Krub',
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
-                color: AppColors.primary,
+                color: AppColors.darkPurple,
               ),
             ),
             const SizedBox(height: 8),
@@ -447,7 +452,7 @@ class _FilterField extends StatelessWidget {
             fontFamily: 'Krub',
             fontWeight: FontWeight.w600,
             fontSize: 14,
-            color: AppColors.primary,
+            color: AppColors.darkPurple,
           ),
         ),
         const SizedBox(height: 4),
@@ -580,36 +585,195 @@ class _FilterButton extends StatelessWidget {
 }
 
 /* -----------------------------------------------------------
- * Tab: My room - TEMPORARY CARD VERSION
+ * Tab: My room - Fetch pending room
  * ---------------------------------------------------------*/
-class _MyRoomTab extends StatelessWidget {
+class _MyRoomTab extends StatefulWidget {
   const _MyRoomTab();
 
   @override
+  State<_MyRoomTab> createState() => _MyRoomTabState();
+}
+
+class _MyRoomTabState extends State<_MyRoomTab> {
+  late Future<PendingRoomModel?> _pendingRoomFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _pendingRoomFuture = _fetchPendingRoom();
+  }
+
+  Future<PendingRoomModel?> _fetchPendingRoom() async {
+    try {
+      final userId = await UserService.getUserIdFromToken();
+      if (userId == null) throw Exception("User not authenticated");
+
+      final response = await ApiClient.get("/GetMyPendingRoomByUserId/$userId");
+
+      if (response.statusCode == 200 && response.data != null) {
+        return PendingRoomModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      if (e is DioException) {
+        // Handle 500 error with "record not found" message
+        if (e.response?.statusCode == 500) {
+          final errorMessage = e.response?.data?.toString() ?? '';
+          if (errorMessage.toLowerCase().contains('record not found')) {
+            // No pending room found - this is not an error, just no data
+            return null;
+          }
+        }
+        // Handle 404 as no pending room
+        if (e.response?.statusCode == 404) {
+          return null;
+        }
+      }
+      // For other errors, rethrow
+      rethrow;
+    }
+  }
+
+  Future<void> _refresh() async {
+    final newFuture = _fetchPendingRoom();
+    setState(() {
+      _pendingRoomFuture = newFuture;
+    });
+    await newFuture;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      children: [
-        // Temporary card - click to navigate to StartRoommatePage
-        RoomComponentsCard(
-          title: 'Wonderful Trio Casa',
-          description:
-              "We're early risers, prefer a quiet space, and rotate chores weekly.",
-          memberCount: 2,
-          memberMax: 3,
-          compatibilityPct: 87,
-          width: double.infinity,
-          height: 210,
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const StartRoommatePage(),
+    return FutureBuilder<PendingRoomModel?>(
+      future: _pendingRoomFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return RefreshIndicator(
+            onRefresh: _refresh,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              children: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error loading pending room',
+                          style: TextStyle(
+                            fontFamily: 'Krub',
+                            fontSize: 16,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Pull down to retry',
+                          style: TextStyle(
+                            fontFamily: 'Krub',
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final pendingRoom = snapshot.data;
+
+        if (pendingRoom == null) {
+          // No pending room - show empty state with helpful message
+          return RefreshIndicator(
+            onRefresh: _refresh,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              children: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.home_outlined,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'You haven\'t requested to join a room',
+                          style: TextStyle(
+                            fontFamily: 'Krub',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Browse public rooms to find your perfect match!',
+                          style: TextStyle(
+                            fontFamily: 'Krub',
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Show the pending room card
+        return RefreshIndicator(
+          onRefresh: _refresh,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            children: [
+              RoomComponentsCard(
+                title: pendingRoom.roomName,
+                description: pendingRoom.roomDescription,
+                memberCount: pendingRoom.roomCurrentCapacity,
+                memberMax: pendingRoom.roomMaxCapacity,
+                compatibilityPct: pendingRoom.roomCompatibilityScore,
+                imageUrl: pendingRoom.roomPicture,
+                width: double.infinity,
+                height: 210,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => StartRoommatePage(
+                        roomId: pendingRoom.roomId,
+                        roomJoinRequestId: pendingRoom.roomJoinRequestId,
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-        const SizedBox(height: 600),
-      ],
+              const SizedBox(height: 600),
+            ],
+          ),
+        );
+      },
     );
   }
 }

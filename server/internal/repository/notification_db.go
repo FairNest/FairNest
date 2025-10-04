@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fairnest/internal/entities"
+
 	"gorm.io/gorm"
 )
 
@@ -25,7 +26,7 @@ func (r notificationRepositoryDB) GetNotificationByNotificationId(notificationId
 func (r notificationRepositoryDB) FetchAllUnreadNotificationByUserId(userId int) ([]entities.Notification, error) {
 	notifications := []entities.Notification{}
 	result := r.db.
-		Where("receiver_id = ?", userId).
+		Where("receiver_id = ? AND is_read = ?", userId, false).
 		Order("created_at DESC").
 		Find(&notifications)
 	if result.Error != nil {

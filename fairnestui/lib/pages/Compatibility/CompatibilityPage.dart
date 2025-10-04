@@ -104,6 +104,7 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
 
   bool _loading = true;
   Object? _error;
+  bool _isSingleUser = false; // NEW: track if user is alone in room
 
   // Data to render
   List<LifestyleMetric> _roomMetrics = const [];
@@ -131,6 +132,7 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
     setState(() {
       _loading = true;
       _error = null;
+      _isSingleUser = false;
     });
 
     try {
@@ -170,31 +172,54 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
 
   Future<void> _fetchLifestyleFor(int userId, int roomId) async {
     try {
-      // Fetch lifestyle + both compatibility endpoints in parallel
-      final results = await Future.wait([
+      // Fetch lifestyle data (required)
+      final lifestyleResults = await Future.wait([
         ApiClient.get('/GetRoomOverallLifestyleByRoomId/$roomId'),
         ApiClient.get('/GetUserOverallLifestyleByUserId/$userId'),
-        ApiClient.get('/GetRoomAverageCompatibilityByRoomId/$roomId'),
-        ApiClient.get('/GetCompatibilityMatchesByRoomAndUser/$roomId/$userId'),
       ]);
 
-      final roomResp = results[0];
-      final userResp = results[1];
-      final compSummaryResp = results[2];
-      final compMatchesResp = results[3];
+      final roomResp = lifestyleResults[0];
+      final userResp = lifestyleResults[1];
 
       if (!mounted) return;
 
       final roomOk = roomResp.statusCode == 200;
       final userOk = userResp.statusCode == 200;
-      final sumOk = compSummaryResp.statusCode == 200;
-      final matOk = compMatchesResp.statusCode == 200;
 
-      if (!roomOk && !userOk && !sumOk && !matOk) {
+      // Try to fetch compatibility data (may fail if single user)
+      dynamic compSummaryResp;
+      dynamic compMatchesResp;
+      bool sumOk = false;
+      bool matOk = false;
+
+      try {
+        compSummaryResp =
+            await ApiClient.get('/GetRoomAverageCompatibilityByRoomId/$roomId');
+        sumOk = compSummaryResp.statusCode == 200;
+      } catch (e) {
+        // Compatibility endpoint failed - likely single user
+        sumOk = false;
+      }
+
+      try {
+        compMatchesResp = await ApiClient.get(
+            '/GetCompatibilityMatchesByRoomAndUser/$roomId/$userId');
+        matOk = compMatchesResp.statusCode == 200;
+      } catch (e) {
+        // Compatibility endpoint failed - likely single user
+        matOk = false;
+      }
+
+      if (!mounted) return;
+
+      // Check if compatibility endpoints failed (likely single user scenario)
+      final isSingleUser = !sumOk && !matOk;
+
+      // If at least lifestyle data exists, show it
+      if (!roomOk && !userOk) {
         throw Exception(
-          'Failed to load lifestyle/compatibility data '
-          '(${roomResp.statusCode}/${userResp.statusCode}/'
-          '${compSummaryResp.statusCode}/${compMatchesResp.statusCode}).',
+          'Failed to load lifestyle data '
+          '(${roomResp.statusCode}/${userResp.statusCode}).',
         );
       }
 
@@ -226,6 +251,7 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
         _userMetrics = userMetrics;
         _roomSummary = summary;
         _matches = matches;
+        _isSingleUser = isSingleUser;
         _loading = false;
         _error = null;
       });
@@ -295,6 +321,54 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
     ];
   }
 
+  /* =================== Dynamic Advice Generation =================== */
+
+  List<String> _generateAdvice(double compatibilityPct) {
+    if (compatibilityPct >= 90) {
+      // Perfect match (90-100%)
+      return [
+        'Excellent synergy! Keep up the open communication.',
+        'Your lifestyles align beautifully—maintain this positive dynamic.',
+      ];
+    } else if (compatibilityPct >= 75) {
+      // Very Good (75-89%)
+      return [
+        'Strong compatibility! Align on long-term goals to keep things smooth.',
+        'You are in great sync—occasional check-ins will strengthen your bond.',
+      ];
+    } else if (compatibilityPct >= 60) {
+      // Good (60-74%)
+      return [
+        'Good match overall. Clarify expectations on shared spaces regularly.',
+        'Mostly aligned—discuss any small differences before they grow.',
+      ];
+    } else if (compatibilityPct >= 45) {
+      // Average (45-59%)
+      return [
+        'Some lifestyle gaps exist. Set clear house rules for chores and quiet hours.',
+        'Communication is key. Schedule regular check-ins to address concerns.',
+        'Consider creating a shared calendar for cleaning and guest schedules.',
+      ];
+    } else if (compatibilityPct >= 30) {
+      // Below Average (30-44%)
+      return [
+        'Significant differences present. Have an honest conversation about boundaries.',
+        'Establish written agreements for shared responsibilities and personal space.',
+        'Schedule weekly house meetings to prevent conflicts from building up.',
+        'Consider using a task management app to track chores fairly.',
+      ];
+    } else {
+      // Low compatibility (0-29%)
+      return [
+        'Major lifestyle differences detected. Immediate discussion needed about house rules.',
+        'Set very clear boundaries for noise, guests, and shared spaces.',
+        'Create a detailed roommate agreement covering all aspects of living together.',
+        'Consider mediation or counseling if conflicts arise frequently.',
+        'Be proactive—address issues immediately before they escalate.',
+      ];
+    }
+  }
+
   /* =================== UI =================== */
 
   @override
@@ -308,154 +382,246 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
             : _error != null
                 ? _ErrorPane(
                     error: '$_error', onRetry: _loadDataCacheThenRefresh)
-                : SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Compatibility Overview',
-                            style: AppFonts.heading1
-                                .copyWith(color: AppColors.textPurple)),
-                        const SizedBox(height: 12),
+                : _isSingleUser
+                    ? _SingleUserView(
+                        userMetrics: _userMetrics,
+                        onRetry: _loadDataCacheThenRefresh,
+                      )
+                    : SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Compatibility Overview',
+                                style: AppFonts.heading1
+                                    .copyWith(color: AppColors.textPurple)),
+                            const SizedBox(height: 12),
 
-                        // ===== Swappable overview section =====
-                        _OverviewSwitchCard(
-                          controller: _pageCtrl,
-                          page: _page,
-                          onPageChanged: (i) => setState(() => _page = i),
-                          onDotTap: (i) => _pageCtrl.animateToPage(
-                            i,
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOut,
-                          ),
-                          pages: [
-                            _OverviewPane(
-                              title: 'Room Lifestyle',
-                              metrics: _roomMetrics,
-                            ),
-                            _OverviewPane(
-                              title: 'Your Lifestyle',
-                              metrics: _userMetrics,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 18),
-
-                        // ===== Room Compatibility Insights =====
-                        Text('Room Compatibility Insights',
-                            style: AppFonts.heading3
-                                .copyWith(color: AppColors.textDark)),
-                        const SizedBox(height: 8),
-
-                        LavenderBorderedCard(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                RoomCompatibilityCard(
-                                  // widget expects 0..1; backend returns % → divide by 100
-                                  value:
-                                      ((_roomSummary?.scorePct ?? 0.0) / 100.0),
+                            // ===== Swappable overview section =====
+                            _OverviewSwitchCard(
+                              controller: _pageCtrl,
+                              page: _page,
+                              onPageChanged: (i) => setState(() => _page = i),
+                              onDotTap: (i) => _pageCtrl.animateToPage(
+                                i,
+                                duration: const Duration(milliseconds: 220),
+                                curve: Curves.easeOut,
+                              ),
+                              pages: [
+                                _OverviewPane(
+                                  title: 'Room Lifestyle',
+                                  metrics: _roomMetrics,
                                 ),
-                                const SizedBox(height: 12),
-
-                                // Light panel inside lavender card
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: .35),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Roommate Insights',
-                                          style: AppFonts.heading3.copyWith(
-                                              color: AppColors.textPurple)),
-                                      const SizedBox(height: 8),
-                                      _insightRow(
-                                        'Best Matched Pair:',
-                                        _roomSummary == null
-                                            ? '-'
-                                            : '${_roomSummary!.bestMatched.userAName} & ${_roomSummary!.bestMatched.userBName}',
-                                      ),
-                                      const SizedBox(height: 6),
-                                      _insightRow(
-                                        'Most Divergent Lifestyle:',
-                                        _roomSummary == null
-                                            ? '-'
-                                            : '${_roomSummary!.mostDivergent.userAName} & ${_roomSummary!.mostDivergent.userBName}',
-                                      ),
-                                    ],
-                                  ),
+                                _OverviewPane(
+                                  title: 'Your Lifestyle',
+                                  metrics: _userMetrics,
                                 ),
                               ],
                             ),
-                          ),
-                        ),
 
-                        const SizedBox(height: 18),
+                            const SizedBox(height: 18),
 
-                        // ===== Roommate Compatibility Cards =====
-                        Text('Roommate Compatibility',
-                            style: AppFonts.heading3
-                                .copyWith(color: AppColors.textDark)),
-                        const SizedBox(height: 8),
+                            // ===== Room Compatibility Insights =====
+                            Text('Room Compatibility Insights',
+                                style: AppFonts.heading3
+                                    .copyWith(color: AppColors.textDark)),
+                            const SizedBox(height: 8),
 
-                        if (_matches.isEmpty)
-                          Text('No roommate matches to show.',
-                              style: AppFonts.body1
-                                  .copyWith(color: AppColors.textPurple))
-                        else
-                          Column(
-                            children: _matches.map((m) {
-                              final img = (m.profilePicture?.isNotEmpty ??
-                                      false)
-                                  ? NetworkImage(m.profilePicture!)
-                                  : const AssetImage(
-                                          'assets/images/default_avatar.png')
-                                      as ImageProvider;
+                            LavenderBorderedCard(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(10, 12, 10, 12),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    RoomCompatibilityCard(
+                                      // widget expects 0..1; backend returns % → divide by 100
+                                      value: ((_roomSummary?.scorePct ?? 0.0) /
+                                          100.0),
+                                    ),
+                                    const SizedBox(height: 12),
 
-                              // temporary advice text per label (hard-coded)
-                              final adviceByLabel = <String, String>{
-                                'Perfect':
-                                    'Great synergy—keep up the communication streak!',
-                                'Very Good':
-                                    'Strong rhythm—align on goals to keep it smooth.',
-                                'Good':
-                                    'Mostly in sync—clarify expectations occasionally.',
-                                'Average':
-                                    'Some gaps—set shared norms for chores/quiet hours.',
-                                'Bad':
-                                    'Big differences—talk and set clear boundaries soon.',
-                              };
-                              final advice = adviceByLabel[m.matchLabel] ??
-                                  'Keep communicating and align on shared routines.';
-
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Roommatecompatibilitycard(
-                                  avatarImage: img,
-                                  name: m.username,
-                                  compatibilityPercent: m.scorePct.round(),
-                                  traits: [m.matchLabel],
-                                  insights: [advice],
+                                    // Light panel inside lavender card
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Colors.white.withValues(alpha: .35),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding: const EdgeInsets.all(12),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Roommate Insights',
+                                              style: AppFonts.heading3.copyWith(
+                                                  color: AppColors.textPurple)),
+                                          const SizedBox(height: 8),
+                                          _insightRow(
+                                            'Best Matched Pair:',
+                                            _roomSummary == null
+                                                ? '-'
+                                                : '${_roomSummary!.bestMatched.userAName} & ${_roomSummary!.bestMatched.userBName}',
+                                          ),
+                                          const SizedBox(height: 6),
+                                          _insightRow(
+                                            'Most Divergent Lifestyle:',
+                                            _roomSummary == null
+                                                ? '-'
+                                                : '${_roomSummary!.mostDivergent.userAName} & ${_roomSummary!.mostDivergent.userBName}',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            }).toList(),
-                          ),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
-                  ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            // ===== Roommate Compatibility Cards =====
+                            Text('Roommate Compatibility',
+                                style: AppFonts.heading3
+                                    .copyWith(color: AppColors.textDark)),
+                            const SizedBox(height: 8),
+
+                            if (_matches.isEmpty)
+                              Text('No roommate matches to show.',
+                                  style: AppFonts.body1
+                                      .copyWith(color: AppColors.textPurple))
+                            else
+                              Column(
+                                children: _matches.map((m) {
+                                  final img = (m.profilePicture?.isNotEmpty ??
+                                          false)
+                                      ? NetworkImage(m.profilePicture!)
+                                      : const AssetImage(
+                                              'assets/images/default_avatar.png')
+                                          as ImageProvider;
+
+                                  // Generate dynamic advice based on compatibility percentage
+                                  final adviceList =
+                                      _generateAdvice(m.scorePct);
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: Roommatecompatibilitycard(
+                                      avatarImage: img,
+                                      name: m.username,
+                                      compatibilityPercent: m.scorePct.round(),
+                                      traits: [m.matchLabel],
+                                      insights: adviceList,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                      ),
       ),
     );
   }
 }
 
 /* =================== Pieces =================== */
+
+/// NEW: Single user view when they're alone in the room
+class _SingleUserView extends StatelessWidget {
+  const _SingleUserView({
+    required this.userMetrics,
+    required this.onRetry,
+  });
+
+  final List<LifestyleMetric> userMetrics;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Compatibility Overview',
+              style: AppFonts.heading1.copyWith(color: AppColors.textPurple)),
+          const SizedBox(height: 12),
+
+          // Show only user's lifestyle
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7EFE8),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF918A84)),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Your Lifestyle',
+                    style: AppFonts.heading3
+                        .copyWith(color: AppColors.textDark, fontSize: 14)),
+                const SizedBox(height: 8),
+                LifestyleOverview(
+                  metrics: userMetrics,
+                  barHeight: 10,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Empty state message
+          LavenderBorderedCard(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.person_outline,
+                    size: 64,
+                    color: AppColors.textPurple.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "You're the only one in the room so far",
+                    style:
+                        AppFonts.heading3.copyWith(color: AppColors.textPurple),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Invite roommates to see compatibility insights and start building your shared space together!',
+                    style: AppFonts.body1.copyWith(
+                      color: AppColors.textPurple.withValues(alpha: 0.8),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.secondary,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _OverviewSwitchCard extends StatelessWidget {
   const _OverviewSwitchCard({

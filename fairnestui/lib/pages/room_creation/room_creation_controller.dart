@@ -275,7 +275,7 @@ class RoomCreationController extends ChangeNotifier {
   }
 
   /// per backend: true = Private, false = Public
-  bool _roomTypeBool() => _groupType == GroupType.private;
+  bool _roomTypeBool() => _groupType == GroupType.public;
 
   /// per backend: true = Equal split, false = By usage/room size
   bool _splitCostsBool() => _splitCosts == SplitCostsOption.equal;
