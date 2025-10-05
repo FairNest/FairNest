@@ -19,7 +19,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
   String? _category;
   final _amountCtrl = TextEditingController();
   String? _splitType; // Evenly | Custom
-  final List<String> _paidBy = []; // multi-select (as requested)
 
   // for custom splits: name -> amount
   Map<String, double> _customSplits = {};
@@ -227,7 +226,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
       _category != null &&
       _totalAmount > 0 &&
       _splitType != null &&
-      _paidBy.isNotEmpty &&
       _isCustomValid;
 
   Future<void> _editCustomSplit() async {
@@ -374,7 +372,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
       'totalAmount': _totalAmount,
       'splitType': _splitType,
       'customSplits': _splitType == 'Custom' ? _customSplits : null,
-      'paidBy': _paidBy,
     };
 
     Navigator.pop(context, payload);
@@ -473,43 +470,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // Assign To (participants)
-              Text('Assign To', style: _labelStyle),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: () => _pickPeople(
-                  current: _participants,
-                  onDone: (list) => setState(() {
-                    _participants
-                      ..clear()
-                      ..addAll(list);
-                    // reset custom splits if participants change
-                    _customSplits = {};
-                  }),
-                ),
-                borderRadius: BorderRadius.circular(12),
-                child: InputDecorator(
-                  decoration: _fieldDecoration('Select Roommate(s)'),
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _participants.isEmpty
-                        ? [const Text('Select Roommate(s)')]
-                        : _participants
-                            .map(
-                              (name) => InputChip(
-                                label: Text(name),
-                                onDeleted: () =>
-                                    setState(() => _participants.remove(name)),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 24),
 
               // Purple "Finance" card
@@ -640,18 +600,19 @@ class _AddFinancePageState extends State<AddFinancePage> {
                     ],
                     const SizedBox(height: 16),
 
-                    // Paid By (multi-select as requested)
-                    Text('Paid By', style: _labelStyle),
+                    // Assign To (participants) - now inside Finance card
+                    Text('Assign To', style: _labelStyle),
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () => _pickPeople(
-                        current: _paidBy,
+                        current: _participants,
                         onDone: (list) => setState(() {
-                          _paidBy
+                          _participants
                             ..clear()
                             ..addAll(list);
+                          // reset custom splits if participants change
+                          _customSplits = {};
                         }),
-                        title: 'Select Payer(s)',
                       ),
                       borderRadius: BorderRadius.circular(12),
                       child: InputDecorator(
@@ -659,14 +620,14 @@ class _AddFinancePageState extends State<AddFinancePage> {
                         child: Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: _paidBy.isEmpty
+                          children: _participants.isEmpty
                               ? [const Text('Select Roommate(s)')]
-                              : _paidBy
+                              : _participants
                                   .map(
                                     (name) => InputChip(
                                       label: Text(name),
-                                      onDeleted: () =>
-                                          setState(() => _paidBy.remove(name)),
+                                      onDeleted: () => setState(
+                                          () => _participants.remove(name)),
                                     ),
                                   )
                                   .toList(),

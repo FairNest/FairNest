@@ -637,32 +637,74 @@ func (s roomService) PatchEditHouseRulesByRoomId(roomId int, req dtos.PatchEditH
 }
 
 func (s roomService) GetRoomOverallLifestyleByRoomId(roomId int) (*entities.Room, error) {
-	room, err := s.roomRepo.GetRoomOverallLifestyleByRoomId(roomId)
+	// Step 1: Get all room members
+	members, err := s.roomMemberSer.FetchAllRoomMemberByRoomId(roomId)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	if room.RoomID == nil &&
-		room.AvgTidiness == nil &&
-		room.AvgNoiseActivity == nil &&
-		room.AvgSchedule == nil &&
-		room.AvgGuestFrequency == nil &&
-		room.AvgTaskStructure == nil &&
-		room.AvgMoneyAttitude == nil {
-		return nil, fiber.NewError(fiber.StatusNotFound, "room overall lifestyle data is not found")
+	if len(members) == 0 {
+		return nil, fiber.NewError(fiber.StatusNotFound, "no members found in this room")
 	}
 
-	roomResponse := entities.Room{
-		RoomID:            room.RoomID,
-		AvgTidiness:       room.AvgTidiness,
-		AvgNoiseActivity:  room.AvgNoiseActivity,
-		AvgSchedule:       room.AvgSchedule,
-		AvgGuestFrequency: room.AvgGuestFrequency,
-		AvgTaskStructure:  room.AvgTaskStructure,
-		AvgMoneyAttitude:  room.AvgMoneyAttitude,
+	// Step 2: Collect all lifestyle data for room members
+	var (
+		sumTidiness       float64
+		sumNoiseActivity  float64
+		sumSchedule       float64
+		sumGuestFrequency float64
+		sumTaskStructure  float64
+		sumMoneyAttitude  float64
+		count             int
+	)
+
+	for _, member := range members {
+		lifestyle, err := s.lifestyleSer.GetUserLifestyleByUserId(v.UintToInt(v.UintValue(member.UserID)))
+		if err != nil {
+			log.Printf("Failed to get lifestyle for user %d: %v", v.UintValue(member.UserID), err)
+			continue
+		}
+
+		// Add each trait to sum
+		if lifestyle.UserTidiness != nil {
+			sumTidiness += *lifestyle.UserTidiness
+		}
+		if lifestyle.UserNoiseActivity != nil {
+			sumNoiseActivity += *lifestyle.UserNoiseActivity
+		}
+		if lifestyle.UserSchedule != nil {
+			sumSchedule += *lifestyle.UserSchedule
+		}
+		if lifestyle.UserGuestFrequency != nil {
+			sumGuestFrequency += *lifestyle.UserGuestFrequency
+		}
+		if lifestyle.UserTaskStructure != nil {
+			sumTaskStructure += *lifestyle.UserTaskStructure
+		}
+		if lifestyle.UserMoneyAttitude != nil {
+			sumMoneyAttitude += *lifestyle.UserMoneyAttitude
+		}
+		count++
 	}
-	return &roomResponse, nil
+
+	if count == 0 {
+		return nil, fiber.NewError(fiber.StatusNotFound, "no lifestyle data found for room members")
+	}
+
+	// Step 3: Calculate averages
+	countFloat := float64(count)
+	roomResponse := &entities.Room{
+		RoomID:            v.UintPtr(roomId),
+		AvgTidiness:       v.Ptr(sumTidiness / countFloat),
+		AvgNoiseActivity:  v.Ptr(sumNoiseActivity / countFloat),
+		AvgSchedule:       v.Ptr(sumSchedule / countFloat),
+		AvgGuestFrequency: v.Ptr(sumGuestFrequency / countFloat),
+		AvgTaskStructure:  v.Ptr(sumTaskStructure / countFloat),
+		AvgMoneyAttitude:  v.Ptr(sumMoneyAttitude / countFloat),
+	}
+
+	return roomResponse, nil
 }
 
 func (s roomService) GetMyPendingRoomByUserID(userID int) (*dtos.GetMyPendingRoomByUserIDResponse, error) {
