@@ -79,7 +79,7 @@ func (r roomMemberRepositoryDB) GetUsersBasicByRoomId(roomID int) ([]dtos.RoomUs
 	return out, nil
 }
 
-func (r roomRepositoryDB) IncrementRoomCurrentCapacityByRoomID(roomID int) error {
+func (r roomMemberRepositoryDB) IncrementRoomCurrentCapacityByRoomID(roomID int) error {
 	result := r.db.Model(&entities.Room{}).
 		Where("room_id = ?", roomID).
 		UpdateColumn("room_current_capacity", gorm.Expr("room_current_capacity + ?", 1))
