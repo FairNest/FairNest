@@ -104,6 +104,11 @@ func (s roomMemberService) CreateRoomMemberByRoomIdAndUserId(roomId int, userId 
 		return nil, err
 	}
 
+	err := s.roomMemberRepo.IncrementRoomCurrentCapacityByRoomID(roomId)
+	if err != nil {
+		return nil, err
+	}
+
 	return &entities.RoomMember{
 		RoomID: roomMember.RoomID,
 		UserID: roomMember.UserID,
@@ -126,7 +131,6 @@ func (s roomMemberService) GetCheckUserHasRoomOrNotByUserId(userID int) (bool, e
 	return res.HasRoom, nil
 }
 
-// internal/service/roommember_service.go (implementation)
 func (s roomMemberService) GetUsersBasicByRoomId(roomID int) ([]dtos.RoomUserInfo, error) {
 	return s.roomMemberRepo.GetUsersBasicByRoomId(roomID)
 }
