@@ -55,13 +55,14 @@ func main() {
 		&entities.RoomJoinRequest{},
 		&entities.RoomJoinVote{},
 
-		// * user compatibility
-		//&entities.UserCompatibilityProfile{},
-
 		// Chore management system
 		&entities.Chore{},
 		&entities.ChoreAssignment{},
 		&entities.ChoreRotationUser{},
+
+		// Finance management system
+		&entities.Finance{},
+		&entities.Transaction{},
 	)
 	if err != nil {
 		panic("❌ Failed to AutoMigrate entities: " + err.Error())

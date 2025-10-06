@@ -148,28 +148,6 @@ type RoomJoinVote struct {
 	VoterUser       *User            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
-type UserCompatibilityProfile struct {
-	UserCompatibilityProfileID *uint `gorm:"primaryKey;autoIncrement"`
-
-	RoomID  *uint `gorm:"not null"`
-	UserAID *uint `gorm:"not null;index:idx_user_pair"`
-	UserBID *uint `gorm:"not null;index:idx_user_pair"`
-
-	// Optional: prevent duplicate A-B and B-A pairs
-	// Or enforce AID < BID ordering to avoid duplicates
-	CompatibilityScore *float64 // 0.0 to 1.0 → shown as 88%
-	SharedTraits       *string  // e.g. "Likes Quiet Time, Prefers Clean Spaces"
-	ConflictTraits     *string  // e.g. "Dislikes Guest Noise"
-	SuggestionMessage  *string  // e.g. "Consider aligning on quiet hours..."
-
-	CreatedAt *time.Time
-
-	// Relations
-	UserA *User `gorm:"foreignKey:UserAID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	UserB *User `gorm:"foreignKey:UserBID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Room  *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-}
-
 type Chore struct {
 	ChoreID           *uint   `gorm:"primaryKey;autoIncrement"`
 	RoomID            *uint   `gorm:"not null"`
@@ -217,4 +195,32 @@ type ChoreRotationUser struct {
 	// * relations
 	Chore *Chore `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	User  *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
+type Finance struct {
+	FinanceID *uint   `gorm:"primaryKey;autoIncrement"`
+	TitleName *string `gorm:"not null"`
+	DueDate   *time.Time
+	Category  *string `gorm:"not null"` // * Bill, Groceries, Outing/Activity, Shared Subscription, Other (custom)
+	SplitType *bool   // * Fair split = True, Custom = False
+	CreateAt  *time.Time
+
+	// * relations
+	Transactions []Transaction
+}
+
+type Transaction struct {
+	TransactionID *uint `gorm:"primaryKey;autoIncrement"`
+	FinanceID     *uint `gorm:"not null"`
+	PayerID       *uint `gorm:"not null"` // user who paid
+	DebtorID      *uint `gorm:"not null"` // user who owes
+	TotalAmount   *int  `gorm:"not null"` // total amount paid
+	Status        *bool // true = settled, false = unsettled
+	CreatedAt     *time.Time
+	PaidAt        *time.Time
+
+	// * relations
+	Finance *Finance `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Payer   *User    `gorm:"foreignKey:PayerID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Debtor  *User    `gorm:"foreignKey:DebtorID;references:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
