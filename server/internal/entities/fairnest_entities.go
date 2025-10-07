@@ -201,7 +201,7 @@ type Finance struct {
 	FinanceID *uint   `gorm:"primaryKey;autoIncrement"`
 	TitleName *string `gorm:"not null"`
 	DueDate   *time.Time
-	Category  *string `gorm:"not null"` // * Bill, Groceries, Outing/Activity, Shared Subscription, Other (custom)
+	Category  *string // * Bill, Groceries, Outing/Activity, Shared Subscription, Other (custom)
 	SplitType *bool   // * Fair split = True, Custom = False
 	CreateAt  *time.Time
 
@@ -210,14 +210,15 @@ type Finance struct {
 }
 
 type Transaction struct {
-	TransactionID *uint `gorm:"primaryKey;autoIncrement"`
-	FinanceID     *uint `gorm:"not null"`
-	PayerID       *uint `gorm:"not null"` // user who paid
-	DebtorID      *uint `gorm:"not null"` // user who owes
-	TotalAmount   *int  `gorm:"not null"` // total amount paid
-	Status        *bool // true = settled, false = unsettled
-	CreatedAt     *time.Time
-	PaidAt        *time.Time
+	TransactionID     *uint `gorm:"primaryKey;autoIncrement"`
+	FinanceID         *uint `gorm:"not null"`
+	PayerID           *uint `gorm:"not null"` // user who paid
+	DebtorID          *uint `gorm:"not null"` // user who owes
+	TotalAmount       *int  `gorm:"not null"` // total amount paid
+	TransactionStatus *bool // true = settled, false = unsettled
+	QRCodeImage       *string
+	CreatedAt         *time.Time
+	PaidAt            *time.Time
 
 	// * relations
 	Finance *Finance `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
