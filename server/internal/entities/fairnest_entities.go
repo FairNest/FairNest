@@ -203,7 +203,7 @@ type Finance struct {
 	DueDate   *time.Time
 	Category  *string // * Bill, Groceries, Outing/Activity, Shared Subscription, Other (custom)
 	SplitType *bool   // * Fair split = True, Custom = False
-	CreateAt  *time.Time
+	CreatedAt *time.Time
 
 	// * relations
 	Transactions []Transaction

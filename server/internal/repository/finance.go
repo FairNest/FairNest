@@ -3,5 +3,6 @@ package repository
 import "fairnest/internal/entities"
 
 type FinanceRepository interface {
-	FetchAllFinance() ([]entities.Room, error)
+	FetchAllFinance() ([]entities.Finance, error)
+	GetFinanceByFinanceID(int) (*entities.Finance, error)
 }

@@ -90,6 +90,7 @@ func main() {
 	notificationRepositoryDB := repository.NewNotificationRepositoryDB(db)
 	choreRepositoryDB := repository.NewChoreRepositoryDB(db)
 	roomJoinRepositoryDB := repository.NewRoomJoinRepositoryDB(db)
+	financeRepositoryDB := repository.NewFinanceRepositoryDB(db)
 
 	uploadService := service.NewUploadService(minioClient)
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
@@ -99,6 +100,7 @@ func main() {
 	choreService := service.NewChoreService(choreRepositoryDB, userService)
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService, lifestyleService)
+	financeService := service.NewFinanceService(financeRepositoryDB)
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
 	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService, lifestyleRepositoryDB)
@@ -107,6 +109,7 @@ func main() {
 	notificationHandler := handler.NewNotificationHandler(notificationService)
 	choreHandler := handler.NewChoreHandler(choreService, jwtSecret)
 	roomJoinHandler := handler.NewRoomJoinHandler(roomJoinService)
+	financeHandler := handler.NewFinanceHandler(financeService)
 
 	app := fiber.New()
 
@@ -152,6 +155,9 @@ func main() {
 	app.Get("/FetchAllNotificationsByRoomJoinRequestID/:RoomJoinRequestID", notificationHandler.FetchAllNotificationsByRoomJoinRequestID)
 
 	app.Get("/GetVotingStatisticsByRoomJoinRequestID/:RoomJoinRequestID", roomJoinHandler.GetVotingStatisticsByRoomJoinRequestID)
+
+	app.Get("/FetchAllFinance", financeHandler.FetchAllFinance)
+	app.Get("/GetFinanceByFinanceID/:FinanceID", financeHandler.GetFinanceByFinanceID)
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
