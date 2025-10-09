@@ -65,3 +65,63 @@ func (s financeService) GetFinanceByFinanceID(financeId int) (*entities.Finance,
 	}
 	return &financeResponse, nil
 }
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+func (s financeService) FetchAllTransaction() ([]entities.Transaction, error) {
+	transactions, err := s.financeRepo.FetchAllTransaction()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	transactionResponses := []entities.Transaction{}
+	for _, transaction := range transactions {
+		transactionResponse := entities.Transaction{
+			TransactionID:     transaction.TransactionID,
+			FinanceID:         transaction.FinanceID,
+			PayerID:           transaction.PayerID,
+			DebtorID:          transaction.DebtorID,
+			TotalAmount:       transaction.TotalAmount,
+			TransactionStatus: transaction.TransactionStatus,
+			QRCodeImage:       transaction.QRCodeImage,
+			CreatedAt:         transaction.CreatedAt,
+			PaidAt:            transaction.PaidAt,
+		}
+		transactionResponses = append(transactionResponses, transactionResponse)
+	}
+	return transactionResponses, nil
+}
+
+func (s financeService) GetTransactionByTransactionID(transactionID int) (*entities.Transaction, error) {
+	transaction, err := s.financeRepo.GetTransactionByTransactionID(transactionID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if transaction.TransactionID == nil &&
+		transaction.FinanceID == nil &&
+		transaction.PayerID == nil &&
+		transaction.DebtorID == nil &&
+		transaction.TotalAmount == nil &&
+		transaction.TransactionStatus == nil &&
+		transaction.QRCodeImage == nil &&
+		transaction.CreatedAt == nil &&
+		transaction.PaidAt == nil {
+		return nil, fiber.NewError(fiber.StatusNotFound, "transaction data is not found")
+	}
+
+	transactionResponse := entities.Transaction{
+		TransactionID:     transaction.TransactionID,
+		FinanceID:         transaction.FinanceID,
+		PayerID:           transaction.PayerID,
+		DebtorID:          transaction.DebtorID,
+		TotalAmount:       transaction.TotalAmount,
+		TransactionStatus: transaction.TransactionStatus,
+		QRCodeImage:       transaction.QRCodeImage,
+		CreatedAt:         transaction.CreatedAt,
+		PaidAt:            transaction.PaidAt,
+	}
+	return &transactionResponse, nil
+}

@@ -158,6 +158,8 @@ func main() {
 
 	app.Get("/FetchAllFinance", financeHandler.FetchAllFinance)
 	app.Get("/GetFinanceByFinanceID/:FinanceID", financeHandler.GetFinanceByFinanceID)
+	app.Get("/FetchAllTransaction", financeHandler.FetchAllTransaction)
+	app.Get("/GetTransactionByTransactionID/:TransactionID", financeHandler.GetTransactionByTransactionID)
 
 	//////////////////////////////////////////////////////////////////////////////////////
 

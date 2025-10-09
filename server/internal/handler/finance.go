@@ -56,3 +56,52 @@ func (h *financeHandler) GetFinanceByFinanceID(c *fiber.Ctx) error {
 
 	return c.JSON(financeResponse)
 }
+
+//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+func (h *financeHandler) FetchAllTransaction(c *fiber.Ctx) error {
+	transactionsResponse := make([]dtos.TransactionDataResponse, 0)
+
+	transactions, err := h.financeSer.FetchAllTransaction()
+	if err != nil {
+		return err
+	}
+
+	for _, transaction := range transactions {
+		transactionsResponse = append(transactionsResponse, dtos.TransactionDataResponse{
+			TransactionID:     transaction.TransactionID,
+			FinanceID:         transaction.FinanceID,
+			PayerID:           transaction.PayerID,
+			DebtorID:          transaction.DebtorID,
+			TotalAmount:       transaction.TotalAmount,
+			TransactionStatus: transaction.TransactionStatus,
+			QRCodeImage:       transaction.QRCodeImage,
+			CreatedAt:         v.TimePtrToRFC3339Ptr(transaction.CreatedAt),
+			PaidAt:            v.TimePtrToRFC3339Ptr(transaction.PaidAt),
+		})
+	}
+	return c.JSON(transactionsResponse)
+}
+
+func (h *financeHandler) GetTransactionByTransactionID(c *fiber.Ctx) error {
+	transactionIDReceive, err := strconv.Atoi(c.Params("TransactionID"))
+
+	transaction, err := h.financeSer.GetTransactionByTransactionID(transactionIDReceive)
+	if err != nil {
+		return err
+	}
+
+	transactionResponse := dtos.TransactionByTransactionIDDataResponse{
+		TransactionID:     transaction.TransactionID,
+		FinanceID:         transaction.FinanceID,
+		PayerID:           transaction.PayerID,
+		DebtorID:          transaction.DebtorID,
+		TotalAmount:       transaction.TotalAmount,
+		TransactionStatus: transaction.TransactionStatus,
+		QRCodeImage:       transaction.QRCodeImage,
+		CreatedAt:         v.TimePtrToRFC3339Ptr(transaction.CreatedAt),
+		PaidAt:            v.TimePtrToRFC3339Ptr(transaction.PaidAt),
+	}
+
+	return c.JSON(transactionResponse)
+}
