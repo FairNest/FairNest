@@ -9,4 +9,9 @@ type FinanceRepository interface {
 	//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 	FetchAllTransaction() ([]entities.Transaction, error)
 	GetTransactionByTransactionID(int) (*entities.Transaction, error)
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	FetchAllUnpaidTransactionsWithFinanceDetailsByUserID(int) ([]entities.Transaction, error)
+	//FetchAllTransactionHistoryByUserID(int) ([]entities.Transaction, error)
 }

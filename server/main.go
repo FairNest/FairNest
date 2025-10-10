@@ -211,6 +211,9 @@ func main() {
 	app.Get("/GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID/:RoomJoinRequestID/:VoterUserID", roomJoinHandler.GetRoomJoinRequestForVotingByRoomJoinRequestIDVoterUserID)
 	app.Put("/PutSubmitVoteByRoomJoinRequestIDVoterUserID/:RoomJoinRequestID/:VoterUserID", roomJoinHandler.PutSubmitVoteByRoomJoinRequestIDVoterUserID)
 
+	// Finance Endpoints
+	app.Get("/FetchAllUpcomingPaymentByUserID/:UserID", financeHandler.FetchAllUpcomingPaymentByUserID)
+
 	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
 
 	// Chore Management

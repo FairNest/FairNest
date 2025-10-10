@@ -1,8 +1,10 @@
 package service
 
 import (
+	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
+	"fairnest/internal/utils/v"
 	"github.com/gofiber/fiber/v2"
 	"log"
 )
@@ -124,4 +126,30 @@ func (s financeService) GetTransactionByTransactionID(transactionID int) (*entit
 		PaidAt:            transaction.PaidAt,
 	}
 	return &transactionResponse, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (s financeService) FetchAllUpcomingPaymentByUserID(userID int) ([]dtos.FetchAllUpcomingPaymentByUserIDResponse, error) {
+	transactions, err := s.financeRepo.FetchAllUnpaidTransactionsWithFinanceDetailsByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var upcomingPayments []dtos.FetchAllUpcomingPaymentByUserIDResponse
+	for _, transaction := range transactions {
+		payment := dtos.FetchAllUpcomingPaymentByUserIDResponse{
+			FinanceID:         transaction.FinanceID,
+			TransactionID:     transaction.TransactionID,
+			TitleName:         transaction.Finance.TitleName,
+			DueDate:           v.TimePtrToRFC3339Ptr(transaction.Finance.DueDate),
+			Category:          transaction.Finance.Category,
+			TotalAmount:       transaction.TotalAmount,
+			TransactionStatus: transaction.TransactionStatus,
+			QRCodeImage:       transaction.QRCodeImage,
+		}
+		upcomingPayments = append(upcomingPayments, payment)
+	}
+
+	return upcomingPayments, nil
 }

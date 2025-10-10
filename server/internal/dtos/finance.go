@@ -41,3 +41,14 @@ type TransactionByTransactionIDDataResponse struct {
 	CreatedAt         *string `json:"created_at" validate:"required"`
 	PaidAt            *string `json:"paid_at" validate:"required"`
 }
+
+type FetchAllUpcomingPaymentByUserIDResponse struct {
+	FinanceID         *uint   `json:"finance_id" validate:"required"`
+	TransactionID     *uint   `json:"transaction_id" validate:"required"`
+	TitleName         *string `json:"title_name" validate:"required"`
+	DueDate           *string `json:"due_date" validate:"required"`
+	Category          *string `json:"category" validate:"required"`
+	TotalAmount       *int    `json:"total_amount" validate:"required"`
+	TransactionStatus *bool   `json:"transaction_status" validate:"required"`
+	QRCodeImage       *string `json:"qr_code_image" validate:"required"`
+}

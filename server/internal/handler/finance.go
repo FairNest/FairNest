@@ -105,3 +105,33 @@ func (h *financeHandler) GetTransactionByTransactionID(c *fiber.Ctx) error {
 
 	return c.JSON(transactionResponse)
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (h *financeHandler) FetchAllUpcomingPaymentByUserID(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+	if err != nil {
+		return err
+	}
+
+	upcomingPayments, err := h.financeSer.FetchAllUpcomingPaymentByUserID(userIDReceive)
+	if err != nil {
+		return err
+	}
+
+	upcomingPaymentsResponse := make([]dtos.FetchAllUpcomingPaymentByUserIDResponse, 0)
+	for _, payment := range upcomingPayments {
+		upcomingPaymentsResponse = append(upcomingPaymentsResponse, dtos.FetchAllUpcomingPaymentByUserIDResponse{
+			FinanceID:         payment.FinanceID,
+			TransactionID:     payment.TransactionID,
+			TitleName:         payment.TitleName,
+			DueDate:           payment.DueDate,
+			Category:          payment.Category,
+			TotalAmount:       payment.TotalAmount,
+			TransactionStatus: payment.TransactionStatus,
+			QRCodeImage:       payment.QRCodeImage,
+		})
+	}
+
+	return c.JSON(upcomingPaymentsResponse)
+}

@@ -15,7 +15,7 @@ func NewFinanceRepositoryDB(db *gorm.DB) financeRepositoryDB {
 
 func (r financeRepositoryDB) FetchAllFinance() ([]entities.Finance, error) {
 	finances := []entities.Finance{}
-	result := r.db.Find(&finances).Order("created_at DESC")
+	result := r.db.Find(&finances).Order("created_at")
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -35,7 +35,7 @@ func (r financeRepositoryDB) GetFinanceByFinanceID(financeID int) (*entities.Fin
 
 func (r financeRepositoryDB) FetchAllTransaction() ([]entities.Transaction, error) {
 	transactions := []entities.Transaction{}
-	result := r.db.Find(&transactions).Order("created_at DESC")
+	result := r.db.Find(&transactions).Order("created_at")
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -49,4 +49,17 @@ func (r financeRepositoryDB) GetTransactionByTransactionID(transactionID int) (*
 		return nil, result.Error
 	}
 	return &transaction, nil
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (r financeRepositoryDB) FetchAllUnpaidTransactionsWithFinanceDetailsByUserID(userID int) ([]entities.Transaction, error) {
+	transactions := []entities.Transaction{}
+	result := r.db.Where("debtor_id = ? AND transaction_status = ?", userID, false).
+		Preload("Finance").
+		Order("created_at").Find(&transactions)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return transactions, nil
 }
