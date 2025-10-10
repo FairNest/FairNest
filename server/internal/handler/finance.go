@@ -108,6 +108,26 @@ func (h *financeHandler) GetTransactionByTransactionID(c *fiber.Ctx) error {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func (h *financeHandler) GetMyMonthlySnapshotByUserID(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+	if err != nil {
+		return err
+	}
+
+	monthlySnapshot, err := h.financeSer.GetMyMonthlySnapshotByUserID(userIDReceive)
+	if err != nil {
+		return err
+	}
+
+	monthlySnapshotResponse := dtos.GetMyMonthlySnapshotByUserIDResponse{
+		TotalPaidByMe: monthlySnapshot.TotalPaidByMe,
+		TotalOwedToMe: monthlySnapshot.TotalOwedToMe,
+		TotalOwedByMe: monthlySnapshot.TotalOwedByMe,
+	}
+
+	return c.JSON(monthlySnapshotResponse)
+}
+
 func (h *financeHandler) FetchAllOutstandingBalancesByUserID(c *fiber.Ctx) error {
 	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
 	if err != nil {

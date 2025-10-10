@@ -15,6 +15,8 @@ type FinanceService interface {
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	GetMyMonthlySnapshotByUserID(int) (*dtos.GetMyMonthlySnapshotByUserIDResponse, error)
+
 	FetchAllOutstandingBalancesByUserID(int) ([]dtos.FetchAllOutstandingBalancesByUserIDResponse, error)
 	FetchAllUpcomingPaymentByUserID(int) ([]dtos.FetchAllUpcomingPaymentByUserIDResponse, error)
 	FetchAllPaidTransactionHistoryByUserID(int) ([]dtos.FetchAllPaidTransactionHistoryByUserIDResponse, error)

@@ -212,6 +212,7 @@ func main() {
 	app.Put("/PutSubmitVoteByRoomJoinRequestIDVoterUserID/:RoomJoinRequestID/:VoterUserID", roomJoinHandler.PutSubmitVoteByRoomJoinRequestIDVoterUserID)
 
 	// Finance Endpoints
+	app.Get("/GetMyMonthlySnapshotByUserID/:UserID", financeHandler.GetMyMonthlySnapshotByUserID)
 	app.Get("/FetchAllOutstandingBalancesByUserID/:UserID", financeHandler.FetchAllOutstandingBalancesByUserID)
 	app.Get("/FetchAllUpcomingPaymentByUserID/:UserID", financeHandler.FetchAllUpcomingPaymentByUserID)
 	app.Get("/FetchAllPaidTransactionHistoryByUserID/:UserID", financeHandler.FetchAllPaidTransactionHistoryByUserID)

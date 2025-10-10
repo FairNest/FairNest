@@ -42,6 +42,20 @@ type TransactionByTransactionIDDataResponse struct {
 	PaidAt            *string `json:"paid_at" validate:"required"`
 }
 
+type GetMyMonthlySnapshotByUserIDResponse struct {
+	TotalPaidByMe *int `json:"total_paid_by_me" validate:"required"` // Sum of transactions where PayerID=UserID and Status=true (settled)
+	TotalOwedToMe *int `json:"total_owed_to_me" validate:"required"` // Sum of transactions where PayerID=UserID and Status=false (unsettled)
+	TotalOwedByMe *int `json:"total_owed_by_me" validate:"required"` // Sum of transactions where DebtorID=UserID and Status=false (unsettled)
+}
+
+type FetchAllOutstandingBalancesByUserIDResponse struct {
+	UserID        *uint   `json:"user_id" validate:"required"` // The other user/roommate's ID
+	Username      *string `json:"username" validate:"required"`
+	UserPicture   *string `json:"user_picture" validate:"required"`
+	NetBalance    *int    `json:"net_balance" validate:"required"`    // Positive if user is owed, Negative if user owes
+	BalanceStatus *string `json:"balance_status" validate:"required"` // "You Owe" (negative), "You Are Owed" (positive), or "Settled" (zero)
+}
+
 type FetchAllUpcomingPaymentByUserIDResponse struct {
 	FinanceID         *uint   `json:"finance_id" validate:"required"`
 	TransactionID     *uint   `json:"transaction_id" validate:"required"`
@@ -66,12 +80,4 @@ type FetchAllPaidTransactionHistoryByUserIDResponse struct {
 	PaidToUserID      *uint   `json:"paid_to_user_id" validate:"required"`
 	PaidToUsername    *string `json:"paid_to_username" validate:"required"`
 	PaidToUserPicture *string `json:"paid_to_user_picture" validate:"required"`
-}
-
-type FetchAllOutstandingBalancesByUserIDResponse struct {
-	UserID        *uint   `json:"user_id" validate:"required"` // The other user/roommate's ID
-	Username      *string `json:"username" validate:"required"`
-	UserPicture   *string `json:"user_picture" validate:"required"`
-	NetBalance    *int    `json:"net_balance" validate:"required"`    // Positive if user is owed, Negative if user owes
-	BalanceStatus *string `json:"balance_status" validate:"required"` // "You Owe" (negative), "You Are Owed" (positive), or "Settled" (zero)
 }

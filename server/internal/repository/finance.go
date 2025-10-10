@@ -12,6 +12,10 @@ type FinanceRepository interface {
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	GetTotalPaidByUserIDAndMonth(userID int) (*int, error) // PayerID=UserID, Status=true
+	GetTotalOwedToUserByMonth(userID int) (*int, error)    // PayerID=UserID, Status=false
+	GetTotalOwedByUserByMonth(userID int) (*int, error)    // DebtorID=UserID, Status=false
+
 	FetchAllUnsettledTransactionsByUserID(int) ([]entities.Transaction, error)
 	FetchAllUnpaidTransactionsWithFinanceDetailsByUserID(int) ([]entities.Transaction, error)
 	FetchAllPaidTransactionHistoryByUserID(int) ([]entities.Transaction, error)

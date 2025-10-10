@@ -130,6 +130,34 @@ func (s financeService) GetTransactionByTransactionID(transactionID int) (*entit
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func (s financeService) GetMyMonthlySnapshotByUserID(userID int) (*dtos.GetMyMonthlySnapshotByUserIDResponse, error) {
+	totalPaid, err := s.financeRepo.GetTotalPaidByUserIDAndMonth(userID)
+	if err != nil {
+		log.Printf("Error fetching total paid for user %d: %v", userID, err)
+		return nil, err
+	}
+
+	totalOwedToMe, err := s.financeRepo.GetTotalOwedToUserByMonth(userID)
+	if err != nil {
+		log.Printf("Error fetching total owed to user %d: %v", userID, err)
+		return nil, err
+	}
+
+	totalOwedByMe, err := s.financeRepo.GetTotalOwedByUserByMonth(userID)
+	if err != nil {
+		log.Printf("Error fetching total owed by user %d: %v", userID, err)
+		return nil, err
+	}
+
+	snapshot := &dtos.GetMyMonthlySnapshotByUserIDResponse{
+		TotalPaidByMe: totalPaid,
+		TotalOwedToMe: totalOwedToMe,
+		TotalOwedByMe: totalOwedByMe,
+	}
+
+	return snapshot, nil
+}
+
 func (s financeService) FetchAllOutstandingBalancesByUserID(currentUserID int) ([]dtos.FetchAllOutstandingBalancesByUserIDResponse, error) {
 	transactions, err := s.financeRepo.FetchAllUnsettledTransactionsByUserID(currentUserID)
 	if err != nil {

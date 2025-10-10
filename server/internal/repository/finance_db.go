@@ -3,6 +3,7 @@ package repository
 import (
 	"fairnest/internal/entities"
 	"gorm.io/gorm"
+	"time"
 )
 
 type financeRepositoryDB struct {
@@ -53,6 +54,54 @@ func (r financeRepositoryDB) GetTransactionByTransactionID(transactionID int) (*
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func (r financeRepositoryDB) GetTotalPaidByUserIDAndMonth(userID int) (*int, error) {
+	startOfMonth := getStartOfCurrentMonth()
+	var total int
+
+	// PayerID=UserID, Status=true
+	result := r.db.Model(&entities.Transaction{}).
+		Select("COALESCE(SUM(total_amount), 0)").
+		Where("payer_id = ? AND transaction_status = ? AND created_at >= ?", userID, true, startOfMonth).
+		Row().Scan(&total)
+
+	if result != nil {
+		return nil, result
+	}
+	return &total, nil
+}
+
+func (r financeRepositoryDB) GetTotalOwedToUserByMonth(userID int) (*int, error) {
+	startOfMonth := getStartOfCurrentMonth()
+	var total int
+
+	// PayerID=UserID, Status=false
+	result := r.db.Model(&entities.Transaction{}).
+		Select("COALESCE(SUM(total_amount), 0)").
+		Where("payer_id = ? AND transaction_status = ? AND created_at >= ?", userID, false, startOfMonth).
+		Row().Scan(&total)
+
+	if result != nil {
+		return nil, result
+	}
+	return &total, nil
+}
+
+func (r financeRepositoryDB) GetTotalOwedByUserByMonth(userID int) (*int, error) {
+	startOfMonth := getStartOfCurrentMonth()
+	var total int
+
+	// DebtorID=UserID, Status=false
+	result := r.db.Model(&entities.Transaction{}).
+		Select("COALESCE(SUM(total_amount), 0)").
+		Where("debtor_id = ? AND transaction_status = ? AND created_at >= ?", userID, false, startOfMonth).
+		Row().Scan(&total)
+
+	if result != nil {
+		return nil, result
+	}
+	return &total, nil
+}
+
 func (r financeRepositoryDB) FetchAllUnsettledTransactionsByUserID(userID int) ([]entities.Transaction, error) {
 	transactions := []entities.Transaction{}
 
@@ -92,4 +141,12 @@ func (r financeRepositoryDB) FetchAllPaidTransactionHistoryByUserID(userID int) 
 		return nil, result.Error
 	}
 	return transactions, nil
+}
+
+// ----------------------------------------- Private Helper Functions -----------------------------------------//
+// Helper function to get the start of the current month
+func getStartOfCurrentMonth() time.Time {
+	now := time.Now()
+	// Sets day to 1 and time to 00:00:00
+	return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 }
