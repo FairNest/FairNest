@@ -19,4 +19,6 @@ type FinanceRepository interface {
 	FetchAllUnsettledTransactionsByUserID(int) ([]entities.Transaction, error)
 	FetchAllUnpaidTransactionsWithFinanceDetailsByUserID(int) ([]entities.Transaction, error)
 	FetchAllPaidTransactionHistoryByUserID(int) ([]entities.Transaction, error)
+
+	CreateFinanceByPayerID(finance *entities.Finance, transactions []entities.Transaction) error
 }

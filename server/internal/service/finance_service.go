@@ -7,6 +7,7 @@ import (
 	"fairnest/internal/utils/v"
 	"github.com/gofiber/fiber/v2"
 	"log"
+	"time"
 )
 
 type financeService struct {
@@ -273,6 +274,62 @@ func (s financeService) FetchAllPaidTransactionHistoryByUserID(userID int) ([]dt
 	}
 
 	return paidTransactionHistory, nil
+}
+
+func (s financeService) CreateFinanceByPayerID(payerID int, req *dtos.CreateFinanceByPayerIDRequest) (*dtos.CreateFinanceByPayerIDResponse, error) {
+	dueDate, err := time.Parse(time.RFC3339, *req.DueDate)
+	if err != nil {
+		log.Printf("Error parsing due_date: %v", err)
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid due_date format. Must be RFC3339 (e.g., 2025-10-10T12:00:00Z)")
+	}
+
+	finance := &entities.Finance{
+		TitleName: req.TitleName,
+		DueDate:   &dueDate,
+		Category:  req.Category,
+		SplitType: req.SplitType,
+	}
+
+	// 2. Prepare the Transaction entities
+	transactions := make([]entities.Transaction, len(req.Transactions))
+	for i, tReq := range req.Transactions {
+		transactions[i] = entities.Transaction{
+			PayerID:           v.Ptr(uint(payerID)),
+			DebtorID:          tReq.DebtorID,
+			TotalAmount:       tReq.TotalAmount,
+			TransactionStatus: v.Ptr(false), // Always start as unsettled/unpaid
+			QRCodeImage:       v.Ptr(""),    // Placeholder: QR code can be generated later
+			PaidAt:            nil,
+		}
+	}
+
+	if err := s.financeRepo.CreateFinanceByPayerID(finance, transactions); err != nil {
+		log.Printf("Error creating finance and transactions in repository: %v", err)
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to create finance record")
+	}
+
+	responseTransactions := make([]dtos.CreatedTransactionResponse, len(transactions))
+	for i, t := range transactions {
+		responseTransactions[i] = dtos.CreatedTransactionResponse{
+			TransactionID:     t.TransactionID,
+			DebtorID:          t.DebtorID,
+			PayerID:           t.PayerID,
+			TotalAmount:       t.TotalAmount,
+			TransactionStatus: t.TransactionStatus,
+			QRCodeImage:       t.QRCodeImage,
+		}
+	}
+
+	// 5. Return the complete created data
+	return &dtos.CreateFinanceByPayerIDResponse{
+		FinanceID:    finance.FinanceID,
+		TitleName:    finance.TitleName,
+		DueDate:      v.Ptr(finance.DueDate.Format(time.RFC3339)),
+		Category:     finance.Category,
+		SplitType:    finance.SplitType,
+		CreatedAt:    v.Ptr(finance.CreatedAt.Format(time.RFC3339)),
+		Transactions: responseTransactions,
+	}, nil
 }
 
 // ----------------------------------------- Private Helper Functions -----------------------------------------//

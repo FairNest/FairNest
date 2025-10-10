@@ -217,6 +217,8 @@ func main() {
 	app.Get("/FetchAllUpcomingPaymentByUserID/:UserID", financeHandler.FetchAllUpcomingPaymentByUserID)
 	app.Get("/FetchAllPaidTransactionHistoryByUserID/:UserID", financeHandler.FetchAllPaidTransactionHistoryByUserID)
 
+	app.Post("/CreateFinanceByPayerID/:PayerID", financeHandler.CreateFinanceByPayerID)
+
 	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
 
 	// Chore Management

@@ -143,6 +143,25 @@ func (r financeRepositoryDB) FetchAllPaidTransactionHistoryByUserID(userID int) 
 	return transactions, nil
 }
 
+func (r financeRepositoryDB) CreateFinanceByPayerID(finance *entities.Finance, transactions []entities.Transaction) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if result := tx.Create(finance); result.Error != nil {
+			return result.Error
+		}
+
+		financeID := finance.FinanceID
+		for i := range transactions {
+			transactions[i].FinanceID = financeID
+		}
+
+		if result := tx.Create(&transactions); result.Error != nil {
+			return result.Error
+		}
+
+		return nil
+	})
+}
+
 // ----------------------------------------- Private Helper Functions -----------------------------------------//
 // Helper function to get the start of the current month
 func getStartOfCurrentMonth() time.Time {

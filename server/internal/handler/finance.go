@@ -212,3 +212,22 @@ func (h *financeHandler) FetchAllPaidTransactionHistoryByUserID(c *fiber.Ctx) er
 
 	return c.JSON(paidTransactionsResponse)
 }
+
+func (h *financeHandler) CreateFinanceByPayerID(c *fiber.Ctx) error {
+	payerIDReceive, err := strconv.Atoi(c.Params("PayerID"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid UserID in path")
+	}
+
+	var req *dtos.CreateFinanceByPayerIDRequest
+	if err := c.BodyParser(&req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body format")
+	}
+
+	createdFinance, err := h.financeSer.CreateFinanceByPayerID(payerIDReceive, req)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(createdFinance)
+}

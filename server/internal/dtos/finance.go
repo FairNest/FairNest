@@ -81,3 +81,39 @@ type FetchAllPaidTransactionHistoryByUserIDResponse struct {
 	PaidToUsername    *string `json:"paid_to_username" validate:"required"`
 	PaidToUserPicture *string `json:"paid_to_user_picture" validate:"required"`
 }
+
+type TransactionDetailRequest struct {
+	DebtorID    *uint `json:"debtor_id" validate:"required"`
+	TotalAmount *int  `json:"total_amount" validate:"required"`
+}
+
+type CreateFinanceByPayerIDRequest struct {
+	TitleName *string `json:"title_name" validate:"required"`
+	DueDate   *string `json:"due_date" validate:"required"`
+	Category  *string `json:"category" validate:"required"`
+	SplitType *bool   `json:"split_type" validate:"required"`
+
+	// Slice of individual transactions/debts
+	Transactions []TransactionDetailRequest `json:"transactions" validate:"required,min=1,dive"`
+}
+
+type CreatedTransactionResponse struct {
+	TransactionID     *uint   `json:"transaction_id"`
+	DebtorID          *uint   `json:"debtor_id"`
+	PayerID           *uint   `json:"payer_id"`
+	TotalAmount       *int    `json:"total_amount"`
+	TransactionStatus *bool   `json:"transaction_status"` // false (unsettled)
+	QRCodeImage       *string `json:"qr_code_image"`
+	CreatedAt         *string `json:"created_at"`
+}
+
+type CreateFinanceByPayerIDResponse struct {
+	FinanceID *uint   `json:"finance_id"`
+	TitleName *string `json:"title_name"`
+	DueDate   *string `json:"due_date"`
+	Category  *string `json:"category"`
+	SplitType *bool   `json:"split_type"`
+	CreatedAt *string `json:"created_at"`
+
+	Transactions []CreatedTransactionResponse `json:"transactions"`
+}
