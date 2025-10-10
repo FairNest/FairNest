@@ -16,4 +16,5 @@ type FinanceService interface {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FetchAllUpcomingPaymentByUserID(int) ([]dtos.FetchAllUpcomingPaymentByUserIDResponse, error)
+	FetchAllPaidTransactionHistoryByUserID(int) ([]dtos.FetchAllPaidTransactionHistoryByUserIDResponse, error)
 }

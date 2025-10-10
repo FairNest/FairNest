@@ -153,3 +153,38 @@ func (s financeService) FetchAllUpcomingPaymentByUserID(userID int) ([]dtos.Fetc
 
 	return upcomingPayments, nil
 }
+
+func (s financeService) FetchAllPaidTransactionHistoryByUserID(userID int) ([]dtos.FetchAllPaidTransactionHistoryByUserIDResponse, error) {
+	transactions, err := s.financeRepo.FetchAllPaidTransactionHistoryByUserID(userID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var paidTransactionHistory []dtos.FetchAllPaidTransactionHistoryByUserIDResponse
+
+	for _, transaction := range transactions {
+		if transaction.Payer == nil {
+			log.Printf("Payer details not found for transaction ID: %d", *transaction.TransactionID)
+			continue
+		}
+
+		historyItem := dtos.FetchAllPaidTransactionHistoryByUserIDResponse{
+			FinanceID:         transaction.FinanceID,
+			TransactionID:     transaction.TransactionID,
+			TitleName:         transaction.Finance.TitleName,
+			Category:          transaction.Finance.Category,
+			TotalAmount:       transaction.TotalAmount,
+			TransactionStatus: transaction.TransactionStatus,
+			PaidAt:            v.TimePtrToRFC3339Ptr(transaction.PaidAt),
+
+			// Paid to User Details
+			PaidToUserID:      transaction.PayerID,
+			PaidToUsername:    transaction.Payer.Username,
+			PaidToUserPicture: transaction.Payer.UserPicture,
+		}
+		paidTransactionHistory = append(paidTransactionHistory, historyItem)
+	}
+
+	return paidTransactionHistory, nil
+}

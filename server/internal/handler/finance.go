@@ -135,3 +135,35 @@ func (h *financeHandler) FetchAllUpcomingPaymentByUserID(c *fiber.Ctx) error {
 
 	return c.JSON(upcomingPaymentsResponse)
 }
+
+func (h *financeHandler) FetchAllPaidTransactionHistoryByUserID(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+	if err != nil {
+		return err
+	}
+
+	paidTransactions, err := h.financeSer.FetchAllPaidTransactionHistoryByUserID(userIDReceive)
+	if err != nil {
+		return err
+	}
+
+	paidTransactionsResponse := make([]dtos.FetchAllPaidTransactionHistoryByUserIDResponse, 0)
+	for _, transaction := range paidTransactions {
+		paidTransactionsResponse = append(paidTransactionsResponse, dtos.FetchAllPaidTransactionHistoryByUserIDResponse{
+			FinanceID:         transaction.FinanceID,
+			TransactionID:     transaction.TransactionID,
+			TitleName:         transaction.TitleName,
+			Category:          transaction.Category,
+			TotalAmount:       transaction.TotalAmount,
+			TransactionStatus: transaction.TransactionStatus,
+			PaidAt:            transaction.PaidAt,
+
+			// Paid to User Details
+			PaidToUserID:      transaction.PaidToUserID,
+			PaidToUsername:    transaction.PaidToUsername,
+			PaidToUserPicture: transaction.PaidToUserPicture,
+		})
+	}
+
+	return c.JSON(paidTransactionsResponse)
+}

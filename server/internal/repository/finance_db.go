@@ -63,3 +63,16 @@ func (r financeRepositoryDB) FetchAllUnpaidTransactionsWithFinanceDetailsByUserI
 	}
 	return transactions, nil
 }
+
+func (r financeRepositoryDB) FetchAllPaidTransactionHistoryByUserID(userID int) ([]entities.Transaction, error) {
+	transactions := []entities.Transaction{}
+	result := r.db.Where("debtor_id = ? AND transaction_status = ?", userID, true).
+		Preload("Finance").
+		Preload("Payer").
+		Order("paid_at DESC").
+		Find(&transactions)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return transactions, nil
+}

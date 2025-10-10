@@ -52,3 +52,18 @@ type FetchAllUpcomingPaymentByUserIDResponse struct {
 	TransactionStatus *bool   `json:"transaction_status" validate:"required"`
 	QRCodeImage       *string `json:"qr_code_image" validate:"required"`
 }
+
+type FetchAllPaidTransactionHistoryByUserIDResponse struct {
+	FinanceID         *uint   `json:"finance_id" validate:"required"`
+	TransactionID     *uint   `json:"transaction_id" validate:"required"`
+	TitleName         *string `json:"title_name" validate:"required"`
+	Category          *string `json:"category" validate:"required"`
+	TotalAmount       *int    `json:"total_amount" validate:"required"`
+	TransactionStatus *bool   `json:"transaction_status" validate:"required"`
+	PaidAt            *string `json:"paid_at" validate:"required"`
+
+	// Paid to User Details
+	PaidToUserID      *uint   `json:"paid_to_user_id" validate:"required"`
+	PaidToUsername    *string `json:"paid_to_username" validate:"required"`
+	PaidToUserPicture *string `json:"paid_to_user_picture" validate:"required"`
+}

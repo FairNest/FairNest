@@ -13,5 +13,5 @@ type FinanceRepository interface {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	FetchAllUnpaidTransactionsWithFinanceDetailsByUserID(int) ([]entities.Transaction, error)
-	//FetchAllTransactionHistoryByUserID(int) ([]entities.Transaction, error)
+	FetchAllPaidTransactionHistoryByUserID(int) ([]entities.Transaction, error)
 }

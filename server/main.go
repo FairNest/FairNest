@@ -213,6 +213,7 @@ func main() {
 
 	// Finance Endpoints
 	app.Get("/FetchAllUpcomingPaymentByUserID/:UserID", financeHandler.FetchAllUpcomingPaymentByUserID)
+	app.Get("/FetchAllPaidTransactionHistoryByUserID/:UserID", financeHandler.FetchAllPaidTransactionHistoryByUserID)
 
 	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
 
