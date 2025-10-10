@@ -12,11 +12,13 @@ import (
 
 type financeService struct {
 	financeRepo repository.FinanceRepository
+	userSer     UserService
 }
 
-func NewFinanceService(financeRepo repository.FinanceRepository) financeService {
+func NewFinanceService(financeRepo repository.FinanceRepository, userSer UserService) financeService {
 	return financeService{
 		financeRepo: financeRepo,
+		userSer:     userSer,
 	}
 }
 
@@ -223,6 +225,13 @@ func (s financeService) FetchAllUpcomingPaymentByUserID(userID int) ([]dtos.Fetc
 		return nil, err
 	}
 
+	// Check and apply overdue penalties if any
+	err = s.CheckOverduePenalty()
+	if err != nil {
+		log.Printf("Error checking overdue penalties: %v", err)
+		return nil, err
+	}
+
 	var upcomingPayments []dtos.FetchAllUpcomingPaymentByUserIDResponse
 	for _, transaction := range transactions {
 		payment := dtos.FetchAllUpcomingPaymentByUserIDResponse{
@@ -330,6 +339,79 @@ func (s financeService) CreateFinanceByPayerID(payerID int, req *dtos.CreateFina
 		CreatedAt:    v.Ptr(finance.CreatedAt.Format(time.RFC3339)),
 		Transactions: responseTransactions,
 	}, nil
+}
+
+func (s financeService) FetchAllOverdueTransactions() ([]entities.Transaction, error) {
+	transactions, err := s.financeRepo.FetchAllOverdueTransactions()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	transactionResponses := []entities.Transaction{}
+	for _, transaction := range transactions {
+		transactionResponse := entities.Transaction{
+			TransactionID:     transaction.TransactionID,
+			FinanceID:         transaction.FinanceID,
+			PayerID:           transaction.PayerID,
+			DebtorID:          transaction.DebtorID,
+			TotalAmount:       transaction.TotalAmount,
+			TransactionStatus: transaction.TransactionStatus,
+			QRCodeImage:       transaction.QRCodeImage,
+			OverduePenalty:    transaction.OverduePenalty,
+			CreatedAt:         transaction.CreatedAt,
+			PaidAt:            transaction.PaidAt,
+		}
+		transactionResponses = append(transactionResponses, transactionResponse)
+	}
+	return transactionResponses, nil
+}
+
+func (s financeService) CheckOverduePenalty() error {
+	// Find all transactions that are overdue and haven't been penalized yet
+	overdueTransactions, err := s.financeRepo.FetchAllOverdueTransactions()
+	if err != nil {
+		log.Printf("Error fetching overdue transactions: %v", err)
+		return err
+	}
+
+	if len(overdueTransactions) == 0 {
+		log.Println("No overdue transactions to penalize.")
+		return nil
+	}
+
+	for _, transaction := range overdueTransactions {
+		// Check if the transaction's due date is in the past
+		// The query already handles this, but a double-check is good practice.
+		if transaction.Finance != nil && transaction.Finance.DueDate.Before(time.Now()) {
+			// Get the current roommate score of the debtor
+			debtorID := *transaction.DebtorID
+
+			// Deduct 10 points from the score
+			DeductScore := 10.0
+
+			// Update the user's roommate score in the database
+			if _, err := s.userSer.UpdateRoommateScorePenalty(debtorID, DeductScore); err != nil {
+				log.Printf("Error updating roommate score for user %d: %v", debtorID, err)
+				continue
+			}
+
+			currentScore, err := s.userSer.GetCurrentRoommateScore(debtorID)
+			if err != nil {
+				log.Printf("Error fetching roommate score for user %d: %v", debtorID, err)
+				continue // Skip to the next transaction
+			}
+
+			// Mark the transaction as penalized to prevent future deductions
+			if err := s.financeRepo.SetOverduePenalty(*transaction.TransactionID); err != nil {
+				log.Printf("Error setting overdue penalty for transaction %d: %v", *transaction.TransactionID, err)
+				// Continue even on error to ensure other penalties are applied
+			}
+			log.Printf("Applied 10-point penalty to user %d for overdue transaction %d. New score: %.2f", debtorID, *transaction.TransactionID, *currentScore)
+		}
+	}
+
+	return nil
 }
 
 // ----------------------------------------- Private Helper Functions -----------------------------------------//

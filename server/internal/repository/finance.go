@@ -21,4 +21,7 @@ type FinanceRepository interface {
 	FetchAllPaidTransactionHistoryByUserID(int) ([]entities.Transaction, error)
 
 	CreateFinanceByPayerID(finance *entities.Finance, transactions []entities.Transaction) error
+
+	FetchAllOverdueTransactions() ([]entities.Transaction, error)
+	SetOverduePenalty(transactionID uint) error
 }

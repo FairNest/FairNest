@@ -5,6 +5,7 @@ import (
 	"fairnest/internal/service"
 	"fairnest/internal/utils/v"
 	"github.com/gofiber/fiber/v2"
+	"log"
 	"strconv"
 )
 
@@ -230,4 +231,36 @@ func (h *financeHandler) CreateFinanceByPayerID(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(createdFinance)
+}
+
+func (h *financeHandler) FetchAllOverdueTransactions(c *fiber.Ctx) error {
+	overdueTransactionsResponse := make([]dtos.FetchAllOverdueTransactionsResponse, 0)
+
+	overdueTransactions, err := h.financeSer.FetchAllOverdueTransactions()
+	if err != nil {
+		return err
+	}
+
+	for _, transaction := range overdueTransactions {
+		overdueTransactionsResponse = append(overdueTransactionsResponse, dtos.FetchAllOverdueTransactionsResponse{
+			TransactionID:     transaction.TransactionID,
+			FinanceID:         transaction.FinanceID,
+			PayerID:           transaction.PayerID,
+			DebtorID:          transaction.DebtorID,
+			TotalAmount:       transaction.TotalAmount,
+			TransactionStatus: transaction.TransactionStatus,
+			QRCodeImage:       transaction.QRCodeImage,
+			CreatedAt:         v.TimePtrToRFC3339Ptr(transaction.CreatedAt),
+			PaidAt:            v.TimePtrToRFC3339Ptr(transaction.PaidAt),
+		})
+	}
+	return c.JSON(overdueTransactionsResponse)
+}
+
+func (h *financeHandler) CheckOverduePenalty(c *fiber.Ctx) error {
+	if err := h.financeSer.CheckOverduePenalty(); err != nil {
+		log.Printf("Failed to apply overdue penalties: %v", err)
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok", "message": "Penalty check completed with some issues"})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok", "message": "Penalty check completed successfully"})
 }

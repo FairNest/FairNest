@@ -100,7 +100,15 @@ func main() {
 	choreService := service.NewChoreService(choreRepositoryDB, userService)
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService, lifestyleService)
-	financeService := service.NewFinanceService(financeRepositoryDB)
+	financeService := service.NewFinanceService(financeRepositoryDB, userService)
+
+	go func() {
+		if err := financeService.CheckOverduePenalty(); err != nil {
+			log.Printf("Failed to apply overdue penalties at startup: %v", err)
+		} else {
+			log.Println("Overdue penalty check completed successfully at startup.")
+		}
+	}()
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)
 	lifestyleHandler := handler.NewLifestyleHandler(lifestyleService, lifestyleRepositoryDB)
@@ -218,6 +226,9 @@ func main() {
 	app.Get("/FetchAllPaidTransactionHistoryByUserID/:UserID", financeHandler.FetchAllPaidTransactionHistoryByUserID)
 
 	app.Post("/CreateFinanceByPayerID/:PayerID", financeHandler.CreateFinanceByPayerID)
+
+	app.Get("/FetchAllOverdueTransactions", financeHandler.FetchAllOverdueTransactions)
+	app.Post("/CheckOverduePenalty", financeHandler.CheckOverduePenalty)
 
 	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
 

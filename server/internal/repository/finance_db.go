@@ -162,10 +162,33 @@ func (r financeRepositoryDB) CreateFinanceByPayerID(finance *entities.Finance, t
 	})
 }
 
+func (r financeRepositoryDB) FetchAllOverdueTransactions() ([]entities.Transaction, error) {
+	var transactions []entities.Transaction
+
+	result := r.db.Model(&entities.Transaction{}).
+		Joins("left join finances on transactions.finance_id = finances.finance_id").
+		Where("transactions.transaction_status = ? AND (transactions.overdue_penalty = ? OR transactions.overdue_penalty IS NULL) AND finances.due_date < ?", false, false, time.Now()).
+		Preload("Finance").
+		Preload("Debtor").
+		Find(&transactions)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return transactions, nil
+}
+
 // ----------------------------------------- Private Helper Functions -----------------------------------------//
 // Helper function to get the start of the current month
 func getStartOfCurrentMonth() time.Time {
 	now := time.Now()
 	// Sets day to 1 and time to 00:00:00
 	return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+}
+
+// SetOverduePenalty updates the overdue_penalty field for a specific transaction.
+func (r financeRepositoryDB) SetOverduePenalty(transactionID uint) error {
+	result := r.db.Model(&entities.Transaction{}).Where("transaction_id = ?", transactionID).Update("overdue_penalty", true)
+	return result.Error
 }

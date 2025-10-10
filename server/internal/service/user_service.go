@@ -464,6 +464,30 @@ func (s userService) UpdateRoommateScore(userID uint, scoreChange float64) (*flo
 	return &newScore, nil
 }
 
+func (s userService) UpdateRoommateScorePenalty(userID uint, scoreChange float64) (*float64, error) {
+	// * get current score
+	currentScore, err := s.userRepo.GetCurrentRoommateScore(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// * calculate new score
+	newScore := *currentScore - scoreChange
+
+	// * ensure score doesn't go below 0
+	if newScore < 0 {
+		newScore = 0
+	}
+
+	// * update score in database
+	err = s.userRepo.UpdateRoommateScore(userID, newScore)
+	if err != nil {
+		return nil, err
+	}
+
+	return &newScore, nil
+}
+
 func (s userService) GetCurrentRoommateScore(userID uint) (*float64, error) {
 	return s.userRepo.GetCurrentRoommateScore(userID)
 }

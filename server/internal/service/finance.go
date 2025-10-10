@@ -22,4 +22,7 @@ type FinanceService interface {
 	FetchAllPaidTransactionHistoryByUserID(int) ([]dtos.FetchAllPaidTransactionHistoryByUserIDResponse, error)
 
 	CreateFinanceByPayerID(payerID int, req *dtos.CreateFinanceByPayerIDRequest) (*dtos.CreateFinanceByPayerIDResponse, error)
+
+	FetchAllOverdueTransactions() ([]entities.Transaction, error)
+	CheckOverduePenalty() error
 }

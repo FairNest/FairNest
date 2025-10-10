@@ -27,5 +27,6 @@ type UserService interface {
 
 	// * new functions for roommate score management
 	UpdateRoommateScore(userID uint, scoreChange float64) (*float64, error)
+	UpdateRoommateScorePenalty(userID uint, scoreChange float64) (*float64, error)
 	GetCurrentRoommateScore(userID uint) (*float64, error)
 }
