@@ -108,6 +108,31 @@ func (h *financeHandler) GetTransactionByTransactionID(c *fiber.Ctx) error {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func (h *financeHandler) FetchAllOutstandingBalancesByUserID(c *fiber.Ctx) error {
+	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
+	if err != nil {
+		return err
+	}
+
+	outstandingBalances, err := h.financeSer.FetchAllOutstandingBalancesByUserID(userIDReceive)
+	if err != nil {
+		return err
+	}
+
+	outstandingBalancesResponse := make([]dtos.FetchAllOutstandingBalancesByUserIDResponse, 0)
+	for _, balance := range outstandingBalances {
+		outstandingBalancesResponse = append(outstandingBalancesResponse, dtos.FetchAllOutstandingBalancesByUserIDResponse{
+			UserID:        balance.UserID,
+			Username:      balance.Username,
+			UserPicture:   balance.UserPicture,
+			NetBalance:    balance.NetBalance,
+			BalanceStatus: balance.BalanceStatus,
+		})
+	}
+
+	return c.JSON(outstandingBalancesResponse)
+}
+
 func (h *financeHandler) FetchAllUpcomingPaymentByUserID(c *fiber.Ctx) error {
 	userIDReceive, err := strconv.Atoi(c.Params("UserID"))
 	if err != nil {

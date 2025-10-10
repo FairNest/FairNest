@@ -67,3 +67,11 @@ type FetchAllPaidTransactionHistoryByUserIDResponse struct {
 	PaidToUsername    *string `json:"paid_to_username" validate:"required"`
 	PaidToUserPicture *string `json:"paid_to_user_picture" validate:"required"`
 }
+
+type FetchAllOutstandingBalancesByUserIDResponse struct {
+	UserID        *uint   `json:"user_id" validate:"required"` // The other user/roommate's ID
+	Username      *string `json:"username" validate:"required"`
+	UserPicture   *string `json:"user_picture" validate:"required"`
+	NetBalance    *int    `json:"net_balance" validate:"required"`    // Positive if user is owed, Negative if user owes
+	BalanceStatus *string `json:"balance_status" validate:"required"` // "You Owe" (negative), "You Are Owed" (positive), or "Settled" (zero)
+}

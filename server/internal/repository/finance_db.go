@@ -53,6 +53,23 @@ func (r financeRepositoryDB) GetTransactionByTransactionID(transactionID int) (*
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+func (r financeRepositoryDB) FetchAllUnsettledTransactionsByUserID(userID int) ([]entities.Transaction, error) {
+	transactions := []entities.Transaction{}
+
+	result := r.db.
+		Where("transaction_status = ?", false).
+		Where("payer_id = ? OR debtor_id = ?", userID, userID).
+		Preload("Payer").
+		Preload("Debtor").
+		Order("created_at DESC").
+		Find(&transactions)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return transactions, nil
+}
+
 func (r financeRepositoryDB) FetchAllUnpaidTransactionsWithFinanceDetailsByUserID(userID int) ([]entities.Transaction, error) {
 	transactions := []entities.Transaction{}
 	result := r.db.Where("debtor_id = ? AND transaction_status = ?", userID, false).
