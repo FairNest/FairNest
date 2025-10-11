@@ -179,7 +179,7 @@ func (r financeRepositoryDB) FetchAllOverdueTransactions() ([]entities.Transacti
 	return transactions, nil
 }
 
-func (r financeRepositoryDB) PatchPaidByTransactionID(transaction *entities.Transaction) error {
+func (r financeRepositoryDB) UpdateTransactionStatusPaid(transaction *entities.Transaction) error {
 	result := r.db.Updates(transaction)
 	if result.Error != nil {
 		return result.Error

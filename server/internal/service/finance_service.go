@@ -467,14 +467,14 @@ func (s financeService) CheckOverduePenalty() error {
 	return nil
 }
 
-func (s financeService) PatchPaidByTransactionID(transactionID int, req dtos.PatchPaidByTransactionIDRequest) (*entities.Transaction, error) {
+func (s financeService) UpdateTransactionStatusPaid(transactionID int, req dtos.PatchPaidByTransactionIDRequest) (*entities.Transaction, error) {
 	finance := &entities.Transaction{
 		TransactionID:     v.UintPtr(transactionID),
 		TransactionStatus: v.Ptr(true), // Mark as paid
 		PaidAt:            v.Ptr(time.Now()),
 	}
 
-	err := s.financeRepo.PatchPaidByTransactionID(finance)
+	err := s.financeRepo.UpdateTransactionStatusPaid(finance)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -518,7 +518,7 @@ func (s financeService) HandleStripeWebhook(payload []byte, signatureHeader stri
 
 		// 4. Call the existing PatchPaidByTransactionID function to mark the transaction as paid.
 		// Note: The PatchPaidByTransactionID function expects an integer.
-		_, err = s.PatchPaidByTransactionID(transactionIntID, dtos.PatchPaidByTransactionIDRequest{})
+		_, err = s.UpdateTransactionStatusPaid(transactionIntID, dtos.PatchPaidByTransactionIDRequest{})
 		if err != nil {
 			log.Printf("Failed to update transaction status for ID %s: %v", transactionID, err)
 			return err

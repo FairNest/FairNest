@@ -25,6 +25,6 @@ type FinanceRepository interface {
 	FetchAllOverdueTransactions() ([]entities.Transaction, error)
 	SetOverduePenalty(transactionID uint) error
 
-	PatchPaidByTransactionID(transaction *entities.Transaction) error
+	UpdateTransactionStatusPaid(transaction *entities.Transaction) error
 	PatchAddPaymentLinkAndQRCodeByTransactionID(transaction *entities.Transaction) error
 }
