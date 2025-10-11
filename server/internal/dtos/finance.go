@@ -129,3 +129,7 @@ type CreateFinanceByPayerIDResponse struct {
 
 	Transactions []CreatedTransactionResponse `json:"transactions"`
 }
+
+type PatchPaidByTransactionIDRequest struct {
+	TransactionID *uint `json:"transaction_id" validate:"required"`
+}

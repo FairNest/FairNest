@@ -25,4 +25,6 @@ type FinanceService interface {
 
 	FetchAllOverdueTransactions() ([]entities.Transaction, error)
 	CheckOverduePenalty() error
+
+	PatchPaidByTransactionID(int, dtos.PatchPaidByTransactionIDRequest) (*entities.Transaction, error)
 }

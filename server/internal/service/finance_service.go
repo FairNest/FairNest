@@ -414,6 +414,22 @@ func (s financeService) CheckOverduePenalty() error {
 	return nil
 }
 
+func (s financeService) PatchPaidByTransactionID(transactionID int, req dtos.PatchPaidByTransactionIDRequest) (*entities.Transaction, error) {
+	finance := &entities.Transaction{
+		TransactionID:     v.UintPtr(transactionID),
+		TransactionStatus: v.Ptr(true), // Mark as paid
+		PaidAt:            v.Ptr(time.Now()),
+	}
+
+	err := s.financeRepo.PatchPaidByTransactionID(finance)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return finance, nil
+}
+
 // ----------------------------------------- Private Helper Functions -----------------------------------------//
 // Helper function to determine the balance status string
 func getBalanceStatus(balance int) string {

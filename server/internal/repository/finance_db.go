@@ -179,6 +179,15 @@ func (r financeRepositoryDB) FetchAllOverdueTransactions() ([]entities.Transacti
 	return transactions, nil
 }
 
+func (r financeRepositoryDB) PatchPaidByTransactionID(transaction *entities.Transaction) error {
+	result := r.db.Updates(transaction)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
 // ----------------------------------------- Private Helper Functions -----------------------------------------//
 // Helper function to get the start of the current month
 func getStartOfCurrentMonth() time.Time {
