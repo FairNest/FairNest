@@ -216,7 +216,8 @@ type Transaction struct {
 	DebtorID          *uint `gorm:"not null"` // user who owes
 	TotalAmount       *int  `gorm:"not null"` // total amount paid
 	TransactionStatus *bool // true = settled, false = unsettled
-	QRCodeImage       *string
+	PaymentLink       *string
+	QRCodeLinkImage   *string
 	OverduePenalty    *bool // true = applied penalty, false = didn't receive penalty
 	CreatedAt         *time.Time
 	PaidAt            *time.Time

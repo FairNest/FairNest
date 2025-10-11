@@ -76,7 +76,8 @@ func (h *financeHandler) FetchAllTransaction(c *fiber.Ctx) error {
 			DebtorID:          transaction.DebtorID,
 			TotalAmount:       transaction.TotalAmount,
 			TransactionStatus: transaction.TransactionStatus,
-			QRCodeImage:       transaction.QRCodeImage,
+			PaymentLink:       transaction.PaymentLink,
+			QRCodeLinkImage:   transaction.QRCodeLinkImage,
 			CreatedAt:         v.TimePtrToRFC3339Ptr(transaction.CreatedAt),
 			PaidAt:            v.TimePtrToRFC3339Ptr(transaction.PaidAt),
 		})
@@ -99,7 +100,8 @@ func (h *financeHandler) GetTransactionByTransactionID(c *fiber.Ctx) error {
 		DebtorID:          transaction.DebtorID,
 		TotalAmount:       transaction.TotalAmount,
 		TransactionStatus: transaction.TransactionStatus,
-		QRCodeImage:       transaction.QRCodeImage,
+		PaymentLink:       transaction.PaymentLink,
+		QRCodeLinkImage:   transaction.QRCodeLinkImage,
 		CreatedAt:         v.TimePtrToRFC3339Ptr(transaction.CreatedAt),
 		PaidAt:            v.TimePtrToRFC3339Ptr(transaction.PaidAt),
 	}
@@ -175,7 +177,8 @@ func (h *financeHandler) FetchAllUpcomingPaymentByUserID(c *fiber.Ctx) error {
 			Category:          payment.Category,
 			TotalAmount:       payment.TotalAmount,
 			TransactionStatus: payment.TransactionStatus,
-			QRCodeImage:       payment.QRCodeImage,
+			PaymentLink:       payment.PaymentLink,
+			QRCodeLinkImage:   payment.QRCodeLinkImage,
 		})
 	}
 
@@ -249,7 +252,8 @@ func (h *financeHandler) FetchAllOverdueTransactions(c *fiber.Ctx) error {
 			DebtorID:          transaction.DebtorID,
 			TotalAmount:       transaction.TotalAmount,
 			TransactionStatus: transaction.TransactionStatus,
-			QRCodeImage:       transaction.QRCodeImage,
+			PaymentLink:       transaction.PaymentLink,
+			QRCodeLinkImage:   transaction.QRCodeLinkImage,
 			CreatedAt:         v.TimePtrToRFC3339Ptr(transaction.CreatedAt),
 			PaidAt:            v.TimePtrToRFC3339Ptr(transaction.PaidAt),
 		})

@@ -25,7 +25,8 @@ type TransactionDataResponse struct {
 	DebtorID          *uint   `json:"debtor_id" validate:"required"`
 	TotalAmount       *int    `json:"total_amount" validate:"required"`
 	TransactionStatus *bool   `json:"transaction_status" validate:"required"`
-	QRCodeImage       *string `json:"qr_code_image" validate:"required"`
+	PaymentLink       *string `json:"payment_link" validate:"required"`
+	QRCodeLinkImage   *string `json:"qr_code_link_image" validate:"required"`
 	CreatedAt         *string `json:"created_at" validate:"required"`
 	PaidAt            *string `json:"paid_at" validate:"required"`
 }
@@ -37,7 +38,8 @@ type TransactionByTransactionIDDataResponse struct {
 	DebtorID          *uint   `json:"debtor_id" validate:"required"`
 	TotalAmount       *int    `json:"total_amount" validate:"required"`
 	TransactionStatus *bool   `json:"transaction_status" validate:"required"`
-	QRCodeImage       *string `json:"qr_code_image" validate:"required"`
+	PaymentLink       *string `json:"payment_link" validate:"required"`
+	QRCodeLinkImage   *string `json:"qr_code_link_image" validate:"required"`
 	CreatedAt         *string `json:"created_at" validate:"required"`
 	PaidAt            *string `json:"paid_at" validate:"required"`
 }
@@ -64,7 +66,8 @@ type FetchAllUpcomingPaymentByUserIDResponse struct {
 	Category          *string `json:"category" validate:"required"`
 	TotalAmount       *int    `json:"total_amount" validate:"required"`
 	TransactionStatus *bool   `json:"transaction_status" validate:"required"`
-	QRCodeImage       *string `json:"qr_code_image" validate:"required"`
+	PaymentLink       *string `json:"payment_link" validate:"required"`
+	QRCodeLinkImage   *string `json:"qr_code_link_image" validate:"required"`
 }
 
 type FetchAllPaidTransactionHistoryByUserIDResponse struct {
@@ -89,7 +92,8 @@ type FetchAllOverdueTransactionsResponse struct {
 	DebtorID          *uint   `json:"debtor_id" validate:"required"`
 	TotalAmount       *int    `json:"total_amount" validate:"required"`
 	TransactionStatus *bool   `json:"transaction_status" validate:"required"`
-	QRCodeImage       *string `json:"qr_code_image" validate:"required"`
+	PaymentLink       *string `json:"payment_link" validate:"required"`
+	QRCodeLinkImage   *string `json:"qr_code_link_image" validate:"required"`
 	CreatedAt         *string `json:"created_at" validate:"required"`
 	PaidAt            *string `json:"paid_at" validate:"required"`
 }
@@ -115,7 +119,8 @@ type CreatedTransactionResponse struct {
 	PayerID           *uint   `json:"payer_id"`
 	TotalAmount       *int    `json:"total_amount"`
 	TransactionStatus *bool   `json:"transaction_status"` // false (unsettled)
-	QRCodeImage       *string `json:"qr_code_image"`
+	PaymentLink       *string `json:"payment_link" validate:"required"`
+	QRCodeLinkImage   *string `json:"qr_code_link_image" validate:"required"`
 	CreatedAt         *string `json:"created_at"`
 }
 

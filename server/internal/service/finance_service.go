@@ -1,24 +1,28 @@
 package service
 
 import (
+	"encoding/base64"
 	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
 	"fairnest/internal/utils/v"
 	"github.com/gofiber/fiber/v2"
+	"github.com/skip2/go-qrcode"
 	"log"
 	"time"
 )
 
 type financeService struct {
-	financeRepo repository.FinanceRepository
-	userSer     UserService
+	financeRepo   repository.FinanceRepository
+	userSer       UserService
+	stripeService StripeService
 }
 
-func NewFinanceService(financeRepo repository.FinanceRepository, userSer UserService) financeService {
+func NewFinanceService(financeRepo repository.FinanceRepository, userSer UserService, stripeService StripeService) financeService {
 	return financeService{
-		financeRepo: financeRepo,
-		userSer:     userSer,
+		financeRepo:   financeRepo,
+		userSer:       userSer,
+		stripeService: stripeService,
 	}
 }
 
@@ -89,7 +93,9 @@ func (s financeService) FetchAllTransaction() ([]entities.Transaction, error) {
 			DebtorID:          transaction.DebtorID,
 			TotalAmount:       transaction.TotalAmount,
 			TransactionStatus: transaction.TransactionStatus,
-			QRCodeImage:       transaction.QRCodeImage,
+			QRCodeLinkImage:   transaction.QRCodeLinkImage,
+			PaymentLink:       transaction.PaymentLink,
+			OverduePenalty:    transaction.OverduePenalty,
 			CreatedAt:         transaction.CreatedAt,
 			PaidAt:            transaction.PaidAt,
 		}
@@ -111,7 +117,8 @@ func (s financeService) GetTransactionByTransactionID(transactionID int) (*entit
 		transaction.DebtorID == nil &&
 		transaction.TotalAmount == nil &&
 		transaction.TransactionStatus == nil &&
-		transaction.QRCodeImage == nil &&
+		transaction.PaymentLink == nil &&
+		transaction.QRCodeLinkImage == nil &&
 		transaction.CreatedAt == nil &&
 		transaction.PaidAt == nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "transaction data is not found")
@@ -124,7 +131,8 @@ func (s financeService) GetTransactionByTransactionID(transactionID int) (*entit
 		DebtorID:          transaction.DebtorID,
 		TotalAmount:       transaction.TotalAmount,
 		TransactionStatus: transaction.TransactionStatus,
-		QRCodeImage:       transaction.QRCodeImage,
+		QRCodeLinkImage:   transaction.QRCodeLinkImage,
+		PaymentLink:       transaction.PaymentLink,
 		CreatedAt:         transaction.CreatedAt,
 		PaidAt:            transaction.PaidAt,
 	}
@@ -242,7 +250,8 @@ func (s financeService) FetchAllUpcomingPaymentByUserID(userID int) ([]dtos.Fetc
 			Category:          transaction.Finance.Category,
 			TotalAmount:       transaction.TotalAmount,
 			TransactionStatus: transaction.TransactionStatus,
-			QRCodeImage:       transaction.QRCodeImage,
+			QRCodeLinkImage:   transaction.QRCodeLinkImage,
+			PaymentLink:       transaction.PaymentLink,
 		}
 		upcomingPayments = append(upcomingPayments, payment)
 	}
@@ -302,12 +311,36 @@ func (s financeService) CreateFinanceByPayerID(payerID int, req *dtos.CreateFina
 	// 2. Prepare the Transaction entities
 	transactions := make([]entities.Transaction, len(req.Transactions))
 	for i, tReq := range req.Transactions {
+		// Create a Stripe Payment Link for each transaction.
+		paymentLinkURL, err := s.stripeService.CreatePaymentLink(*req.TitleName, *tReq.TotalAmount*100) // Convert to THB
+		if err != nil {
+			log.Printf("Failed to create Stripe Payment Link: %v", err)
+			return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to create payment link")
+		}
+
+		// Generate QR code image from the payment link URL.
+		qrCode, err := qrcode.New(paymentLinkURL, qrcode.Medium)
+		if err != nil {
+			log.Printf("Failed to generate QR code: %v", err)
+			return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to generate QR code")
+		}
+
+		qrBytes, err := qrCode.PNG(256)
+		if err != nil {
+			log.Printf("Failed to encode QR code to PNG: %v", err)
+			return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to encode QR code to PNG")
+		}
+
+		// Convert PNG bytes to Base64 string
+		qrBase64 := "data:image/png;base64," + base64.StdEncoding.EncodeToString(qrBytes)
+
 		transactions[i] = entities.Transaction{
 			PayerID:           v.Ptr(uint(payerID)),
 			DebtorID:          tReq.DebtorID,
 			TotalAmount:       tReq.TotalAmount,
-			TransactionStatus: v.Ptr(false), // Always start as unsettled/unpaid
-			QRCodeImage:       v.Ptr(""),    // Placeholder: QR code can be generated later
+			TransactionStatus: v.Ptr(false),
+			QRCodeLinkImage:   v.Ptr(qrBase64),
+			PaymentLink:       v.Ptr(paymentLinkURL),
 			PaidAt:            nil,
 		}
 	}
@@ -325,7 +358,9 @@ func (s financeService) CreateFinanceByPayerID(payerID int, req *dtos.CreateFina
 			PayerID:           t.PayerID,
 			TotalAmount:       t.TotalAmount,
 			TransactionStatus: t.TransactionStatus,
-			QRCodeImage:       t.QRCodeImage,
+			QRCodeLinkImage:   t.QRCodeLinkImage,
+			PaymentLink:       t.PaymentLink,
+			CreatedAt:         v.TimePtrToRFC3339Ptr(t.CreatedAt),
 		}
 	}
 
@@ -357,7 +392,8 @@ func (s financeService) FetchAllOverdueTransactions() ([]entities.Transaction, e
 			DebtorID:          transaction.DebtorID,
 			TotalAmount:       transaction.TotalAmount,
 			TransactionStatus: transaction.TransactionStatus,
-			QRCodeImage:       transaction.QRCodeImage,
+			QRCodeLinkImage:   transaction.QRCodeLinkImage,
+			PaymentLink:       transaction.PaymentLink,
 			OverduePenalty:    transaction.OverduePenalty,
 			CreatedAt:         transaction.CreatedAt,
 			PaidAt:            transaction.PaidAt,

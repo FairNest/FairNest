@@ -93,6 +93,7 @@ func main() {
 	financeRepositoryDB := repository.NewFinanceRepositoryDB(db)
 
 	uploadService := service.NewUploadService(minioClient)
+	stripeService := service.NewStripeService(viper.GetString("stripe.secretKey"))
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
 	userService := service.NewUserService(userRepositoryDB, jwtSecret, lifestyleService)
 	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB, userService)
@@ -100,7 +101,7 @@ func main() {
 	choreService := service.NewChoreService(choreRepositoryDB, userService)
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService, lifestyleService)
-	financeService := service.NewFinanceService(financeRepositoryDB, userService)
+	financeService := service.NewFinanceService(financeRepositoryDB, userService, stripeService)
 
 	go func() {
 		if err := financeService.CheckOverduePenalty(); err != nil {
