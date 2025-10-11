@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/stripe/stripe-go/v83"
 	"github.com/stripe/stripe-go/v83/client"
 	"github.com/stripe/stripe-go/v83/paymentlink"
@@ -22,8 +23,7 @@ func NewStripeService(secretKey string) StripeService {
 	}
 }
 
-// Function to create a Stripe Payment Link for a specific transaction amount and title.
-func (s *stripeService) CreatePaymentLink(title string, amount int) (string, error) {
+func (s *stripeService) CreatePaymentLink(title string, amount int, transactionID int) (string, error) {
 	// Create a new product.
 	prodParams := &stripe.ProductParams{
 		Name: stripe.String(title),
@@ -35,7 +35,6 @@ func (s *stripeService) CreatePaymentLink(title string, amount int) (string, err
 
 	// Create a price for the product.
 	priceParams := &stripe.PriceParams{
-		// CHANGED: Using Thai Baht (THB) currency. This enables PromptPay on the checkout page.
 		Currency:    stripe.String(string(stripe.CurrencyTHB)),
 		UnitAmount:  stripe.Int64(int64(amount)),
 		Product:     stripe.String(newProduct.ID),
@@ -46,7 +45,7 @@ func (s *stripeService) CreatePaymentLink(title string, amount int) (string, err
 		return "", err
 	}
 
-	// Create the payment link.
+	// Create the payment link with the transaction ID in metadata.
 	plParams := &stripe.PaymentLinkParams{
 		LineItems: []*stripe.PaymentLinkLineItemParams{
 			{
@@ -54,11 +53,13 @@ func (s *stripeService) CreatePaymentLink(title string, amount int) (string, err
 				Quantity: stripe.Int64(1),
 			},
 		},
-		// NOTE: Stripe Payment Links automatically determine the best payment methods
-		// based on the currency (THB enables PromptPay).
+		Metadata: map[string]string{
+			"transaction_id": fmt.Sprintf("%d", transactionID),
+		},
 	}
 	pl, err := paymentlink.New(plParams)
 	if err != nil {
+		log.Printf("Failed to create Stripe Payment Link: %v", err)
 		return "", err
 	}
 

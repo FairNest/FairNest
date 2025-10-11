@@ -2,27 +2,32 @@ package service
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
 	"fairnest/internal/utils/v"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/skip2/go-qrcode"
+	"github.com/stripe/stripe-go/v83"
 	"log"
 	"time"
 )
 
 type financeService struct {
-	financeRepo   repository.FinanceRepository
-	userSer       UserService
-	stripeService StripeService
+	financeRepo         repository.FinanceRepository
+	userSer             UserService
+	stripeService       StripeService
+	stripeWebhookSecret string
 }
 
-func NewFinanceService(financeRepo repository.FinanceRepository, userSer UserService, stripeService StripeService) financeService {
+func NewFinanceService(financeRepo repository.FinanceRepository, userSer UserService, stripeService StripeService, stripeWebhookSecret string) financeService {
 	return financeService{
-		financeRepo:   financeRepo,
-		userSer:       userSer,
-		stripeService: stripeService,
+		financeRepo:         financeRepo,
+		userSer:             userSer,
+		stripeService:       stripeService,
+		stripeWebhookSecret: stripeWebhookSecret,
 	}
 }
 
@@ -301,6 +306,7 @@ func (s financeService) CreateFinanceByPayerID(payerID int, req *dtos.CreateFina
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Invalid due_date format. Must be RFC3339 (e.g., 2025-10-10T12:00:00Z)")
 	}
 
+	// 1. Prepare the Finance and Transaction entities
 	finance := &entities.Finance{
 		TitleName: req.TitleName,
 		DueDate:   &dueDate,
@@ -308,13 +314,32 @@ func (s financeService) CreateFinanceByPayerID(payerID int, req *dtos.CreateFina
 		SplitType: req.SplitType,
 	}
 
-	// 2. Prepare the Transaction entities
 	transactions := make([]entities.Transaction, len(req.Transactions))
 	for i, tReq := range req.Transactions {
-		// Create a Stripe Payment Link for each transaction.
-		paymentLinkURL, err := s.stripeService.CreatePaymentLink(*req.TitleName, *tReq.TotalAmount*100) // Convert to THB
+		transactions[i] = entities.Transaction{
+			PayerID:           v.Ptr(uint(payerID)),
+			DebtorID:          tReq.DebtorID,
+			TotalAmount:       tReq.TotalAmount,
+			TransactionStatus: v.Ptr(false),
+			OverduePenalty:    v.Ptr(false),
+		}
+	}
+
+	// 2. Create the finance and all transactions in a single database transaction.
+	// The transaction IDs will be populated in the `transactions` slice after this call.
+	if err := s.financeRepo.CreateFinanceByPayerID(finance, transactions); err != nil {
+		log.Printf("Error creating finance and transactions in repository: %v", err)
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to create finance record")
+	}
+
+	// 3. Now, iterate through the transactions (which now have their IDs)
+	// to generate payment links and QR codes.
+	responseTransactions := make([]dtos.CreatedTransactionResponse, len(transactions))
+	for i, t := range transactions {
+		// Use the newly populated transaction ID to create the payment link.
+		paymentLinkURL, err := s.stripeService.CreatePaymentLink(*req.TitleName, *t.TotalAmount*100, int(*t.TransactionID))
 		if err != nil {
-			log.Printf("Failed to create Stripe Payment Link: %v", err)
+			log.Printf("Failed to create Stripe Payment Link for transaction %d: %v", *t.TransactionID, err)
 			return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to create payment link")
 		}
 
@@ -331,40 +356,32 @@ func (s financeService) CreateFinanceByPayerID(payerID int, req *dtos.CreateFina
 			return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to encode QR code to PNG")
 		}
 
-		// Convert PNG bytes to Base64 string
 		qrBase64 := "data:image/png;base64," + base64.StdEncoding.EncodeToString(qrBytes)
 
-		transactions[i] = entities.Transaction{
-			PayerID:           v.Ptr(uint(payerID)),
-			DebtorID:          tReq.DebtorID,
-			TotalAmount:       tReq.TotalAmount,
-			TransactionStatus: v.Ptr(false),
-			QRCodeLinkImage:   v.Ptr(qrBase64),
-			PaymentLink:       v.Ptr(paymentLinkURL),
-			PaidAt:            nil,
+		// Update the transaction record with the payment link and QR code image.
+		addPaymentInfo := &entities.Transaction{
+			TransactionID:   t.TransactionID,
+			PaymentLink:     v.Ptr(paymentLinkURL),
+			QRCodeLinkImage: v.Ptr(qrBase64),
 		}
-	}
 
-	if err := s.financeRepo.CreateFinanceByPayerID(finance, transactions); err != nil {
-		log.Printf("Error creating finance and transactions in repository: %v", err)
-		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to create finance record")
-	}
+		if err := s.financeRepo.PatchAddPaymentLinkAndQRCodeByTransactionID(addPaymentInfo); err != nil {
+			log.Printf("Failed to update transaction %d with payment info: %v", *t.TransactionID, err)
+			return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to update transaction with payment info")
+		}
 
-	responseTransactions := make([]dtos.CreatedTransactionResponse, len(transactions))
-	for i, t := range transactions {
 		responseTransactions[i] = dtos.CreatedTransactionResponse{
 			TransactionID:     t.TransactionID,
 			DebtorID:          t.DebtorID,
 			PayerID:           t.PayerID,
 			TotalAmount:       t.TotalAmount,
 			TransactionStatus: t.TransactionStatus,
-			QRCodeLinkImage:   t.QRCodeLinkImage,
-			PaymentLink:       t.PaymentLink,
+			QRCodeLinkImage:   v.Ptr(qrBase64),
+			PaymentLink:       v.Ptr(paymentLinkURL),
 			CreatedAt:         v.TimePtrToRFC3339Ptr(t.CreatedAt),
 		}
 	}
 
-	// 5. Return the complete created data
 	return &dtos.CreateFinanceByPayerIDResponse{
 		FinanceID:    finance.FinanceID,
 		TitleName:    finance.TitleName,
@@ -464,6 +481,53 @@ func (s financeService) PatchPaidByTransactionID(transactionID int, req dtos.Pat
 	}
 
 	return finance, nil
+}
+
+func (s financeService) HandleStripeWebhook(payload []byte, signatureHeader string) error {
+	// 1. Construct the Stripe event from the payload and header.
+	event, err := stripe.ConstructEvent(payload, signatureHeader, s.stripeWebhookSecret)
+	if err != nil {
+		log.Printf("Error verifying webhook signature: %v", err)
+		return err
+	}
+
+	// 2. Handle the 'checkout.session.completed' event.
+	if event.Type == "checkout.session.completed" {
+		var session stripe.CheckoutSession
+		err := json.Unmarshal(event.Data.Raw, &session)
+		if err != nil {
+			log.Printf("Error unmarshalling event payload: %v", err)
+			return err
+		}
+
+		// Use the payment intent ID or a custom metadata field to identify the transaction.
+		// NOTE: Assuming you passed the transaction ID as metadata during payment link creation.
+		// This is a crucial step that you must implement in the payment link creation.
+		transactionID, ok := session.Metadata["transaction_id"]
+		if !ok {
+			log.Println("Transaction ID not found in session metadata.")
+			return fiber.NewError(fiber.StatusBadRequest, "Transaction ID not found")
+		}
+
+		// 3. Convert the transaction ID string to an integer.
+		var transactionIntID int
+		if _, err := fmt.Sscanf(transactionID, "%d", &transactionIntID); err != nil {
+			log.Printf("Error converting transaction ID to integer: %v", err)
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid transaction ID format")
+		}
+
+		// 4. Call the existing PatchPaidByTransactionID function to mark the transaction as paid.
+		// Note: The PatchPaidByTransactionID function expects an integer.
+		_, err = s.PatchPaidByTransactionID(transactionIntID, dtos.PatchPaidByTransactionIDRequest{})
+		if err != nil {
+			log.Printf("Failed to update transaction status for ID %s: %v", transactionID, err)
+			return err
+		}
+
+		log.Printf("Successfully updated transaction %s as paid via Stripe webhook.", transactionID)
+	}
+
+	return nil
 }
 
 // ----------------------------------------- Private Helper Functions -----------------------------------------//

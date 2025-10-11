@@ -188,6 +188,15 @@ func (r financeRepositoryDB) PatchPaidByTransactionID(transaction *entities.Tran
 	return nil
 }
 
+func (r financeRepositoryDB) PatchAddPaymentLinkAndQRCodeByTransactionID(transaction *entities.Transaction) error {
+	result := r.db.Updates(transaction)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
 // ----------------------------------------- Private Helper Functions -----------------------------------------//
 // Helper function to get the start of the current month
 func getStartOfCurrentMonth() time.Time {

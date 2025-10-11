@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/minio/minio-go/v7"
@@ -80,6 +79,9 @@ func main() {
 	}
 	log.Println("✅ FairNest Minio connected")
 
+	stripeSecretKey := viper.GetString("stripe.secretKey")
+	stripeWebhookSecret := viper.GetString("stripe.webhookSecret")
+
 	uploadSer := service.NewUploadService(minioClient)
 	storageHandler := handler.NewStorageHandler(uploadSer)
 
@@ -93,7 +95,8 @@ func main() {
 	financeRepositoryDB := repository.NewFinanceRepositoryDB(db)
 
 	uploadService := service.NewUploadService(minioClient)
-	stripeService := service.NewStripeService(viper.GetString("stripe.secretKey"))
+	stripeService := service.NewStripeService(stripeSecretKey)
+
 	lifestyleService := service.NewLifestyleService(lifestyleRepositoryDB)
 	userService := service.NewUserService(userRepositoryDB, jwtSecret, lifestyleService)
 	roomMemberService := service.NewRoomMemberService(roomMemberRepositoryDB, userService)
@@ -101,7 +104,7 @@ func main() {
 	choreService := service.NewChoreService(choreRepositoryDB, userService)
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService, lifestyleService)
-	financeService := service.NewFinanceService(financeRepositoryDB, userService, stripeService)
+	financeService := service.NewFinanceService(financeRepositoryDB, userService, stripeService, stripeWebhookSecret)
 
 	go func() {
 		if err := financeService.CheckOverduePenalty(); err != nil {
