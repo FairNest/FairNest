@@ -109,7 +109,7 @@ func main() {
 	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService, lifestyleService)
 	financeService := service.NewFinanceService(financeRepositoryDB, userService, stripeService, stripeWebhookSecret)
 	dashboardService := service.NewDashboardService(dashboardRepositoryDB, lifestyleRepositoryDB, lifestyleService)
-	userDashboardService := service.NewUserDashboardService(userDashboardRepositoryDB)
+	userDashboardService := service.NewUserDashboardSplitService(userDashboardRepositoryDB)
 
 	go func() {
 		if err := financeService.CheckOverduePenalty(); err != nil {
@@ -128,7 +128,7 @@ func main() {
 	roomJoinHandler := handler.NewRoomJoinHandler(roomJoinService)
 	financeHandler := handler.NewFinanceHandler(financeService)
 	dashboardHandler := handler.NewDashboardHandler(dashboardService, jwtSecret)
-	userDashboardHandler := handler.NewUserDashboardHandler(userDashboardService, jwtSecret)
+	userDashboardHandler := handler.NewUserDashboardSplitHandler(userDashboardService, jwtSecret)
 
 	app := fiber.New()
 
@@ -261,7 +261,11 @@ func main() {
 
 	// Dashboard Endpoint
 	app.Get("/rooms/:roomID/dashboard", dashboardHandler.GetRoomDashboard)
-	app.Get("/user/dashboard", userDashboardHandler.GetUserDashboard)
+	// User Dashboard Endpoints
+	app.Get("/user/progress", userDashboardHandler.GetUserProgress)
+	app.Get("/user/tasks/today", userDashboardHandler.GetUserTasksToday)
+	app.Get("/user/tasks/completed", userDashboardHandler.GetUserTasksCompleted)
+	app.Get("/user/tasks/upcoming", userDashboardHandler.GetUserTasksUpcoming)
 
 	//###################################################################
 

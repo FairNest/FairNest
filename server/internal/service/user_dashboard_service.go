@@ -11,81 +11,56 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type userDashboardService struct {
-	userDashboardRepo repository.UserDashboardRepository
+type userDashboardSplitService struct {
+	repo repository.UserDashboardRepository
 }
 
-func NewUserDashboardService(userDashboardRepo repository.UserDashboardRepository) UserDashboardService {
-	return &userDashboardService{
-		userDashboardRepo: userDashboardRepo,
-	}
+func NewUserDashboardSplitService(repo repository.UserDashboardRepository) UserDashboardService {
+	return &userDashboardSplitService{repo: repo}
 }
 
-func (s *userDashboardService) GetUserDashboard(userID uint) (*dtos.GetUserDashboardResponse, error) {
-	// Get progress info for TODAY
-	progressInfo, err := s.getYourProgress(userID)
-	if err != nil {
-		log.Printf("Error getting user progress: %v", err)
-		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch user progress")
-	}
-
-	// Get task summary (today + next 7 days)
-	taskSummary, err := s.getTaskSummary(userID)
-	if err != nil {
-		log.Printf("Error getting task summary: %v", err)
-		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch task summary")
-	}
-
-	return &dtos.GetUserDashboardResponse{
-		YourProgress: *progressInfo,
-		TaskSummary:  *taskSummary,
-	}, nil
-}
-
-// getYourProgress calculates user's progress for TODAY (chores + payments)
-func (s *userDashboardService) getYourProgress(userID uint) (*dtos.YourProgressInfo, error) {
-	// Get chores for today
-	todayChores, err := s.userDashboardRepo.GetUserChoresForToday(userID)
+// 1. GetUserProgress - fetch progress data by counting items
+func (s *userDashboardSplitService) GetUserProgress(userID uint) (*dtos.GetUserProgressResponse, error) {
+	// Get today's chores
+	allChores, err := s.repo.GetUserChoresForToday(userID)
 	if err != nil {
 		log.Printf("Error getting today's chores: %v", err)
-		todayChores = []entities.ChoreAssignment{}
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch chores")
 	}
 
-	completedChores, err := s.userDashboardRepo.GetUserCompletedChoresForToday(userID)
+	completedChores, err := s.repo.GetUserCompletedChoresForToday(userID)
 	if err != nil {
 		log.Printf("Error getting completed chores: %v", err)
-		completedChores = []entities.ChoreAssignment{}
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch completed chores")
 	}
 
-	// Get payments for today
-	todayPayments, err := s.userDashboardRepo.GetUserPaymentsDueToday(userID)
+	// Get today's payments
+	allPayments, err := s.repo.GetUserPaymentsDueToday(userID)
 	if err != nil {
 		log.Printf("Error getting today's payments: %v", err)
-		todayPayments = []entities.Transaction{}
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch payments")
 	}
 
-	completedPayments, err := s.userDashboardRepo.GetUserCompletedPaymentsDueToday(userID)
+	completedPayments, err := s.repo.GetUserCompletedPaymentsDueToday(userID)
 	if err != nil {
 		log.Printf("Error getting completed payments: %v", err)
-		completedPayments = []entities.Transaction{}
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch completed payments")
 	}
 
-	// Calculate totals
-	totalTasks := len(todayChores)
+	totalTasks := len(allChores)
 	completedTasks := len(completedChores)
-	totalPayments := len(todayPayments)
+	totalPayments := len(allPayments)
 	completedPaymentsCount := len(completedPayments)
 
-	overallTotal := totalTasks + totalPayments
 	overallCompleted := completedTasks + completedPaymentsCount
+	overallTotal := totalTasks + totalPayments
 
-	// Calculate percentage
 	var progressPercentage float64
 	if overallTotal > 0 {
 		progressPercentage = (float64(overallCompleted) / float64(overallTotal)) * 100.0
 	}
 
-	return &dtos.YourProgressInfo{
+	return &dtos.GetUserProgressResponse{
 		CompletedTasks:     completedTasks,
 		TotalTasks:         totalTasks,
 		CompletedPayments:  completedPaymentsCount,
@@ -96,85 +71,88 @@ func (s *userDashboardService) getYourProgress(userID uint) (*dtos.YourProgressI
 	}, nil
 }
 
-// getTaskSummary categorizes tasks and payments
-func (s *userDashboardService) getTaskSummary(userID uint) (*dtos.TaskSummaryInfo, error) {
-	today := time.Now()
-	startOfToday := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
-	endOfToday := startOfToday.AddDate(0, 0, 1)
+// 2. GetUserTasksToday - fetch today's unfinished tasks + payments (SEPARATED)
+func (s *userDashboardSplitService) GetUserTasksToday(userID uint) (*dtos.GetUserTasksSeparatedResponse, error) {
+	chores, err := s.repo.GetUserChoresForToday(userID)
+	if err != nil {
+		log.Printf("Error getting today's chores: %v", err)
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch today's chores")
+	}
 
-	// Next 7 days (excluding today)
-	startOfTomorrow := endOfToday
-	endOfNext7Days := startOfTomorrow.AddDate(0, 0, 7)
+	payments, err := s.repo.GetUserPaymentsDueToday(userID)
+	if err != nil {
+		log.Printf("Error getting today's payments: %v", err)
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch today's payments")
+	}
 
-	// Get today's unfinished chores
-	todayChores, _ := s.userDashboardRepo.GetUserChoresForToday(userID)
-	todayUnfinishedChores := filterUnfinishedChores(todayChores)
+	// Filter out completed items for "today" view
+	var unfinishedChores []entities.ChoreAssignment
+	for _, chore := range chores {
+		if chore.Status == nil || *chore.Status != "completed" {
+			unfinishedChores = append(unfinishedChores, chore)
+		}
+	}
 
-	// Get today's completed chores
-	completedChores, _ := s.userDashboardRepo.GetUserCompletedChoresForToday(userID)
+	var unfinishedPayments []entities.Transaction
+	for _, payment := range payments {
+		if payment.TransactionStatus == nil || !*payment.TransactionStatus {
+			unfinishedPayments = append(unfinishedPayments, payment)
+		}
+	}
 
-	// Get upcoming unfinished chores (next 7 days)
-	upcomingChores, _ := s.userDashboardRepo.GetUserUpcomingChores(userID, startOfTomorrow, endOfNext7Days)
-
-	// Get today's unfinished payments
-	todayPayments, _ := s.userDashboardRepo.GetUserPaymentsDueToday(userID)
-	todayUnfinishedPayments := filterUnfinishedPayments(todayPayments)
-
-	// Get today's completed payments
-	completedPayments, _ := s.userDashboardRepo.GetUserCompletedPaymentsDueToday(userID)
-
-	// Get upcoming unfinished payments (next 7 days)
-	upcomingPayments, _ := s.userDashboardRepo.GetUserUpcomingPayments(userID, startOfTomorrow, endOfNext7Days)
-
-	// Build item lists
-	todayUnfinishedItems := append(
-		mapChoresToItems(todayUnfinishedChores),
-		mapPaymentsToItems(todayUnfinishedPayments)...,
-	)
-
-	completedItems := append(
-		mapChoresToItems(completedChores),
-		mapPaymentsToItems(completedPayments)...,
-	)
-
-	upcomingUnfinishedItems := append(
-		mapChoresToItems(upcomingChores),
-		mapPaymentsToItems(upcomingPayments)...,
-	)
-
-	return &dtos.TaskSummaryInfo{
-		TodayUnfinishedCount:    len(todayUnfinishedItems),
-		CompletedCount:          len(completedItems),
-		UpcomingUnfinishedCount: len(upcomingUnfinishedItems),
-		TodayUnfinishedItems:    todayUnfinishedItems,
-		CompletedItems:          completedItems,
-		UpcomingUnfinishedItems: upcomingUnfinishedItems,
+	return &dtos.GetUserTasksSeparatedResponse{
+		Chores:   mapChoresToChoreItems(unfinishedChores),
+		Finances: mapPaymentsToFinanceItems(unfinishedPayments),
 	}, nil
 }
 
-// Helper functions
-func filterUnfinishedChores(chores []entities.ChoreAssignment) []entities.ChoreAssignment {
-	var unfinished []entities.ChoreAssignment
-	for _, chore := range chores {
-		if chore.Status != nil && (*chore.Status == "pending" || *chore.Status == "overdue") {
-			unfinished = append(unfinished, chore)
-		}
+// 3. GetUserTasksCompleted - fetch today's completed tasks + payments (SEPARATED)
+func (s *userDashboardSplitService) GetUserTasksCompleted(userID uint) (*dtos.GetUserTasksSeparatedResponse, error) {
+	chores, err := s.repo.GetUserCompletedChoresForToday(userID)
+	if err != nil {
+		log.Printf("Error getting completed chores: %v", err)
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch completed chores")
 	}
-	return unfinished
+
+	payments, err := s.repo.GetUserCompletedPaymentsDueToday(userID)
+	if err != nil {
+		log.Printf("Error getting completed payments: %v", err)
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch completed payments")
+	}
+
+	return &dtos.GetUserTasksSeparatedResponse{
+		Chores:   mapChoresToChoreItems(chores),
+		Finances: mapPaymentsToFinanceItems(payments),
+	}, nil
 }
 
-func filterUnfinishedPayments(payments []entities.Transaction) []entities.Transaction {
-	var unfinished []entities.Transaction
-	for _, payment := range payments {
-		if payment.TransactionStatus != nil && !*payment.TransactionStatus {
-			unfinished = append(unfinished, payment)
-		}
+// 4. GetUserTasksUpcoming - fetch upcoming tasks + payments (next 7 days) (SEPARATED)
+func (s *userDashboardSplitService) GetUserTasksUpcoming(userID uint) (*dtos.GetUserTasksSeparatedResponse, error) {
+	today := time.Now()
+	startOfTomorrow := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location()).AddDate(0, 0, 1)
+	endOfNext7Days := startOfTomorrow.AddDate(0, 0, 7)
+
+	chores, err := s.repo.GetUserUpcomingChores(userID, startOfTomorrow, endOfNext7Days)
+	if err != nil {
+		log.Printf("Error getting upcoming chores: %v", err)
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch upcoming chores")
 	}
-	return unfinished
+
+	payments, err := s.repo.GetUserUpcomingPayments(userID, startOfTomorrow, endOfNext7Days)
+	if err != nil {
+		log.Printf("Error getting upcoming payments: %v", err)
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch upcoming payments")
+	}
+
+	return &dtos.GetUserTasksSeparatedResponse{
+		Chores:   mapChoresToChoreItems(chores),
+		Finances: mapPaymentsToFinanceItems(payments),
+	}, nil
 }
 
-func mapChoresToItems(chores []entities.ChoreAssignment) []dtos.UserDashboardItem {
-	items := make([]dtos.UserDashboardItem, 0, len(chores))
+// Helper: Map chores to ChoreItem (separate type for chores)
+func mapChoresToChoreItems(chores []entities.ChoreAssignment) []dtos.UserChoreItem {
+	items := make([]dtos.UserChoreItem, 0, len(chores))
 	for _, chore := range chores {
 		if chore.Chore == nil {
 			continue
@@ -185,35 +163,53 @@ func mapChoresToItems(chores []entities.ChoreAssignment) []dtos.UserDashboardIte
 			dueDate = chore.AssignedDate.Format("2006-01-02")
 		}
 
-		var completedAt *string
-		if chore.CompletedAt != nil {
-			ca := chore.CompletedAt.Format(time.RFC3339)
-			completedAt = &ca
-		}
-
 		status := "pending"
 		if chore.Status != nil {
 			status = *chore.Status
 		}
 
-		items = append(items, dtos.UserDashboardItem{
-			ItemType:    "chore",
-			ItemID:      v.UintValue(chore.ChoreAssignmentID),
-			Title:       v.StringValue(chore.Chore.ChoreTitle),
-			Description: chore.Chore.ChoreDescription,
-			DueDate:     dueDate,
-			DueTime:     chore.Chore.DueTime,
-			Amount:      nil,
-			Category:    chore.Chore.Category,
-			Status:      status,
-			CompletedAt: completedAt,
+		// Build reminder repeat text
+		reminderRepeat := "No repeat"
+		if chore.Chore.ReminderDayOfWeek != nil {
+			reminderRepeat = "Every " + *chore.Chore.ReminderDayOfWeek
+		}
+
+		// Assigned user info
+		var assignedName, assignedAvatar *string
+		if chore.User != nil {
+			assignedName = chore.User.Username
+			assignedAvatar = chore.User.UserPicture
+		}
+
+		// Points calculation
+		points := 10
+		if chore.Chore.ChoreScore != nil {
+			points = *chore.Chore.ChoreScore
+		}
+
+		items = append(items, dtos.UserChoreItem{
+			ChoreAssignmentID: v.UintValue(chore.ChoreAssignmentID),
+			ChoreID:           v.UintValue(chore.ChoreID),
+			Title:             v.StringValue(chore.Chore.ChoreTitle),
+			Status:            status,
+			DueDate:           dueDate,
+			DueTime:           chore.Chore.DueTime,
+			Category:          chore.Chore.Category,
+			Points:            points,
+			AssignedName:      assignedName,
+			AssignedAvatar:    assignedAvatar,
+			AutoRotate:        chore.Chore.AutoRotate,
+			Recurrence:        chore.Chore.Recurrence,
+			ReminderTime:      chore.Chore.ReminderTime,
+			ReminderRepeat:    &reminderRepeat,
 		})
 	}
 	return items
 }
 
-func mapPaymentsToItems(payments []entities.Transaction) []dtos.UserDashboardItem {
-	items := make([]dtos.UserDashboardItem, 0, len(payments))
+// Helper: Map payments to FinanceItem (separate type for finances)
+func mapPaymentsToFinanceItems(payments []entities.Transaction) []dtos.UserFinanceItem {
+	items := make([]dtos.UserFinanceItem, 0, len(payments))
 	for _, payment := range payments {
 		if payment.Finance == nil {
 			continue
@@ -224,28 +220,51 @@ func mapPaymentsToItems(payments []entities.Transaction) []dtos.UserDashboardIte
 			dueDate = payment.Finance.DueDate.Format("2006-01-02")
 		}
 
-		var completedAt *string
-		if payment.PaidAt != nil {
-			pa := payment.PaidAt.Format(time.RFC3339)
-			completedAt = &pa
-		}
-
 		status := "pending"
 		if payment.TransactionStatus != nil && *payment.TransactionStatus {
 			status = "completed"
 		}
 
-		items = append(items, dtos.UserDashboardItem{
-			ItemType:    "payment",
-			ItemID:      v.UintValue(payment.TransactionID),
-			Title:       v.StringValue(payment.Finance.TitleName),
-			Description: nil,
-			DueDate:     dueDate,
-			DueTime:     nil,
-			Amount:      payment.TotalAmount,
-			Category:    payment.Finance.Category,
-			Status:      status,
-			CompletedAt: completedAt,
+		// Check if overdue
+		if payment.Finance.DueDate != nil && payment.Finance.DueDate.Before(time.Now()) && status == "pending" {
+			status = "overdue"
+		}
+
+		// Payer info (who you pay to)
+		var payToName, payToAvatar *string
+		if payment.Payer != nil {
+			payToName = payment.Payer.Username
+			payToAvatar = payment.Payer.UserPicture
+		}
+
+		// Determine split type
+		splitType := "even"
+		var splitCount *int
+		if payment.Finance.SplitType != nil && !*payment.Finance.SplitType {
+			splitType = "custom"
+		} else {
+			splitCount = v.Ptr(2) // Default, can be enhanced
+		}
+
+		// Points calculation
+		points := 10
+
+		items = append(items, dtos.UserFinanceItem{
+			TransactionID: v.UintValue(payment.TransactionID),
+			FinanceID:     v.UintValue(payment.FinanceID),
+			Title:         v.StringValue(payment.Finance.TitleName),
+			Status:        status,
+			DueDate:       dueDate,
+			Category:      payment.Finance.Category,
+			Points:        points,
+			Amount:        payment.TotalAmount,
+			TotalAmount:   payment.TotalAmount,
+			SplitType:     &splitType,
+			SplitCount:    splitCount,
+			PayToName:     payToName,
+			PayToAvatar:   payToAvatar,
+			QRCode:        payment.QRCodeLinkImage,
+			PaymentLink:   payment.PaymentLink,
 		})
 	}
 	return items

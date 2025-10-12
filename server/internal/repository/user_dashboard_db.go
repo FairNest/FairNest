@@ -11,14 +11,14 @@ type userDashboardRepositoryDB struct {
 	db *gorm.DB
 }
 
-func NewUserDashboardRepositoryDB(db *gorm.DB) userDashboardRepositoryDB {
-	return userDashboardRepositoryDB{db: db}
+func NewUserDashboardRepositoryDB(db *gorm.DB) UserDashboardRepository {
+	return &userDashboardRepositoryDB{db: db}
 }
 
 // ==================== CHORE QUERIES ====================
 
 // GetUserChoresForToday returns all chore assignments for user TODAY
-func (r userDashboardRepositoryDB) GetUserChoresForToday(userID uint) ([]entities.ChoreAssignment, error) {
+func (r *userDashboardRepositoryDB) GetUserChoresForToday(userID uint) ([]entities.ChoreAssignment, error) {
 	var assignments []entities.ChoreAssignment
 	today := time.Now()
 	startOfDay := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
@@ -35,7 +35,7 @@ func (r userDashboardRepositoryDB) GetUserChoresForToday(userID uint) ([]entitie
 }
 
 // GetUserCompletedChoresForToday returns completed chore assignments for user TODAY
-func (r userDashboardRepositoryDB) GetUserCompletedChoresForToday(userID uint) ([]entities.ChoreAssignment, error) {
+func (r *userDashboardRepositoryDB) GetUserCompletedChoresForToday(userID uint) ([]entities.ChoreAssignment, error) {
 	var assignments []entities.ChoreAssignment
 	today := time.Now()
 	startOfDay := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
@@ -53,7 +53,7 @@ func (r userDashboardRepositoryDB) GetUserCompletedChoresForToday(userID uint) (
 }
 
 // GetUserUpcomingChores returns unfinished chore assignments in the next 7 days (excluding today)
-func (r userDashboardRepositoryDB) GetUserUpcomingChores(userID uint, startDate, endDate time.Time) ([]entities.ChoreAssignment, error) {
+func (r *userDashboardRepositoryDB) GetUserUpcomingChores(userID uint, startDate, endDate time.Time) ([]entities.ChoreAssignment, error) {
 	var assignments []entities.ChoreAssignment
 
 	err := r.db.
@@ -70,7 +70,7 @@ func (r userDashboardRepositoryDB) GetUserUpcomingChores(userID uint, startDate,
 // ==================== FINANCE QUERIES ====================
 
 // GetUserPaymentsDueToday returns all transactions where user is debtor and due TODAY
-func (r userDashboardRepositoryDB) GetUserPaymentsDueToday(userID uint) ([]entities.Transaction, error) {
+func (r *userDashboardRepositoryDB) GetUserPaymentsDueToday(userID uint) ([]entities.Transaction, error) {
 	var transactions []entities.Transaction
 	today := time.Now()
 	startOfDay := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
@@ -89,7 +89,7 @@ func (r userDashboardRepositoryDB) GetUserPaymentsDueToday(userID uint) ([]entit
 }
 
 // GetUserCompletedPaymentsDueToday returns settled transactions where user is debtor and due TODAY
-func (r userDashboardRepositoryDB) GetUserCompletedPaymentsDueToday(userID uint) ([]entities.Transaction, error) {
+func (r *userDashboardRepositoryDB) GetUserCompletedPaymentsDueToday(userID uint) ([]entities.Transaction, error) {
 	var transactions []entities.Transaction
 	today := time.Now()
 	startOfDay := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
@@ -108,7 +108,7 @@ func (r userDashboardRepositoryDB) GetUserCompletedPaymentsDueToday(userID uint)
 }
 
 // GetUserUpcomingPayments returns unsettled transactions in the next 7 days (excluding today)
-func (r userDashboardRepositoryDB) GetUserUpcomingPayments(userID uint, startDate, endDate time.Time) ([]entities.Transaction, error) {
+func (r *userDashboardRepositoryDB) GetUserUpcomingPayments(userID uint, startDate, endDate time.Time) ([]entities.Transaction, error) {
 	var transactions []entities.Transaction
 
 	err := r.db.

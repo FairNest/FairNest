@@ -1,42 +1,60 @@
 package dtos
 
-// GetUserDashboardResponse contains all data for the "Your Dashboard" section
-type GetUserDashboardResponse struct {
-	YourProgress YourProgressInfo `json:"your_progress"`
-	TaskSummary  TaskSummaryInfo  `json:"task_summary"`
+// 1. Your Progress Now Response
+type GetUserProgressResponse struct {
+	CompletedTasks     int     `json:"completed_tasks"`
+	TotalTasks         int     `json:"total_tasks"`
+	CompletedPayments  int     `json:"completed_payments"`
+	TotalPayments      int     `json:"total_payments"`
+	OverallCompleted   int     `json:"overall_completed"`
+	OverallTotal       int     `json:"overall_total"`
+	ProgressPercentage float64 `json:"progress_percentage"`
 }
 
-// YourProgressInfo shows user's personal progress for TODAY
-type YourProgressInfo struct {
-	CompletedTasks     int     `json:"completed_tasks"`     // Completed chores today
-	TotalTasks         int     `json:"total_tasks"`         // Total chores assigned today
-	CompletedPayments  int     `json:"completed_payments"`  // Settled transactions due today
-	TotalPayments      int     `json:"total_payments"`      // Total transactions due today
-	OverallCompleted   int     `json:"overall_completed"`   // Total completed (chores + payments)
-	OverallTotal       int     `json:"overall_total"`       // Total items (chores + payments)
-	ProgressPercentage float64 `json:"progress_percentage"` // Overall completion percentage
+// Chore Item Response (for chore cards)
+type UserChoreItem struct {
+	ChoreAssignmentID uint    `json:"chore_assignment_id"`
+	ChoreID           uint    `json:"chore_id"`
+	Title             string  `json:"title"`
+	Status            string  `json:"status"` // "pending", "completed", "overdue"
+	DueDate           string  `json:"due_date"`
+	DueTime           *string `json:"due_time"`
+	Category          *string `json:"category"`
+	Points            int     `json:"points"`
+	AssignedName      *string `json:"assigned_name"`
+	AssignedAvatar    *string `json:"assigned_avatar"`
+	AutoRotate        *bool   `json:"auto_rotate"`
+	Recurrence        *string `json:"recurrence"`
+	ReminderTime      *string `json:"reminder_time"`
+	ReminderRepeat    *string `json:"reminder_repeat"`
 }
 
-// TaskSummaryInfo categorizes tasks/obligations for the user
-type TaskSummaryInfo struct {
-	TodayUnfinishedCount    int                 `json:"today_unfinished_count"`    // Unfinished today
-	CompletedCount          int                 `json:"completed_count"`           // Completed today
-	UpcomingUnfinishedCount int                 `json:"upcoming_unfinished_count"` // Unfinished in next 7 days
-	TodayUnfinishedItems    []UserDashboardItem `json:"today_unfinished_items"`    // Details of today's unfinished
-	CompletedItems          []UserDashboardItem `json:"completed_items"`           // Details of completed today
-	UpcomingUnfinishedItems []UserDashboardItem `json:"upcoming_unfinished_items"` // Details of upcoming unfinished
+// Finance Item Response (for payment cards)
+type UserFinanceItem struct {
+	TransactionID uint    `json:"transaction_id"`
+	FinanceID     uint    `json:"finance_id"`
+	Title         string  `json:"title"`
+	Status        string  `json:"status"` // "pending", "completed", "overdue"
+	DueDate       string  `json:"due_date"`
+	Category      *string `json:"category"`
+	Points        int     `json:"points"`
+	Amount        *int    `json:"amount"`
+	TotalAmount   *int    `json:"total_amount"`
+	SplitType     *string `json:"split_type"` // "even" or "custom"
+	SplitCount    *int    `json:"split_count"`
+	PayToName     *string `json:"pay_to_name"`
+	PayToAvatar   *string `json:"pay_to_avatar"`
+	QRCode        *string `json:"qr_code"`
+	PaymentLink   *string `json:"payment_link"`
 }
 
-// UserDashboardItem represents a single task or payment obligation
-type UserDashboardItem struct {
-	ItemType    string  `json:"item_type"`    // "chore" or "payment"
-	ItemID      uint    `json:"item_id"`      // ChoreAssignmentID or TransactionID
-	Title       string  `json:"title"`        // Chore title or finance title
-	Description *string `json:"description"`  // Optional description
-	DueDate     string  `json:"due_date"`     // "YYYY-MM-DD"
-	DueTime     *string `json:"due_time"`     // "HH:MM" for chores, null for payments
-	Amount      *int    `json:"amount"`       // For payments only
-	Category    *string `json:"category"`     // Category (chore or finance)
-	Status      string  `json:"status"`       // "pending", "completed", "overdue"
-	CompletedAt *string `json:"completed_at"` // ISO timestamp if completed
+// Separated response for tasks
+type GetUserTasksSeparatedResponse struct {
+	Chores   []UserChoreItem   `json:"chores"`
+	Finances []UserFinanceItem `json:"finances"`
 }
+
+// Type aliases for the three task endpoints
+type GetUserTasksTodayResponse = GetUserTasksSeparatedResponse
+type GetUserTasksCompletedResponse = GetUserTasksSeparatedResponse
+type GetUserTasksUpcomingResponse = GetUserTasksSeparatedResponse
