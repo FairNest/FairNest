@@ -25,7 +25,7 @@ func NewStripeService(secretKey string) StripeService {
 }
 
 func (s *stripeService) CreatePaymentLink(title string, amount int, transactionID int) (string, error) {
-	// Create a new product.
+	// 1. Create a new product (no metadata needed here).
 	prodParams := &stripe.ProductParams{
 		Name: stripe.String(title),
 	}
@@ -34,7 +34,7 @@ func (s *stripeService) CreatePaymentLink(title string, amount int, transactionI
 		return "", err
 	}
 
-	// Create a price for the product.
+	// 2. Create a price for the product.
 	priceParams := &stripe.PriceParams{
 		Currency:    stripe.String(string(stripe.CurrencyTHB)),
 		UnitAmount:  stripe.Int64(int64(amount)),
@@ -46,7 +46,9 @@ func (s *stripeService) CreatePaymentLink(title string, amount int, transactionI
 		return "", err
 	}
 
-	// Create the payment link with the transaction ID in metadata.
+	// 3. Create the payment link.
+	// We MUST embed the metadata inside PaymentIntentData to ensure it is copied
+	// to the final PaymentIntent/Charge object in the Stripe Dashboard.
 	plParams := &stripe.PaymentLinkParams{
 		LineItems: []*stripe.PaymentLinkLineItemParams{
 			{
@@ -54,8 +56,10 @@ func (s *stripeService) CreatePaymentLink(title string, amount int, transactionI
 				Quantity: stripe.Int64(1),
 			},
 		},
-		Metadata: map[string]string{
-			"transaction_id": fmt.Sprintf("%d", transactionID),
+		PaymentIntentData: &stripe.PaymentLinkPaymentIntentDataParams{
+			Metadata: map[string]string{
+				"transaction_id": fmt.Sprintf("%d", transactionID),
+			},
 		},
 	}
 	pl, err := paymentlink.New(plParams)
