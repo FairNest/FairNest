@@ -77,14 +77,13 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
     const Color titleColor = AppColors.textPurple;
     const Color badgeBg = AppColors.accent;
 
-    // Live “Status” chip based on _checked
+    // Live "Status" chip based on _checked
     final String statusText = _checked ? 'Completed' : 'Incomplete';
     final Color statusColor =
         _checked ? const Color(0xFF49B67A) : AppColors.textOrange;
 
     return AccentBorderedCard(
-      child: SizedBox(
-        height: 170,
+      child: IntrinsicHeight(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -146,22 +145,21 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
 
             const SizedBox(height: 8),
 
-            // CHIPS
-            Row(
+            // CHIPS - Make them wrap if needed
+            Wrap(
+              spacing: 15,
+              runSpacing: 8,
               children: [
                 _StatChip(
                   label: "Auto-Rotate",
                   color: const Color(0xFF8D8B8B),
                   text: widget.autoRotate ? "Yes" : "No",
                 ),
-                const SizedBox(width: 15),
                 _StatChip(
                   label: "Recurrence",
                   color: const Color(0xFF8D8B8B),
                   text: widget.recurrence,
                 ),
-                const SizedBox(width: 15),
-                // Status chip (reacts to checkbox)
                 _StatChip(
                     label: "Status", color: statusColor, text: statusText),
               ],
@@ -169,23 +167,24 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
 
             const SizedBox(height: 10),
 
-            // BOTTOM ROW
+            // BOTTOM ROW - Fixed overflow issue
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Assigned to
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Assigned to",
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPurple)),
-                    const SizedBox(height: 6),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 11.0),
-                      child: Container(
+                // Assigned to - Fixed width
+                SizedBox(
+                  width: 60,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text("Assigned to",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPurple)),
+                      const SizedBox(height: 6),
+                      Container(
                         width: 35,
                         height: 35,
                         decoration: BoxDecoration(
@@ -203,11 +202,8 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                               : null,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    SizedBox(
-                      width: 60,
-                      child: Text(
+                      const SizedBox(height: 2),
+                      Text(
                         widget.assignedName,
                         textAlign: TextAlign.center,
                         maxLines: 1,
@@ -217,33 +213,37 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                             fontWeight: FontWeight.w600,
                             color: AppColors.textPurple),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
 
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
 
-                // Reminder pill
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Reminder Time ${widget.reminderTime}",
-                        style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPurple)),
-                    const SizedBox(height: 6),
-                    _MiniLavenderPill(
-                      text: widget.reminderRepeat,
-                      icon: Icons.sync,
-                      onTap: widget.onReminderTap,
-                    ),
-                  ],
+                // Reminder pill - Flexible
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Reminder Time ${widget.reminderTime}",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPurple)),
+                      const SizedBox(height: 6),
+                      _MiniLavenderPill(
+                        text: widget.reminderRepeat,
+                        icon: Icons.sync,
+                        onTap: widget.onReminderTap,
+                      ),
+                    ],
+                  ),
                 ),
 
-                const Spacer(),
+                const SizedBox(width: 8),
 
-                // Clickable checkbox
+                // Clickable checkbox - Fixed width
                 _CheckBoxSquare(
                   checked: _checked,
                   onTap: _toggleChecked,
@@ -335,9 +335,15 @@ class _MiniLavenderPill extends StatelessWidget {
                 Icon(icon, size: 16, color: purple),
                 const SizedBox(width: 6),
               ],
-              Text(text,
+              Flexible(
+                child: Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      color: purple, fontWeight: FontWeight.w700)),
+                      color: purple, fontWeight: FontWeight.w700, fontSize: 12),
+                ),
+              ),
             ],
           ),
         ),

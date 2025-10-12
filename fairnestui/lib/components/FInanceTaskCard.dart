@@ -55,6 +55,12 @@ class Financetaskcard extends StatelessWidget {
         : 'Custom';
   }
 
+  // Helper to truncate name if longer than maxLength
+  String _truncateName(String name, {int maxLength = 10}) {
+    if (name.length <= maxLength) return name;
+    return '${name.substring(0, maxLength)}...';
+  }
+
   @override
   Widget build(BuildContext context) {
     const grayChip = Color(0xFF8D8B8B); // same as your chores chips
@@ -163,14 +169,19 @@ class Financetaskcard extends StatelessWidget {
                     : null,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Pay to $payToName',
-                style: const TextStyle(
-                  color: AppColors.textPurple,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  'Pay to ${_truncateName(payToName, maxLength: 10)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.textPurple,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF9C2D3C),
@@ -335,7 +346,10 @@ class _LabeledValueChip extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPurple)),
         const SizedBox(height: 4),
         Container(
           height: 18,
