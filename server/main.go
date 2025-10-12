@@ -81,7 +81,6 @@ func main() {
 	log.Println("✅ FairNest Minio connected")
 
 	stripeSecretKey := viper.GetString("stripe.secretKey")
-	stripeWebhookSecret := viper.GetString("stripe.webhookSecret")
 
 	uploadSer := service.NewUploadService(minioClient)
 	storageHandler := handler.NewStorageHandler(uploadSer)
@@ -107,7 +106,7 @@ func main() {
 	choreService := service.NewChoreService(choreRepositoryDB, userService)
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService, lifestyleService)
-	financeService := service.NewFinanceService(financeRepositoryDB, userService, stripeService, stripeWebhookSecret)
+	financeService := service.NewFinanceService(financeRepositoryDB, userService, stripeService)
 	dashboardService := service.NewDashboardService(dashboardRepositoryDB, lifestyleRepositoryDB, lifestyleService)
 	userDashboardService := service.NewUserDashboardSplitService(userDashboardRepositoryDB)
 
@@ -240,6 +239,8 @@ func main() {
 
 	app.Get("/FetchAllOverdueTransactions", financeHandler.FetchAllOverdueTransactions)
 	app.Post("/CheckOverduePenalty", financeHandler.CheckOverduePenalty)
+
+	app.Get("/GetPaymentStatusByTransactionID/:TransactionID", financeHandler.GetPaymentStatusByTransactionID)
 
 	//######################## NEW CHORE ENDPOINTS (BY CLAUDE) ########################
 

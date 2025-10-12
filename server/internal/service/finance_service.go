@@ -2,33 +2,29 @@ package service
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
 	"fairnest/internal/repository"
 	"fairnest/internal/utils/v"
-	"fmt"
+	"github.com/stripe/stripe-go/v83"
 	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/skip2/go-qrcode"
-	"github.com/stripe/stripe-go/v83"
 )
 
 type financeService struct {
-	financeRepo         repository.FinanceRepository
-	userSer             UserService
-	stripeService       StripeService
-	stripeWebhookSecret string
+	financeRepo   repository.FinanceRepository
+	userSer       UserService
+	stripeService StripeService
 }
 
-func NewFinanceService(financeRepo repository.FinanceRepository, userSer UserService, stripeService StripeService, stripeWebhookSecret string) financeService {
+func NewFinanceService(financeRepo repository.FinanceRepository, userSer UserService, stripeService StripeService) financeService {
 	return financeService{
-		financeRepo:         financeRepo,
-		userSer:             userSer,
-		stripeService:       stripeService,
-		stripeWebhookSecret: stripeWebhookSecret,
+		financeRepo:   financeRepo,
+		userSer:       userSer,
+		stripeService: stripeService,
 	}
 }
 
@@ -468,7 +464,7 @@ func (s financeService) CheckOverduePenalty() error {
 	return nil
 }
 
-func (s financeService) PatchPaidByTransactionID(transactionID int, req dtos.PatchPaidByTransactionIDRequest) (*entities.Transaction, error) {
+func (s financeService) PatchPaidByTransactionID(transactionID int) (*entities.Transaction, error) {
 	finance := &entities.Transaction{
 		TransactionID:     v.UintPtr(transactionID),
 		TransactionStatus: v.Ptr(true), // Mark as paid
@@ -484,51 +480,37 @@ func (s financeService) PatchPaidByTransactionID(transactionID int, req dtos.Pat
 	return finance, nil
 }
 
-func (s financeService) HandleStripeWebhook(payload []byte, signatureHeader string) error {
-	// 1. Construct the Stripe event from the payload and header.
-	event, err := stripe.ConstructEvent(payload, signatureHeader, s.stripeWebhookSecret)
+// GetPaymentIntentByTransactionID retrieves the PaymentIntent object from Stripe using the custom
+// transaction_id stored in the metadata.
+func (s financeService) GetPaymentStatusByTransactionID(transactionID int) (*stripe.PaymentIntent, error) {
+	pi, err := s.stripeService.SearchPaymentStatusByTransactionID(transactionID)
 	if err != nil {
-		log.Printf("Error verifying webhook signature: %v", err)
-		return err
+		// Log the underlying error from the Stripe service
+		log.Printf("Error searching Stripe PaymentStatus for transaction %d: %v", transactionID, err)
+
+		// Return a Fiber error to be handled by the API controller.
+		// The underlying Stripe error should contain details about whether it was 'not found'.
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve payment status from Stripe (Not Found or other error)")
 	}
 
-	// 2. Handle the 'checkout.session.completed' event.
-	if event.Type == "checkout.session.completed" {
-		var session stripe.CheckoutSession
-		err := json.Unmarshal(event.Data.Raw, &session)
-		if err != nil {
-			log.Printf("Error unmarshalling event payload: %v", err)
-			return err
-		}
-
-		// Use the payment intent ID or a custom metadata field to identify the transaction.
-		// NOTE: Assuming you passed the transaction ID as metadata during payment link creation.
-		// This is a crucial step that you must implement in the payment link creation.
-		transactionID, ok := session.Metadata["transaction_id"]
-		if !ok {
-			log.Println("Transaction ID not found in session metadata.")
-			return fiber.NewError(fiber.StatusBadRequest, "Transaction ID not found")
-		}
-
-		// 3. Convert the transaction ID string to an integer.
-		var transactionIntID int
-		if _, err := fmt.Sscanf(transactionID, "%d", &transactionIntID); err != nil {
-			log.Printf("Error converting transaction ID to integer: %v", err)
-			return fiber.NewError(fiber.StatusBadRequest, "Invalid transaction ID format")
-		}
-
-		// 4. Call the existing PatchPaidByTransactionID function to mark the transaction as paid.
-		// Note: The PatchPaidByTransactionID function expects an integer.
-		_, err = s.PatchPaidByTransactionID(transactionIntID, dtos.PatchPaidByTransactionIDRequest{})
-		if err != nil {
-			log.Printf("Failed to update transaction status for ID %s: %v", transactionID, err)
-			return err
-		}
-
-		log.Printf("Successfully updated transaction %s as paid via Stripe webhook.", transactionID)
+	if pi == nil {
+		// This case is typically covered by the Stripe service returning a specific error,
+		// but serves as a safeguard.
+		return nil, fiber.NewError(fiber.StatusNotFound, "Payment status not found for this transaction ID")
 	}
 
-	return nil
+	if pi.Status == "succeeded" {
+		log.Printf("PaymentStatus for transaction %d has already succeeded.", transactionID)
+		_, err := s.PatchPaidByTransactionID(transactionID)
+		if err != nil {
+			log.Printf("Failed to update transaction %d as paid: %v", transactionID, err)
+			return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to update transaction status")
+		}
+	} else {
+		log.Printf("PaymentStatus for transaction %d found with status: %s", transactionID, pi.Status)
+	}
+
+	return pi, nil
 }
 
 // ----------------------------------------- Private Helper Functions -----------------------------------------//

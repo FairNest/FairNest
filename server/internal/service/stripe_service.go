@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/stripe/stripe-go/v83"
 	"github.com/stripe/stripe-go/v83/client"
+	"github.com/stripe/stripe-go/v83/paymentintent"
 	"github.com/stripe/stripe-go/v83/paymentlink"
 	"github.com/stripe/stripe-go/v83/price"
 	"github.com/stripe/stripe-go/v83/product"
@@ -65,4 +66,30 @@ func (s *stripeService) CreatePaymentLink(title string, amount int, transactionI
 
 	log.Printf("Created Stripe Payment Link with URL: %s", pl.URL)
 	return pl.URL, nil
+}
+
+// SearchPaymentIntentByTransactionID searches for a PaymentIntent using the custom transaction_id stored in its metadata.
+func (s *stripeService) SearchPaymentStatusByTransactionID(transactionID int) (*stripe.PaymentIntent, error) {
+	query := fmt.Sprintf("metadata['transaction_id']:'%d'", transactionID)
+
+	params := &stripe.PaymentIntentSearchParams{}
+	params.SearchParams.Query = query
+
+	i := paymentintent.Search(params)
+
+	if !i.Next() {
+		if i.Err() != nil {
+			log.Printf("Stripe SearchPaymentStatus error: %v", i.Err())
+			return nil, i.Err()
+		}
+		return nil, fmt.Errorf("PaymentStatus not found for transaction_id: %d", transactionID)
+	}
+
+	pi := i.PaymentIntent()
+
+	if i.Next() {
+		log.Printf("Warning: Multiple PaymentStatus found for unique transaction_id: %d", transactionID)
+	}
+
+	return pi, nil
 }
