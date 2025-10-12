@@ -11,9 +11,9 @@ class TaskNavFolder extends StatefulWidget {
     required this.todayUnfinishedCount,
     required this.completedCount,
     required this.upcomingUnfinishedCount,
-    this.todayUnfinishedItems = const [],
-    this.completedItems = const [],
-    this.upcomingUnfinishedItems = const [],
+    required this.todayUnfinishedTasks,
+    required this.completedTasks,
+    required this.upcomingUnfinishedTasks,
   });
 
   final double panelHeight;
@@ -21,10 +21,10 @@ class TaskNavFolder extends StatefulWidget {
   final int completedCount;
   final int upcomingUnfinishedCount;
 
-  // Real data from backend
-  final List<UserDashboardItem> todayUnfinishedItems;
-  final List<UserDashboardItem> completedItems;
-  final List<UserDashboardItem> upcomingUnfinishedItems;
+  // Separated data from backend
+  final UserTasksSeparatedResponse todayUnfinishedTasks;
+  final UserTasksSeparatedResponse completedTasks;
+  final UserTasksSeparatedResponse upcomingUnfinishedTasks;
 
   @override
   State<TaskNavFolder> createState() => _TaskNavFolderState();
@@ -66,83 +66,82 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
     }
   }
 
-  // Build card for a dashboard item (chore or payment)
-  Widget _buildItemCard(UserDashboardItem item, int sourceTab) {
-    if (item.isChore) {
-      return _buildChoreCard(item, sourceTab);
-    } else {
-      return _buildFinanceCard(item, sourceTab);
-    }
-  }
-
-  Widget _buildChoreCard(UserDashboardItem item, int sourceTab) {
+  // Build chore card
+  Widget _buildChoreCard(UserChoreItem chore) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: ChoresTaskCard(
-        title: item.title,
-        points: 10, // You can add points to UserDashboardItem if needed
-        assignedName: 'You', // Current user's chores
-        autoRotate:
-            false, // This info can be added to backend response if needed
-        recurrence: item.category ?? 'Once',
-        reminderTime: item.dueTime ?? '--:--',
-        reminderRepeat: item.displayDateTime,
-        paidByImage: const AssetImage('assets/images/default_avatar.png'),
-        initiallyChecked: item.isCompleted,
+        title: chore.title,
+        points: chore.points,
+        assignedName: chore.assignedName ?? 'You',
+        autoRotate: chore.autoRotate ?? false,
+        recurrence: chore.recurrence ?? 'Once',
+        reminderTime: chore.reminderTime ?? '--:--',
+        reminderRepeat: chore.reminderRepeat ?? 'No repeat',
+        paidByImage: chore.assignedAvatar != null
+            ? NetworkImage(chore.assignedAvatar!)
+            : const AssetImage('assets/images/default_avatar.png')
+                as ImageProvider,
+        initiallyChecked: chore.isCompleted,
         onCheckedChanged: (checked) {
           // TODO: Implement mark as complete API call
-          debugPrint('Chore ${item.itemId} checked: $checked');
+          debugPrint('Chore ${chore.choreAssignmentId} checked: $checked');
         },
       ),
     );
   }
 
-  Widget _buildFinanceCard(UserDashboardItem item, int sourceTab) {
+  // Build finance card
+  Widget _buildFinanceCard(UserFinanceItem finance) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Financetaskcard(
-        title: item.title,
-        amount: item.amount ?? 0,
-        totalAmount:
-            item.amount ?? 0, // Can be enhanced with total if backend provides
-        points: 10, // You can add points calculation
-        splitType: SplitType
-            .even, // Can be determined from category or added to backend
-        splitCount: 2,
+        title: finance.title,
+        amount: finance.amount ?? 0,
+        totalAmount: finance.totalAmount ?? 0,
+        points: finance.points,
+        splitType:
+            finance.splitType == 'custom' ? SplitType.custom : SplitType.even,
+        splitCount: finance.splitCount,
+        customSplitLabel: finance.splitType == 'custom' ? 'Custom' : null,
         currency: 'THB',
-        payToName: 'Roommate', // Can be added to backend response
-        paidByImage: const AssetImage('assets/images/default_avatar.png'),
+        payToName: finance.payToName ?? 'Roommate',
+        paidByImage: finance.payToAvatar != null
+            ? NetworkImage(finance.payToAvatar!)
+            : const AssetImage('assets/images/default_avatar.png')
+                as ImageProvider,
+        qrData: finance.qrCode,
         onSettled: () {
           // TODO: Implement mark as paid API call
-          debugPrint('Finance ${item.itemId} settled');
+          debugPrint('Finance ${finance.transactionId} settled');
         },
       ),
     );
   }
 
   Widget _buildTabContent(BuildContext context) {
-    List<UserDashboardItem> items;
+    UserTasksSeparatedResponse tasks;
     String emptyMessage;
 
     switch (activeIndex) {
       case 0: // TODAY
-        items = widget.todayUnfinishedItems;
+        tasks = widget.todayUnfinishedTasks;
         emptyMessage = "No tasks for today 🎉";
         break;
       case 1: // COMPLETED
-        items = widget.completedItems;
+        tasks = widget.completedTasks;
         emptyMessage = "Nothing completed yet.";
         break;
       case 2: // UPCOMING
-        items = widget.upcomingUnfinishedItems;
+        tasks = widget.upcomingUnfinishedTasks;
         emptyMessage = "No upcoming tasks.";
         break;
       default:
-        items = [];
+        tasks = UserTasksSeparatedResponse(chores: [], finances: []);
         emptyMessage = "No tasks.";
     }
 
-    if (items.isEmpty) {
+    if (tasks.isEmpty) {
       return SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Padding(
@@ -167,13 +166,11 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Group by type: show payments first, then chores
-          ...items
-              .where((item) => item.isPayment)
-              .map((item) => _buildItemCard(item, activeIndex)),
-          ...items
-              .where((item) => item.isChore)
-              .map((item) => _buildItemCard(item, activeIndex)),
+          // Show finances first
+          ...tasks.finances.map((finance) => _buildFinanceCard(finance)),
+
+          // Then show chores
+          ...tasks.chores.map((chore) => _buildChoreCard(chore)),
         ],
       ),
     );

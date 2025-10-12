@@ -8,24 +8,6 @@ class UserDashboardData {
     required this.yourProgress,
     required this.taskSummary,
   });
-
-  factory UserDashboardData.fromJson(Map<String, dynamic> json) {
-    return UserDashboardData(
-      yourProgress: YourProgressInfo.fromJson(
-        json['your_progress'] as Map<String, dynamic>,
-      ),
-      taskSummary: TaskSummaryInfo.fromJson(
-        json['task_summary'] as Map<String, dynamic>,
-      ),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'your_progress': yourProgress.toJson(),
-      'task_summary': taskSummary.toJson(),
-    };
-  }
 }
 
 class YourProgressInfo {
@@ -60,19 +42,6 @@ class YourProgressInfo {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'completed_tasks': completedTasks,
-      'total_tasks': totalTasks,
-      'completed_payments': completedPayments,
-      'total_payments': totalPayments,
-      'overall_completed': overallCompleted,
-      'overall_total': overallTotal,
-      'progress_percentage': progressPercentage,
-    };
-  }
-
-  // Helper getter for progress as 0-1 decimal (for progress bars)
   double get progressDecimal {
     if (overallTotal == 0) return 0.0;
     return overallCompleted / overallTotal;
@@ -83,120 +52,109 @@ class TaskSummaryInfo {
   final int todayUnfinishedCount;
   final int completedCount;
   final int upcomingUnfinishedCount;
-  final List<UserDashboardItem> todayUnfinishedItems;
-  final List<UserDashboardItem> completedItems;
-  final List<UserDashboardItem> upcomingUnfinishedItems;
+  final UserTasksSeparatedResponse todayUnfinishedTasks;
+  final UserTasksSeparatedResponse completedTasks;
+  final UserTasksSeparatedResponse upcomingUnfinishedTasks;
 
   TaskSummaryInfo({
     required this.todayUnfinishedCount,
     required this.completedCount,
     required this.upcomingUnfinishedCount,
-    required this.todayUnfinishedItems,
-    required this.completedItems,
-    required this.upcomingUnfinishedItems,
+    required this.todayUnfinishedTasks,
+    required this.completedTasks,
+    required this.upcomingUnfinishedTasks,
   });
-
-  factory TaskSummaryInfo.fromJson(Map<String, dynamic> json) {
-    return TaskSummaryInfo(
-      todayUnfinishedCount: json['today_unfinished_count'] as int? ?? 0,
-      completedCount: json['completed_count'] as int? ?? 0,
-      upcomingUnfinishedCount: json['upcoming_unfinished_count'] as int? ?? 0,
-      todayUnfinishedItems: (json['today_unfinished_items'] as List<dynamic>?)
-              ?.map((item) =>
-                  UserDashboardItem.fromJson(item as Map<String, dynamic>))
-              .toList() ??
-          [],
-      completedItems: (json['completed_items'] as List<dynamic>?)
-              ?.map((item) =>
-                  UserDashboardItem.fromJson(item as Map<String, dynamic>))
-              .toList() ??
-          [],
-      upcomingUnfinishedItems:
-          (json['upcoming_unfinished_items'] as List<dynamic>?)
-                  ?.map((item) =>
-                      UserDashboardItem.fromJson(item as Map<String, dynamic>))
-                  .toList() ??
-              [],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'today_unfinished_count': todayUnfinishedCount,
-      'completed_count': completedCount,
-      'upcoming_unfinished_count': upcomingUnfinishedCount,
-      'today_unfinished_items':
-          todayUnfinishedItems.map((e) => e.toJson()).toList(),
-      'completed_items': completedItems.map((e) => e.toJson()).toList(),
-      'upcoming_unfinished_items':
-          upcomingUnfinishedItems.map((e) => e.toJson()).toList(),
-    };
-  }
 }
 
-class UserDashboardItem {
-  final String itemType; // "chore" or "payment"
-  final int itemId;
-  final String title;
-  final String? description;
-  final String dueDate; // "YYYY-MM-DD"
-  final String? dueTime; // "HH:MM" for chores
-  final int? amount; // For payments only
-  final String? category;
-  final String status; // "pending", "completed", "overdue"
-  final String? completedAt; // ISO timestamp
+/// Response containing separated chores and finances
+class UserTasksSeparatedResponse {
+  final List<UserChoreItem> chores;
+  final List<UserFinanceItem> finances;
 
-  UserDashboardItem({
-    required this.itemType,
-    required this.itemId,
-    required this.title,
-    this.description,
-    required this.dueDate,
-    this.dueTime,
-    this.amount,
-    this.category,
-    required this.status,
-    this.completedAt,
+  UserTasksSeparatedResponse({
+    required this.chores,
+    required this.finances,
   });
 
-  factory UserDashboardItem.fromJson(Map<String, dynamic> json) {
-    return UserDashboardItem(
-      itemType: json['item_type'] as String? ?? 'chore',
-      itemId: json['item_id'] as int,
-      title: json['title'] as String? ?? 'Untitled',
-      description: json['description'] as String?,
-      dueDate: json['due_date'] as String? ?? '',
-      dueTime: json['due_time'] as String?,
-      amount: json['amount'] as int?,
-      category: json['category'] as String?,
-      status: json['status'] as String? ?? 'pending',
-      completedAt: json['completed_at'] as String?,
+  factory UserTasksSeparatedResponse.fromJson(Map<String, dynamic> json) {
+    return UserTasksSeparatedResponse(
+      chores: (json['chores'] as List<dynamic>?)
+              ?.map((item) =>
+                  UserChoreItem.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      finances: (json['finances'] as List<dynamic>?)
+              ?.map((item) =>
+                  UserFinanceItem.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'item_type': itemType,
-      'item_id': itemId,
-      'title': title,
-      'description': description,
-      'due_date': dueDate,
-      'due_time': dueTime,
-      'amount': amount,
-      'category': category,
-      'status': status,
-      'completed_at': completedAt,
-    };
+  /// Get total count
+  int get totalCount => chores.length + finances.length;
+
+  /// Check if empty
+  bool get isEmpty => chores.isEmpty && finances.isEmpty;
+}
+
+/// Chore item from backend
+class UserChoreItem {
+  final int choreAssignmentId;
+  final int choreId;
+  final String title;
+  final String status; // "pending", "completed", "overdue"
+  final String dueDate; // "YYYY-MM-DD"
+  final String? dueTime; // "HH:MM"
+  final String? category;
+  final int points;
+  final String? assignedName;
+  final String? assignedAvatar;
+  final bool? autoRotate;
+  final String? recurrence;
+  final String? reminderTime;
+  final String? reminderRepeat;
+
+  UserChoreItem({
+    required this.choreAssignmentId,
+    required this.choreId,
+    required this.title,
+    required this.status,
+    required this.dueDate,
+    this.dueTime,
+    this.category,
+    required this.points,
+    this.assignedName,
+    this.assignedAvatar,
+    this.autoRotate,
+    this.recurrence,
+    this.reminderTime,
+    this.reminderRepeat,
+  });
+
+  factory UserChoreItem.fromJson(Map<String, dynamic> json) {
+    return UserChoreItem(
+      choreAssignmentId: json['chore_assignment_id'] as int,
+      choreId: json['chore_id'] as int? ?? 0,
+      title: json['title'] as String? ?? 'Untitled',
+      status: json['status'] as String? ?? 'pending',
+      dueDate: json['due_date'] as String? ?? '',
+      dueTime: json['due_time'] as String?,
+      category: json['category'] as String?,
+      points: json['points'] as int? ?? 0,
+      assignedName: json['assigned_name'] as String?,
+      assignedAvatar: json['assigned_avatar'] as String?,
+      autoRotate: json['auto_rotate'] as bool?,
+      recurrence: json['recurrence'] as String?,
+      reminderTime: json['reminder_time'] as String?,
+      reminderRepeat: json['reminder_repeat'] as String?,
+    );
   }
 
-  // Helper getters
-  bool get isChore => itemType == 'chore';
-  bool get isPayment => itemType == 'payment';
   bool get isCompleted => status == 'completed';
   bool get isPending => status == 'pending';
   bool get isOverdue => status == 'overdue';
 
-  // Parse due date
   DateTime? get dueDateParsed {
     try {
       return DateTime.parse(dueDate);
@@ -205,17 +163,6 @@ class UserDashboardItem {
     }
   }
 
-  // Parse completed at
-  DateTime? get completedAtParsed {
-    if (completedAt == null) return null;
-    try {
-      return DateTime.parse(completedAt!);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // Format display text
   String get displayDateTime {
     final date = dueDateParsed;
     if (date == null) return dueDate;
@@ -229,7 +176,6 @@ class UserDashboardItem {
     } else if (itemDate == today.add(const Duration(days: 1))) {
       return dueTime != null ? 'Tomorrow at $dueTime' : 'Tomorrow';
     } else {
-      // Format as "Mon, Oct 15"
       final months = [
         'Jan',
         'Feb',
@@ -251,6 +197,109 @@ class UserDashboardItem {
       if (dueTime != null) {
         return '$dayName, $monthName ${date.day} at $dueTime';
       }
+      return '$dayName, $monthName ${date.day}';
+    }
+  }
+}
+
+/// Finance item from backend
+class UserFinanceItem {
+  final int transactionId;
+  final int financeId;
+  final String title;
+  final String status; // "pending", "completed", "overdue"
+  final String dueDate; // "YYYY-MM-DD"
+  final String? category;
+  final int points;
+  final int? amount;
+  final int? totalAmount;
+  final String? splitType; // "even" or "custom"
+  final int? splitCount;
+  final String? payToName;
+  final String? payToAvatar;
+  final String? qrCode;
+  final String? paymentLink;
+
+  UserFinanceItem({
+    required this.transactionId,
+    required this.financeId,
+    required this.title,
+    required this.status,
+    required this.dueDate,
+    this.category,
+    required this.points,
+    this.amount,
+    this.totalAmount,
+    this.splitType,
+    this.splitCount,
+    this.payToName,
+    this.payToAvatar,
+    this.qrCode,
+    this.paymentLink,
+  });
+
+  factory UserFinanceItem.fromJson(Map<String, dynamic> json) {
+    return UserFinanceItem(
+      transactionId: json['transaction_id'] as int,
+      financeId: json['finance_id'] as int? ?? 0,
+      title: json['title'] as String? ?? 'Untitled',
+      status: json['status'] as String? ?? 'pending',
+      dueDate: json['due_date'] as String? ?? '',
+      category: json['category'] as String?,
+      points: json['points'] as int? ?? 0,
+      amount: json['amount'] as int?,
+      totalAmount: json['total_amount'] as int?,
+      splitType: json['split_type'] as String?,
+      splitCount: json['split_count'] as int?,
+      payToName: json['pay_to_name'] as String?,
+      payToAvatar: json['pay_to_avatar'] as String?,
+      qrCode: json['qr_code'] as String?,
+      paymentLink: json['payment_link'] as String?,
+    );
+  }
+
+  bool get isCompleted => status == 'completed';
+  bool get isPending => status == 'pending';
+  bool get isOverdue => status == 'overdue';
+
+  DateTime? get dueDateParsed {
+    try {
+      return DateTime.parse(dueDate);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  String get displayDateTime {
+    final date = dueDateParsed;
+    if (date == null) return dueDate;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final itemDate = DateTime(date.year, date.month, date.day);
+
+    if (itemDate == today) {
+      return 'Today';
+    } else if (itemDate == today.add(const Duration(days: 1))) {
+      return 'Tomorrow';
+    } else {
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
+      final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      final dayName = days[date.weekday - 1];
+      final monthName = months[date.month - 1];
       return '$dayName, $monthName ${date.day}';
     }
   }

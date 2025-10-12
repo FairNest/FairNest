@@ -491,6 +491,8 @@ class _RoomDashContent extends StatelessWidget {
 
 // Replace the _YourDashContent widget in your RoomDashboardPage.dart
 
+// Replace the _YourDashContent widget in your RoomDashboardPage.dart
+
 class _YourDashContent extends StatefulWidget {
   const _YourDashContent({super.key});
 
@@ -597,7 +599,7 @@ class _YourDashContentState extends State<_YourDashContent> {
 
             const SizedBox(height: 20),
 
-            // Task Navigation Folder with REAL DATA
+            // Task Navigation Folder with REAL SEPARATED DATA
             if (_isLoadingUserDashboard)
               const SizedBox(
                 height: 300,
@@ -614,12 +616,12 @@ class _YourDashContentState extends State<_YourDashContent> {
                 completedCount: _userDashboardData!.taskSummary.completedCount,
                 upcomingUnfinishedCount:
                     _userDashboardData!.taskSummary.upcomingUnfinishedCount,
-                // ✅ NOW PASSING REAL ITEM LISTS FROM BACKEND
-                todayUnfinishedItems:
-                    _userDashboardData!.taskSummary.todayUnfinishedItems,
-                completedItems: _userDashboardData!.taskSummary.completedItems,
-                upcomingUnfinishedItems:
-                    _userDashboardData!.taskSummary.upcomingUnfinishedItems,
+                // ✅ Passing separated chores and finances from backend
+                todayUnfinishedTasks:
+                    _userDashboardData!.taskSummary.todayUnfinishedTasks,
+                completedTasks: _userDashboardData!.taskSummary.completedTasks,
+                upcomingUnfinishedTasks:
+                    _userDashboardData!.taskSummary.upcomingUnfinishedTasks,
               ),
           ],
         ),
