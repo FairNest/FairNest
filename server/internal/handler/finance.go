@@ -268,3 +268,17 @@ func (h *financeHandler) CheckOverduePenalty(c *fiber.Ctx) error {
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "ok", "message": "Penalty check completed successfully"})
 }
+
+func (h *financeHandler) GetPaymentStatusByTransactionID(c *fiber.Ctx) error {
+	transactionIDReceive, err := strconv.Atoi(c.Params("TransactionID"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid TransactionID in path")
+	}
+
+	paymentStatus, err := h.financeSer.GetPaymentStatusByTransactionID(transactionIDReceive)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(paymentStatus)
+}

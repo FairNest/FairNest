@@ -138,3 +138,11 @@ type CreateFinanceByPayerIDResponse struct {
 type PatchPaidByTransactionIDRequest struct {
 	TransactionID *uint `json:"transaction_id" validate:"required"`
 }
+
+type PaymentStatusResponse struct {
+	TransactionID   int     `json:"transaction_id"`
+	Status          string  `json:"status"`            // Friendly status: PAID_SUCCESS, PENDING, CANCELED, NOT_INITIATED
+	PaymentIntentID *string `json:"payment_intent_id"` // ID of the Stripe PaymentIntent (e.g., pi_xxxx)
+	StripeStatus    *string `json:"stripe_status"`     // The raw Stripe status (e.g., succeeded, requires_action)
+	Message         string  `json:"message"`           // Human-readable message
+}

@@ -3,6 +3,7 @@ package service
 import (
 	"fairnest/internal/dtos"
 	"fairnest/internal/entities"
+	"github.com/stripe/stripe-go/v83"
 )
 
 type FinanceService interface {
@@ -26,5 +27,7 @@ type FinanceService interface {
 	FetchAllOverdueTransactions() ([]entities.Transaction, error)
 	CheckOverduePenalty() error
 
-	PatchPaidByTransactionID(int, dtos.PatchPaidByTransactionIDRequest) (*entities.Transaction, error)
+	PatchPaidByTransactionID(int) (*entities.Transaction, error)
+
+	GetPaymentStatusByTransactionID(int) (*stripe.PaymentIntent, error)
 }
