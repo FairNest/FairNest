@@ -1,9 +1,14 @@
 import 'package:fairnestui/components/OutstandingBalanceCard.dart';
 import 'package:fairnestui/components/TransactionCard.dart';
 import 'package:fairnestui/components/UpcomingPaymentCard.dart';
+import 'package:fairnestui/components/SecondaryButton.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
+import 'package:fairnestui/services/api_client.dart';
+import 'package:fairnestui/services/user_service.dart';
+import 'package:fairnestui/services/notification_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class Financepage extends StatefulWidget {
   const Financepage({super.key});
@@ -13,156 +18,682 @@ class Financepage extends StatefulWidget {
 }
 
 class _FinancepageState extends State<Financepage> {
+  bool _loading = true;
+  String? _error;
+
+  // Monthly snapshot data
+  int _totalPaidByMe = 0;
+  int _totalOwedToMe = 0;
+  int _totalOwedByMe = 0;
+
+  // Outstanding balances
+  List<_OutstandingBalance> _outstandingBalances = [];
+
+  // Upcoming payments
+  List<_UpcomingPayment> _upcomingPayments = [];
+
+  // Transaction history
+  List<_Transaction> _transactions = [];
+
+  // Check if user is alone
+  bool _isAloneInRoom = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAllFinanceData();
+  }
+
+  Future<void> _loadAllFinanceData() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final userId = await UserService.getUserIdFromToken();
+      if (userId == null) {
+        throw Exception('User ID not found');
+      }
+
+      // Fetch all data in parallel
+      await Future.wait([
+        _fetchMonthlySnapshot(userId),
+        _fetchOutstandingBalances(userId),
+        _fetchUpcomingPayments(userId),
+        _fetchTransactionHistory(userId),
+      ]);
+
+      setState(() {
+        _loading = false;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading finance data: $e');
+      }
+      setState(() {
+        _error = 'Failed to load finance data';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchMonthlySnapshot(int userId) async {
+    try {
+      final response = await ApiClient.get(
+        '/GetMyMonthlySnapshotByUserID/$userId',
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        setState(() {
+          _totalPaidByMe = data['total_paid_by_me'] as int? ?? 0;
+          _totalOwedToMe = data['total_owed_to_me'] as int? ?? 0;
+          _totalOwedByMe = data['total_owed_by_me'] as int? ?? 0;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching monthly snapshot: $e');
+      }
+    }
+  }
+
+  Future<void> _fetchOutstandingBalances(int userId) async {
+    try {
+      final response = await ApiClient.get(
+        '/FetchAllOutstandingBalancesByUserID/$userId',
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as List<dynamic>;
+
+        // Check if user is alone (empty list means no other users)
+        if (data.isEmpty) {
+          setState(() {
+            _isAloneInRoom = true;
+            _outstandingBalances = [];
+          });
+          return;
+        }
+
+        setState(() {
+          _isAloneInRoom = false;
+          _outstandingBalances = data
+              .map((json) =>
+                  _OutstandingBalance.fromJson(json as Map<String, dynamic>))
+              .toList();
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching outstanding balances: $e');
+      }
+    }
+  }
+
+  Future<void> _fetchUpcomingPayments(int userId) async {
+    try {
+      final response = await ApiClient.get(
+        '/FetchAllUpcomingPaymentByUserID/$userId',
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as List<dynamic>;
+        final payments = data
+            .map((json) =>
+                _UpcomingPayment.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        // Sort by due date (earliest first)
+        payments.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+
+        setState(() {
+          _upcomingPayments = payments;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching upcoming payments: $e');
+      }
+    }
+  }
+
+  Future<void> _fetchTransactionHistory(int userId) async {
+    try {
+      final response = await ApiClient.get(
+        '/FetchAllPaidTransactionHistoryByUserID/$userId',
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as List<dynamic>;
+        setState(() {
+          _transactions = data
+              .map(
+                  (json) => _Transaction.fromJson(json as Map<String, dynamic>))
+              .toList();
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching transaction history: $e');
+      }
+    }
+  }
+
+  Future<void> _handleBalanceCardTap(_OutstandingBalance balance) async {
+    if (kDebugMode) {
+      print(
+          '🔔 Card tapped: ${balance.username}, Status: ${balance.balanceStatus}');
+    }
+
+    // Only show reminder option for "Owes You" status
+    if (balance.balanceStatus != 'You Are Owed') {
+      if (kDebugMode) {
+        print('⚠️ Not "You Are Owed" status, skipping reminder');
+      }
+      return;
+    }
+
+    if (kDebugMode) {
+      print('📱 Showing reminder dialog...');
+    }
+
+    // Show custom reminder dialog (without auto-notification)
+    final shouldSendReminder =
+        await _showCustomReminderDialog(balance.username);
+
+    if (kDebugMode) {
+      print('💭 User response: $shouldSendReminder');
+    }
+
+    // If user clicked "Yes!", send the notification
+    if (shouldSendReminder == true) {
+      if (kDebugMode) {
+        print('📤 Sending payment reminder...');
+      }
+      final success = await _sendPaymentReminder(balance);
+
+      // Show notified dialog only if successful
+      if (success && mounted) {
+        if (kDebugMode) {
+          print('✅ Showing success dialog');
+        }
+        await _showNotifiedDialog(balance.username);
+      }
+    }
+  }
+
+  Future<bool?> _showCustomReminderDialog(String name) {
+    const cardSize = Size(382, 247);
+    const bgColor = Color(0xFFECE9E6);
+    const accent = Color(0xFF645A80);
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Center(
+        child: Dialog(
+          elevation: 10,
+          insetPadding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          child: SizedBox(
+            width: cardSize.width,
+            height: cardSize.height,
+            child: Container(
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                    color: Colors.black.withValues(alpha: .15),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Image.asset(
+                    'assets/images/notifications-sound.png',
+                    width: 56,
+                    height: 56,
+                    color: accent,
+                    colorBlendMode: BlendMode.srcIn,
+                  ),
+                  Text(
+                    'Do you want to send $name a Reminder?',
+                    textAlign: TextAlign.center,
+                    style: AppFonts.heading3.copyWith(color: accent),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SecondaryButton(
+                          text: 'No',
+                          onPressed: () => Navigator.of(context).pop(false),
+                          width: double.infinity,
+                          height: 48,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SecondaryButton(
+                          text: 'Yes!',
+                          backgroundColor: const Color(0xFF6CC08B),
+                          textColor: Colors.white,
+                          width: double.infinity,
+                          height: 48,
+                          onPressed: () => Navigator.of(context).pop(true),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showNotifiedDialog(String name) {
+    const notifSize = Size(284, 193);
+    const bgColor = Color(0xFFECE9E6);
+    const accent = Color(0xFF645A80);
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => Center(
+        child: Dialog(
+          elevation: 10,
+          insetPadding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          child: SizedBox(
+            width: notifSize.width,
+            height: notifSize.height,
+            child: Container(
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                    color: Colors.black.withValues(alpha: .12),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const SizedBox(
+                        width: 28,
+                        height: 28,
+                        child:
+                            Icon(Icons.close_rounded, size: 22, color: accent),
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/mail-notification.png',
+                          width: 56,
+                          height: 56,
+                          color: accent,
+                          colorBlendMode: BlendMode.srcIn,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '$name has been notified!',
+                          textAlign: TextAlign.center,
+                          style: AppFonts.heading3.copyWith(color: accent),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<bool> _sendPaymentReminder(_OutstandingBalance balance) async {
+    try {
+      if (kDebugMode) {
+        print('📤 Sending payment reminder to ${balance.username}...');
+      }
+
+      final message =
+          'Payment reminder: You owe ${balance.netBalance.abs()} THB';
+
+      // Use NotificationService to create notification
+      final result = await NotificationService.createNotification(
+        receiverId: balance.userId,
+        message: message,
+      );
+
+      if (result != null) {
+        if (kDebugMode) {
+          print('✅ Reminder sent successfully');
+        }
+        return true;
+      } else {
+        throw Exception('Failed to send notification');
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('❌ Error sending reminder: $e');
+        print('📚 Stack trace: $stackTrace');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send reminder: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // ---- Upcoming payments data (sorted by daysLeft) ----
-    final payments = <_Payment>[
-      _Payment(title: "Water Bill", amount: 100, daysLeft: 2),
-      _Payment(title: "Electricity Bill", amount: 1200, daysLeft: 15),
-      _Payment(title: "Netflix Subscription", amount: 499, daysLeft: 12),
-    ]..sort((a, b) => a.daysLeft.compareTo(b.daysLeft));
+    if (_loading) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadAllFinanceData,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // If user is alone in room, show special message
+    if (_isAloneInRoom) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.person_outline,
+                  size: 80,
+                  color: AppColors.textPurple.withOpacity(0.5),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  "You're alone in your room",
+                  style: AppFonts.heading2.copyWith(
+                    color: AppColors.textPurple,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "Invite friends to enable this feature",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textPurple.withOpacity(0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Finance",
-                style: AppFonts.heading1.copyWith(color: AppColors.textPurple),
-              ),
-              const SizedBox(height: 12),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
-                child: Text(
-                  "My Monthly Snapshot",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPurple,
+      body: RefreshIndicator(
+        onRefresh: _loadAllFinanceData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Finance",
+                  style:
+                      AppFonts.heading1.copyWith(color: AppColors.textPurple),
+                ),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                  child: Text(
+                    "My Monthly Snapshot",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPurple,
+                    ),
                   ),
                 ),
-              ),
-              const MonthlySnapshotCard(
-                paid: 1500,
-                owed: 400,
-                youOwe: 20,
-                currency: 'THB',
-              ),
-              const SizedBox(height: 25),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
-                child: Text(
-                  "Outstanding Balances",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPurple,
+                MonthlySnapshotCard(
+                  paid: _totalPaidByMe,
+                  owed: _totalOwedToMe,
+                  youOwe: _totalOwedByMe,
+                  currency: 'THB',
+                ),
+                const SizedBox(height: 25),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                  child: Text(
+                    "Outstanding Balances",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPurple,
+                    ),
                   ),
                 ),
-              ),
-              const SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: [
-                    SizedBox(width: 4), // left inset
-                    OutstandingBalanceCard(
-                      name: 'Max',
-                      amount: 400,
-                      currency: 'THB',
-                      avatar: AssetImage('assets/images/char.png'),
-                      status: BalanceStatus.owedToYou,
-                      width: 140,
-                    ),
-                    SizedBox(width: 14),
-                    OutstandingBalanceCard(
-                      name: 'Lando',
-                      amount: 20,
-                      currency: 'THB',
-                      avatar: AssetImage('assets/images/pikachu.png'),
-                      status: BalanceStatus.youOwe,
-                      width: 140,
-                    ),
-                    SizedBox(width: 14),
-                    SizedBox(width: 4), // right inset
-                  ],
-                ),
-              ),
-              const SizedBox(height: 25),
 
-              // ------- Upcoming Payments header with count badge -------
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      "Upcoming Payments",
+                // Outstanding Balances Section
+                if (_outstandingBalances.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'No outstanding balances',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
                         color: AppColors.textPurple,
+                        fontSize: 14,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    _CountChip(value: payments.length),
-                  ],
-                ),
-              ),
+                  )
+                else
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 4),
+                        for (int i = 0;
+                            i < _outstandingBalances.length;
+                            i++) ...[
+                          Builder(
+                            builder: (context) {
+                              final balance = _outstandingBalances[i];
+                              final isOwedToYou =
+                                  balance.balanceStatus == 'You Are Owed';
 
-              // ------- Cards -------
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    const SizedBox(width: 4), // left inset
-                    for (int i = 0; i < payments.length; i++)
-                      UpcomingPaymentCard(
-                        title: payments[i].title,
-                        amount: payments[i].amount,
-                        daysLeft: payments[i].daysLeft,
-                        trailingPad: (i == payments.length - 1) ? 4 : 10,
+                              // Only make it tappable for "Owes You" cards
+                              if (isOwedToYou) {
+                                return InkWell(
+                                  onTap: () {
+                                    if (kDebugMode) {
+                                      print('👆 Tap detected on card $i');
+                                    }
+                                    _handleBalanceCardTap(balance);
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: IgnorePointer(
+                                    child: OutstandingBalanceCard(
+                                      name: balance.username,
+                                      amount: balance.netBalance.abs(),
+                                      currency: 'THB',
+                                      avatar: balance.userPicture != null
+                                          ? NetworkImage(balance.userPicture!)
+                                          : const AssetImage(
+                                                  'assets/images/char.png')
+                                              as ImageProvider,
+                                      status: BalanceStatus.owedToYou,
+                                      width: 140,
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                // "You Owe" cards - let them handle their own interactions
+                                return OutstandingBalanceCard(
+                                  name: balance.username,
+                                  amount: balance.netBalance.abs(),
+                                  currency: 'THB',
+                                  avatar: balance.userPicture != null
+                                      ? NetworkImage(balance.userPicture!)
+                                      : const AssetImage(
+                                              'assets/images/char.png')
+                                          as ImageProvider,
+                                  status: BalanceStatus.youOwe,
+                                  width: 140,
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 14),
+                        ],
+                        const SizedBox(width: 4),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 25),
+
+                // Upcoming Payments Section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        "Upcoming Payments",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPurple,
+                        ),
                       ),
-                  ],
+                      const SizedBox(width: 8),
+                      _CountChip(value: _upcomingPayments.length),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 25),
 
-              const Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
-                child: Text(
-                  "Transaction History",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPurple,
+                if (_upcomingPayments.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'No upcoming payments',
+                      style: TextStyle(
+                        color: AppColors.textPurple,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )
+                else
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 4),
+                        for (int i = 0; i < _upcomingPayments.length; i++)
+                          UpcomingPaymentCard(
+                            title: _upcomingPayments[i].titleName,
+                            amount: _upcomingPayments[i].totalAmount,
+                            daysLeft: _upcomingPayments[i].daysLeft,
+                            trailingPad:
+                                (i == _upcomingPayments.length - 1) ? 4 : 10,
+                          ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 25),
+
+                // Transaction History Section
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                  child: Text(
+                    "Transaction History",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPurple,
+                    ),
                   ),
                 ),
-              ),
-              const Column(
-                children: [
-                  TransactionCard(
-                    category: "Food",
-                    date: "29 March 2025",
-                    amount: "THB 20",
-                    paidTo: "Paid to Max",
-                    points: 10,
+
+                if (_transactions.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'No transaction history',
+                      style: TextStyle(
+                        color: AppColors.textPurple,
+                        fontSize: 14,
+                      ),
+                    ),
+                  )
+                else
+                  Column(
+                    children: _transactions.map((transaction) {
+                      return TransactionCard(
+                        category: transaction.category,
+                        date: transaction.formattedDate,
+                        amount: 'THB ${transaction.totalAmount}',
+                        paidTo: 'Paid to ${transaction.paidToUsername}',
+                        points: 0, // Points not provided by API
+                      );
+                    }).toList(),
                   ),
-                  TransactionCard(
-                    category: "Transport",
-                    date: "30 March 2025",
-                    amount: "THB 50",
-                    paidTo: "Paid to Lando",
-                    points: 5,
-                  ),
-                ],
-              )
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -170,15 +701,136 @@ class _FinancepageState extends State<Financepage> {
   }
 }
 
-/// Simple data model for upcoming payments
-class _Payment {
-  final String title;
-  final int amount;
-  final int daysLeft;
-  _Payment({required this.title, required this.amount, required this.daysLeft});
+// ============ Data Models ============
+
+class _OutstandingBalance {
+  final int userId;
+  final String username;
+  final String? userPicture;
+  final int netBalance;
+  final String balanceStatus;
+
+  _OutstandingBalance({
+    required this.userId,
+    required this.username,
+    this.userPicture,
+    required this.netBalance,
+    required this.balanceStatus,
+  });
+
+  factory _OutstandingBalance.fromJson(Map<String, dynamic> json) {
+    return _OutstandingBalance(
+      userId: json['user_id'] as int,
+      username: json['username'] as String,
+      userPicture: json['user_picture'] as String?,
+      netBalance: json['net_balance'] as int,
+      balanceStatus: json['balance_status'] as String,
+    );
+  }
 }
 
-/// Bordered container with three tiles
+class _UpcomingPayment {
+  final int financeId;
+  final int transactionId;
+  final String titleName;
+  final DateTime dueDate;
+  final String category;
+  final int totalAmount;
+  final bool transactionStatus;
+  final String? qrCodeImage;
+
+  _UpcomingPayment({
+    required this.financeId,
+    required this.transactionId,
+    required this.titleName,
+    required this.dueDate,
+    required this.category,
+    required this.totalAmount,
+    required this.transactionStatus,
+    this.qrCodeImage,
+  });
+
+  factory _UpcomingPayment.fromJson(Map<String, dynamic> json) {
+    return _UpcomingPayment(
+      financeId: json['finance_id'] as int,
+      transactionId: json['transaction_id'] as int,
+      titleName: json['title_name'] as String,
+      dueDate: DateTime.parse(json['due_date'] as String),
+      category: json['category'] as String,
+      totalAmount: json['total_amount'] as int,
+      transactionStatus: json['transaction_status'] as bool,
+      qrCodeImage: json['qr_code_image'] as String?,
+    );
+  }
+
+  int get daysLeft {
+    final now = DateTime.now();
+    final difference = dueDate.difference(now);
+    return difference.inDays;
+  }
+}
+
+class _Transaction {
+  final int financeId;
+  final int transactionId;
+  final String titleName;
+  final String category;
+  final int totalAmount;
+  final bool transactionStatus;
+  final DateTime paidAt;
+  final int paidToUserId;
+  final String paidToUsername;
+  final String? paidToUserPicture;
+
+  _Transaction({
+    required this.financeId,
+    required this.transactionId,
+    required this.titleName,
+    required this.category,
+    required this.totalAmount,
+    required this.transactionStatus,
+    required this.paidAt,
+    required this.paidToUserId,
+    required this.paidToUsername,
+    this.paidToUserPicture,
+  });
+
+  factory _Transaction.fromJson(Map<String, dynamic> json) {
+    return _Transaction(
+      financeId: json['finance_id'] as int,
+      transactionId: json['transaction_id'] as int,
+      titleName: json['title_name'] as String,
+      category: json['category'] as String,
+      totalAmount: json['total_amount'] as int,
+      transactionStatus: json['transaction_status'] as bool,
+      paidAt: DateTime.parse(json['paid_at'] as String),
+      paidToUserId: json['paid_to_user_id'] as int,
+      paidToUsername: json['paid_to_username'] as String,
+      paidToUserPicture: json['paid_to_user_picture'] as String?,
+    );
+  }
+
+  String get formattedDate {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return '${paidAt.day} ${months[paidAt.month - 1]} ${paidAt.year}';
+  }
+}
+
+// ============ UI Components ============
+
 class MonthlySnapshotCard extends StatelessWidget {
   const MonthlySnapshotCard({
     super.key,
@@ -320,7 +972,6 @@ class _SnapshotTile extends StatelessWidget {
   }
 }
 
-/// Small rounded badge for counts
 class _CountChip extends StatelessWidget {
   const _CountChip({
     required this.value,

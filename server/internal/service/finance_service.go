@@ -8,11 +8,12 @@ import (
 	"fairnest/internal/repository"
 	"fairnest/internal/utils/v"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/skip2/go-qrcode"
 	"github.com/stripe/stripe-go/v83"
-	"log"
-	"time"
 )
 
 type financeService struct {
@@ -467,7 +468,7 @@ func (s financeService) CheckOverduePenalty() error {
 	return nil
 }
 
-func (s financeService) UpdateTransactionStatusPaid(transactionID int, req dtos.PatchPaidByTransactionIDRequest) (*entities.Transaction, error) {
+func (s financeService) PatchPaidByTransactionID(transactionID int, req dtos.PatchPaidByTransactionIDRequest) (*entities.Transaction, error) {
 	finance := &entities.Transaction{
 		TransactionID:     v.UintPtr(transactionID),
 		TransactionStatus: v.Ptr(true), // Mark as paid
@@ -518,7 +519,7 @@ func (s financeService) HandleStripeWebhook(payload []byte, signatureHeader stri
 
 		// 4. Call the existing PatchPaidByTransactionID function to mark the transaction as paid.
 		// Note: The PatchPaidByTransactionID function expects an integer.
-		_, err = s.UpdateTransactionStatusPaid(transactionIntID, dtos.PatchPaidByTransactionIDRequest{})
+		_, err = s.PatchPaidByTransactionID(transactionIntID, dtos.PatchPaidByTransactionIDRequest{})
 		if err != nil {
 			log.Printf("Failed to update transaction status for ID %s: %v", transactionID, err)
 			return err

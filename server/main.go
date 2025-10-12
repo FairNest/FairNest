@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/minio/minio-go/v7"
@@ -93,6 +94,8 @@ func main() {
 	choreRepositoryDB := repository.NewChoreRepositoryDB(db)
 	roomJoinRepositoryDB := repository.NewRoomJoinRepositoryDB(db)
 	financeRepositoryDB := repository.NewFinanceRepositoryDB(db)
+	dashboardRepositoryDB := repository.NewDashboardRepositoryDB(db)
+	userDashboardRepositoryDB := repository.NewUserDashboardRepositoryDB(db)
 
 	uploadService := service.NewUploadService(minioClient)
 	stripeService := service.NewStripeService(stripeSecretKey)
@@ -105,6 +108,8 @@ func main() {
 	roomService := service.NewRoomService(roomRepositoryDB, roomMemberService, lifestyleService)
 	roomJoinService := service.NewRoomJoinService(roomJoinRepositoryDB, roomMemberService, roomService, userService, notificationService, lifestyleService)
 	financeService := service.NewFinanceService(financeRepositoryDB, userService, stripeService, stripeWebhookSecret)
+	dashboardService := service.NewDashboardService(dashboardRepositoryDB, lifestyleRepositoryDB, lifestyleService)
+	userDashboardService := service.NewUserDashboardService(userDashboardRepositoryDB)
 
 	go func() {
 		if err := financeService.CheckOverduePenalty(); err != nil {
@@ -122,6 +127,8 @@ func main() {
 	choreHandler := handler.NewChoreHandler(choreService, jwtSecret)
 	roomJoinHandler := handler.NewRoomJoinHandler(roomJoinService)
 	financeHandler := handler.NewFinanceHandler(financeService)
+	dashboardHandler := handler.NewDashboardHandler(dashboardService, jwtSecret)
+	userDashboardHandler := handler.NewUserDashboardHandler(userDashboardService, jwtSecret)
 
 	app := fiber.New()
 
@@ -251,6 +258,10 @@ func main() {
 	app.Get("/rooms/:roomID/chores/day/mine", choreHandler.GetMyTasksForDate)
 
 	app.Get("/chores/:choreID", choreHandler.GetChoreDetailByID)
+
+	// Dashboard Endpoint
+	app.Get("/rooms/:roomID/dashboard", dashboardHandler.GetRoomDashboard)
+	app.Get("/user/dashboard", userDashboardHandler.GetUserDashboard)
 
 	//###################################################################
 

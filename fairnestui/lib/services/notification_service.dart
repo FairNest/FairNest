@@ -116,4 +116,44 @@ class NotificationService {
       return false;
     }
   }
+
+  /// Create a notification from current user to another user
+  /// Returns the created notification data if successful, null otherwise
+  static Future<Map<String, dynamic>?> createNotification({
+    required int receiverId,
+    required String message,
+    int? senderId, // Optional: if not provided, uses current user from token
+  }) async {
+    try {
+      // Get sender ID from token if not provided
+      final finalSenderId = senderId ?? await UserService.getUserIdFromToken();
+
+      if (finalSenderId == null) {
+        if (kDebugMode) {
+          print('❌ No sender ID found');
+        }
+        return null;
+      }
+
+      final response = await ApiClient.post(
+        '/CreateNotification/$finalSenderId/$receiverId',
+        data: {
+          'notification_message': message,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        if (kDebugMode) {
+          print('✅ Notification created successfully');
+        }
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error creating notification: $e');
+      }
+      return null;
+    }
+  }
 }
