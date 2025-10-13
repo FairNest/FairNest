@@ -489,9 +489,7 @@ class _RoomDashContent extends StatelessWidget {
   }
 }
 
-// Replace the _YourDashContent widget in your RoomDashboardPage.dart
-
-// Replace the _YourDashContent widget in your RoomDashboardPage.dart
+// Replace the _YourDashContent class in your RoomDashboardPage.dart
 
 class _YourDashContent extends StatefulWidget {
   const _YourDashContent({super.key});
@@ -622,6 +620,8 @@ class _YourDashContentState extends State<_YourDashContent> {
                 completedTasks: _userDashboardData!.taskSummary.completedTasks,
                 upcomingUnfinishedTasks:
                     _userDashboardData!.taskSummary.upcomingUnfinishedTasks,
+                // ✅ Pass refresh callback so TaskNavFolder can refresh after completion
+                onTaskCompleted: _refreshUserDashboard,
               ),
           ],
         ),

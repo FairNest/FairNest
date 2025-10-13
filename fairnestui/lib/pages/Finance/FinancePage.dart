@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:fairnestui/components/OutstandingBalanceCard.dart';
 import 'package:fairnestui/components/TransactionCard.dart';
 import 'package:fairnestui/components/UpcomingPaymentCard.dart';
@@ -34,9 +37,6 @@ class _FinancepageState extends State<Financepage> {
 
   // Transaction history
   List<_Transaction> _transactions = [];
-
-  // Check if user is alone
-  bool _isAloneInRoom = false;
 
   @override
   void initState() {
@@ -108,17 +108,7 @@ class _FinancepageState extends State<Financepage> {
       if (response.statusCode == 200) {
         final data = response.data as List<dynamic>;
 
-        // Check if user is alone (empty list means no other users)
-        if (data.isEmpty) {
-          setState(() {
-            _isAloneInRoom = true;
-            _outstandingBalances = [];
-          });
-          return;
-        }
-
         setState(() {
-          _isAloneInRoom = false;
           _outstandingBalances = data
               .map((json) =>
                   _OutstandingBalance.fromJson(json as Map<String, dynamic>))
@@ -224,6 +214,15 @@ class _FinancepageState extends State<Financepage> {
     }
   }
 
+  Future<void> _handleUpcomingPaymentCardTap(_UpcomingPayment payment) async {
+    if (kDebugMode) {
+      print('💳 Upcoming payment card tapped: ${payment.titleName}');
+    }
+
+    // Show QR code dialog
+    await _showQRCodeDialog(payment);
+  }
+
   Future<bool?> _showCustomReminderDialog(String name) {
     const cardSize = Size(382, 247);
     const bgColor = Color(0xFFECE9E6);
@@ -298,6 +297,186 @@ class _FinancepageState extends State<Financepage> {
         ),
       ),
     );
+  }
+
+  Future<void> _showQRCodeDialog(_UpcomingPayment payment) {
+    const bgColor = Color(0xFFECE9E6);
+    const accent = Color(0xFF645A80);
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => Center(
+        child: Dialog(
+          elevation: 10,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                  color: Colors.black.withValues(alpha: .15),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header with close button
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          payment.titleName,
+                          style: AppFonts.heading3.copyWith(color: accent),
+                        ),
+                      ),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () => Navigator.of(context).pop(),
+                        child: const SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: Icon(Icons.close_rounded,
+                              size: 24, color: accent),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // QR Code
+                if (payment.qrCodeImage != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: accent, width: 2),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Image.memory(
+                        _base64ToImage(payment.qrCodeImage!),
+                        width: 250,
+                        height: 250,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  )
+                else
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(
+                      'No QR code available',
+                      style: TextStyle(color: accent),
+                    ),
+                  ),
+                // Payment details
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Amount: ${payment.totalAmount} THB',
+                        style: const TextStyle(
+                          color: accent,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Due: ${_formatDueDate(payment.dueDate)}',
+                        style: TextStyle(
+                          color: accent.withOpacity(0.7),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Action buttons
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SecondaryButton(
+                          text: 'Cancel',
+                          onPressed: () => Navigator.of(context).pop(),
+                          width: double.infinity,
+                          height: 48,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SecondaryButton(
+                          text: 'Mark as Paid',
+                          backgroundColor: const Color(0xFF6CC08B),
+                          textColor: Colors.white,
+                          width: double.infinity,
+                          height: 48,
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            _handleMarkAsPaid(payment);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleMarkAsPaid(_UpcomingPayment payment) async {
+    if (kDebugMode) {
+      print('✅ Marking payment as paid: ${payment.titleName}');
+    }
+
+    try {
+      // TODO: Call your API to mark the payment as paid
+      // Example:
+      // await ApiClient.post('/MarkPaymentAsPaid/${payment.transactionId}');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment marked as paid successfully!'),
+            backgroundColor: Color(0xFF6CC08B),
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        // Refresh the data
+        await _loadAllFinanceData();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error marking payment as paid: $e');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to mark as paid: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _showNotifiedDialog(String name) {
@@ -414,6 +593,32 @@ class _FinancepageState extends State<Financepage> {
     }
   }
 
+  // Helper method to convert base64 string to image bytes
+  Uint8List _base64ToImage(String base64String) {
+    // Remove data:image/png;base64, prefix if present
+    final base64Data =
+        base64String.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
+    return base64Decode(base64Data);
+  }
+
+  String _formatDueDate(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -437,45 +642,6 @@ class _FinancepageState extends State<Financepage> {
                 child: const Text('Retry'),
               ),
             ],
-          ),
-        ),
-      );
-    }
-
-    // If user is alone in room, show special message
-    if (_isAloneInRoom) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.person_outline,
-                  size: 80,
-                  color: AppColors.textPurple.withOpacity(0.5),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  "You're alone in your room",
-                  style: AppFonts.heading2.copyWith(
-                    color: AppColors.textPurple,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  "Invite friends to enable this feature",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textPurple.withOpacity(0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
           ),
         ),
       );
@@ -582,18 +748,20 @@ class _FinancepageState extends State<Financepage> {
                                   ),
                                 );
                               } else {
-                                // "You Owe" cards - let them handle their own interactions
-                                return OutstandingBalanceCard(
-                                  name: balance.username,
-                                  amount: balance.netBalance.abs(),
-                                  currency: 'THB',
-                                  avatar: balance.userPicture != null
-                                      ? NetworkImage(balance.userPicture!)
-                                      : const AssetImage(
-                                              'assets/images/char.png')
-                                          as ImageProvider,
-                                  status: BalanceStatus.youOwe,
-                                  width: 140,
+                                // "You Owe" cards - completely non-interactive
+                                return IgnorePointer(
+                                  child: OutstandingBalanceCard(
+                                    name: balance.username,
+                                    amount: balance.netBalance.abs(),
+                                    currency: 'THB',
+                                    avatar: balance.userPicture != null
+                                        ? NetworkImage(balance.userPicture!)
+                                        : const AssetImage(
+                                                'assets/images/char.png')
+                                            as ImageProvider,
+                                    status: BalanceStatus.youOwe,
+                                    width: 140,
+                                  ),
                                 );
                               }
                             },
@@ -644,12 +812,21 @@ class _FinancepageState extends State<Financepage> {
                       children: [
                         const SizedBox(width: 4),
                         for (int i = 0; i < _upcomingPayments.length; i++)
-                          UpcomingPaymentCard(
-                            title: _upcomingPayments[i].titleName,
-                            amount: _upcomingPayments[i].totalAmount,
-                            daysLeft: _upcomingPayments[i].daysLeft,
-                            trailingPad:
-                                (i == _upcomingPayments.length - 1) ? 4 : 10,
+                          GestureDetector(
+                            onTap: () {
+                              if (kDebugMode) {
+                                print('💳 Payment card $i tapped');
+                              }
+                              _handleUpcomingPaymentCardTap(
+                                  _upcomingPayments[i]);
+                            },
+                            child: UpcomingPaymentCard(
+                              title: _upcomingPayments[i].titleName,
+                              amount: _upcomingPayments[i].totalAmount,
+                              daysLeft: _upcomingPayments[i].daysLeft,
+                              trailingPad:
+                                  (i == _upcomingPayments.length - 1) ? 4 : 10,
+                            ),
                           ),
                       ],
                     ),
@@ -738,6 +915,7 @@ class _UpcomingPayment {
   final int totalAmount;
   final bool transactionStatus;
   final String? qrCodeImage;
+  final String? paymentLink;
 
   _UpcomingPayment({
     required this.financeId,
@@ -748,6 +926,7 @@ class _UpcomingPayment {
     required this.totalAmount,
     required this.transactionStatus,
     this.qrCodeImage,
+    this.paymentLink,
   });
 
   factory _UpcomingPayment.fromJson(Map<String, dynamic> json) {
@@ -759,7 +938,8 @@ class _UpcomingPayment {
       category: json['category'] as String,
       totalAmount: json['total_amount'] as int,
       transactionStatus: json['transaction_status'] as bool,
-      qrCodeImage: json['qr_code_image'] as String?,
+      qrCodeImage: json['qr_code_link_image'] as String?,
+      paymentLink: json['payment_link'] as String?,
     );
   }
 

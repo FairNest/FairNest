@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/util/paymentSentDialog.dart'
@@ -41,8 +44,7 @@ class Financetaskcard extends StatelessWidget {
   final String currency;
   final String payToName;
   final ImageProvider? paidByImage;
-  final String? qrData;
-
+  final String? qrData; // Now expects base64 string
   final VoidCallback? onSettled;
 
   String get _splitLabel {
@@ -59,6 +61,19 @@ class Financetaskcard extends StatelessWidget {
   String _truncateName(String name, {int maxLength = 10}) {
     if (name.length <= maxLength) return name;
     return '${name.substring(0, maxLength)}...';
+  }
+
+  // Helper to convert base64 string to image bytes
+  Uint8List? _base64ToImage(String? base64String) {
+    if (base64String == null || base64String.isEmpty) return null;
+    try {
+      // Remove data:image/png;base64, prefix if present
+      final base64Data =
+          base64String.replaceFirst(RegExp(r'data:image/[^;]+;base64,'), '');
+      return base64Decode(base64Data);
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
@@ -205,6 +220,7 @@ class Financetaskcard extends StatelessWidget {
   // ---------- QR Sheet + Dialog ----------
   Future<void> _showQrSheet(BuildContext context) async {
     final rootContext = context;
+    final qrImageBytes = _base64ToImage(qrData);
 
     await showModalBottomSheet(
       context: context,
@@ -236,15 +252,16 @@ class Financetaskcard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // QR placeholder — replace later with an actual QR widget
+                // QR Code - Now displays actual base64 decoded image
                 Container(
-                  width: 180,
-                  height: 180,
+                  width: 200,
+                  height: 200,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: AppColors.textPurple.withValues(alpha: .6)),
+                        color: AppColors.textPurple.withValues(alpha: .6),
+                        width: 2),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: .05),
@@ -253,14 +270,20 @@ class Financetaskcard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  padding: const EdgeInsets.all(12),
                   alignment: Alignment.center,
-                  child: Text(
-                    qrData ?? 'QR CODE',
-                    style: const TextStyle(
-                      color: AppColors.textPurple,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child: qrImageBytes != null
+                      ? Image.memory(
+                          qrImageBytes,
+                          fit: BoxFit.contain,
+                        )
+                      : const Text(
+                          'No QR code available',
+                          style: TextStyle(
+                            color: AppColors.textPurple,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 12),
                 const Text(
