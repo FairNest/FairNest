@@ -328,7 +328,7 @@ class _AddFinancePageState extends State<AddFinancePage> {
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: AppColors.darkPurple,
                               foregroundColor: Colors.white,
                             ),
                             onPressed: () {
@@ -504,7 +504,7 @@ class _AddFinancePageState extends State<AddFinancePage> {
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: AppColors.darkPurple,
                               foregroundColor: Colors.white,
                             ),
                             onPressed: () {

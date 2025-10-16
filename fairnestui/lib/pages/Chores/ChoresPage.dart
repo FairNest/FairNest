@@ -9,6 +9,7 @@ import 'package:fairnestui/util/DateStrip.dart';
 import 'package:fairnestui/services/api_client.dart';
 import 'package:fairnestui/services/user_profile_service.dart';
 import 'package:fairnestui/pages/Chores/ViewChorePage.dart';
+import 'package:dio/dio.dart' as dio; // ← friendly error mapping
 
 /* ------------------- API model mapped from backend ------------------- */
 class _ChoreItem {
@@ -119,6 +120,8 @@ class _ChorespageState extends State<Chorespage> {
 
   List<_ChoreItem> _allTasks = [];
   List<_ChoreItem> _myTasks = [];
+  Set<int> _myAssignmentIds = {}; // ← who am I assigned to?
+
   bool _loading = true;
   String? _error;
 
@@ -131,6 +134,13 @@ class _ChorespageState extends State<Chorespage> {
     _start = DateTime(now.year, now.month, 1);
     _selected = DateTime(now.year, now.month, now.day);
     _bootstrapAndFetch();
+  }
+
+  bool get _isTodaySelected {
+    final now = DateTime.now();
+    return _selected.year == now.year &&
+        _selected.month == now.month &&
+        _selected.day == now.day;
   }
 
   Future<void> _bootstrapAndFetch() async {
@@ -192,9 +202,17 @@ class _ChorespageState extends State<Chorespage> {
           .map((e) => _ChoreItem.fromJson(e as Map<String, dynamic>))
           .toList();
 
+      // Build “my assignments” lookup for quick ownership checks
+      final myAssignmentIds = listMine
+          .map((c) => c.assignmentId)
+          .where((id) => id != null)
+          .cast<int>()
+          .toSet();
+
       setState(() {
         _allTasks = listAll.where((c) => !c.completed).toList();
         _myTasks = listMine.where((c) => !c.completed).toList();
+        _myAssignmentIds = myAssignmentIds;
         _loading = false;
       });
     } catch (e) {
@@ -233,6 +251,31 @@ class _ChorespageState extends State<Chorespage> {
     }
   }
 
+  String _friendlyError(Object e) {
+    if (e is dio.DioException) {
+      final code = e.response?.statusCode ?? 0;
+      switch (code) {
+        case 400:
+          return "Bad request. Please try again.";
+        case 401:
+          return "You’re not signed in.";
+        case 403:
+          return "It's not your task.";
+        case 404:
+          return "Task not found.";
+        case 409:
+          return "Already completed.";
+        case 422:
+          return "Invalid data.";
+        case 500:
+          return "Server error. Please try again.";
+        default:
+          return "Network error (${code == 0 ? 'no response' : code}).";
+      }
+    }
+    return "Something went wrong.";
+  }
+
   Future<void> _markComplete(_ChoreItem c) async {
     if (c.assignmentId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -254,14 +297,16 @@ class _ChorespageState extends State<Chorespage> {
         _myTasks.removeWhere((x) => x.assignmentId == c.assignmentId);
       });
 
-      CelebrationPopup.show(context,
-          message: 'Task Completed!\nGreat job! 🎉',
-          backgroundColor: const Color(0xFFF8F9FA),
-          textColor: const Color(0xFF2D3748),
-          autoCloseDuration: const Duration(seconds: 2));
+      CelebrationPopup.show(
+        context,
+        message: 'Task Completed!\nGreat job! 🎉',
+        backgroundColor: const Color(0xFFF8F9FA),
+        textColor: const Color(0xFF2D3748),
+        autoCloseDuration: const Duration(seconds: 2),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to complete: $e')),
+        SnackBar(content: Text(_friendlyError(e))),
       );
     } finally {
       if (mounted) {
@@ -311,30 +356,62 @@ class _ChorespageState extends State<Chorespage> {
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onTap: () => _openEditFor(c),
-                child: ChoresTaskCard(
-                  title: c.title,
-                  points: c.points,
-                  assignedName: c.assignedName ?? '—',
-                  autoRotate: c.autoRotate,
-                  recurrence: c.recurrence,
-                  reminderTime: c.reminderTime,
-                  reminderRepeat: c.reminderRepeat,
-                  paidByImage: (c.assignedAvatarUrl != null &&
-                          c.assignedAvatarUrl!.isNotEmpty)
-                      ? NetworkImage(c.assignedAvatarUrl!)
-                      : const AssetImage('assets/images/pikachu.png')
-                          as ImageProvider,
-                  initiallyChecked: false,
-                  onCheckedChanged: (checked) {
-                    if (!checked) return;
-                    if (c.assignmentId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('No assignment id')),
-                      );
-                      return;
-                    }
-                    if (_completing.contains(c.assignmentId)) return;
-                    _markComplete(c);
+                child: Builder(
+                  builder: (context) {
+                    final bool isMine = c.assignmentId != null &&
+                        _myAssignmentIds.contains(c.assignmentId);
+                    final bool canComplete = _isTodaySelected && isMine;
+                    final String lockMsg = isMine
+                        ? "Only today's chores\ncan be completed"
+                        : "You can't complete\nother people’s task";
+
+                    return ChoresTaskCard(
+                      title: c.title,
+                      points: c.points,
+                      assignedName: c.assignedName ?? '—',
+                      autoRotate: c.autoRotate,
+                      recurrence: c.recurrence,
+                      reminderTime: c.reminderTime,
+                      reminderRepeat: c.reminderRepeat,
+                      paidByImage: (c.assignedAvatarUrl != null &&
+                              c.assignedAvatarUrl!.isNotEmpty)
+                          ? NetworkImage(c.assignedAvatarUrl!)
+                          : const AssetImage('assets/images/pikachu.png')
+                              as ImageProvider,
+                      initiallyChecked: false,
+
+                      // 🔒 Lock when not today OR not mine (and explain why)
+                      completionEnabled: canComplete,
+                      lockMessage: lockMsg,
+
+                      onCheckedChanged: (checked) {
+                        // Hard gates to avoid hitting the API unnecessarily
+                        if (!isMine) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("It's not your task.")),
+                          );
+                          return;
+                        }
+                        if (!_isTodaySelected) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    "You can only complete today's chores.")),
+                          );
+                          return;
+                        }
+                        if (!checked) return;
+                        if (c.assignmentId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('No assignment id')),
+                          );
+                          return;
+                        }
+                        if (_completing.contains(c.assignmentId)) return;
+                        _markComplete(c);
+                      },
+                    );
                   },
                 ),
               ),

@@ -37,15 +37,15 @@ func (r *userDashboardRepositoryDB) GetUserChoresForToday(userID uint) ([]entiti
 // GetUserCompletedChoresForToday returns completed chore assignments for user TODAY
 func (r *userDashboardRepositoryDB) GetUserCompletedChoresForToday(userID uint) ([]entities.ChoreAssignment, error) {
 	var assignments []entities.ChoreAssignment
-	today := time.Now()
-	startOfDay := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
-	endOfDay := startOfDay.AddDate(0, 0, 1)
 
 	err := r.db.
 		Preload("Chore").
 		Preload("User").
-		Where("user_id = ? AND status = ? AND assigned_date >= ? AND assigned_date < ?",
-			userID, "completed", startOfDay, endOfDay).
+		Where(`
+			user_id = ?
+			AND status = ?
+			AND DATE(assigned_date) BETWEEN CURRENT_DATE - INTERVAL '6 days' AND CURRENT_DATE
+		`, userID, "completed").
 		Order("completed_at DESC").
 		Find(&assignments).Error
 
@@ -89,18 +89,19 @@ func (r *userDashboardRepositoryDB) GetUserPaymentsDueToday(userID uint) ([]enti
 }
 
 // GetUserCompletedPaymentsDueToday returns settled transactions where user is debtor and due TODAY
+// GetUserCompletedPaymentsDueToday returns settled transactions (debtor = user) whose due_date is within the past 7 days (including today)
 func (r *userDashboardRepositoryDB) GetUserCompletedPaymentsDueToday(userID uint) ([]entities.Transaction, error) {
 	var transactions []entities.Transaction
-	today := time.Now()
-	startOfDay := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
-	endOfDay := startOfDay.AddDate(0, 0, 1)
 
 	err := r.db.
 		Preload("Finance").
 		Preload("Payer").
 		Joins("JOIN finances ON finances.finance_id = transactions.finance_id").
-		Where("transactions.debtor_id = ? AND transactions.transaction_status = ? AND finances.due_date >= ? AND finances.due_date < ?",
-			userID, true, startOfDay, endOfDay).
+		Where(`
+			transactions.debtor_id = ?
+			AND transactions.transaction_status = ?
+			AND DATE(finances.due_date) BETWEEN CURRENT_DATE - INTERVAL '6 days' AND CURRENT_DATE
+		`, userID, true).
 		Order("transactions.paid_at DESC").
 		Find(&transactions).Error
 

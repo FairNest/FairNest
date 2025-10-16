@@ -6,7 +6,7 @@ class ChoresTaskCard extends StatefulWidget {
   const ChoresTaskCard({
     super.key,
 
-    // NEW configurable fields
+    // Configurable content
     this.title = 'Take Out the Trash',
     this.points = 10,
     this.assignedName = 'Max',
@@ -15,31 +15,36 @@ class ChoresTaskCard extends StatefulWidget {
     this.reminderTime = '4PM',
     this.reminderRepeat = 'Every Tue',
 
-    // existing
-    this.paidByImage, // avatar for the assignee
+    // Existing props
+    this.paidByImage,
     this.paidByRingColor = AppColors.textPurple,
     this.onReminderTap,
     this.initiallyChecked = false,
     this.onCheckedChanged,
+
+    // NEW: lock completion when false
+    this.completionEnabled = true,
+    this.lockMessage = "Only today's chores\ncan be completed",
   });
 
-  // --- configurable content ---
   final String title;
   final int points;
   final String assignedName;
   final bool autoRotate;
   final String recurrence;
-  final String reminderTime; // shown in "Reminder Time <X>"
-  final String reminderRepeat; // pill text
+  final String reminderTime;
+  final String reminderRepeat;
 
-  // --- existing props ---
-  final ImageProvider? paidByImage; // assignee avatar
+  final ImageProvider? paidByImage;
   final Color paidByRingColor;
   final VoidCallback? onReminderTap;
 
-  /// checkbox state
   final bool initiallyChecked;
   final ValueChanged<bool>? onCheckedChanged;
+
+  /// 🔒 When false, user cannot check/uncheck (used to lock non-today chores)
+  final bool completionEnabled;
+  final String lockMessage;
 
   @override
   State<ChoresTaskCard> createState() => _ChoresTaskCardState();
@@ -57,7 +62,6 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
     _checked = widget.initiallyChecked;
   }
 
-  // Keep card in sync if parent updates initiallyChecked later
   @override
   void didUpdateWidget(covariant ChoresTaskCard oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -68,7 +72,7 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
 
   void _toggleChecked() {
     setState(() => _checked = !_checked);
-    widget.onCheckedChanged?.call(_checked); // notify parent
+    widget.onCheckedChanged?.call(_checked);
   }
 
   @override
@@ -77,10 +81,11 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
     const Color titleColor = AppColors.textPurple;
     const Color badgeBg = AppColors.accent;
 
-    // Live "Status" chip based on _checked
     final String statusText = _checked ? 'Completed' : 'Incomplete';
     final Color statusColor =
         _checked ? const Color(0xFF49B67A) : AppColors.textOrange;
+
+    final double activeAlpha = widget.completionEnabled ? 1.0 : 0.75;
 
     return AccentBorderedCard(
       child: IntrinsicHeight(
@@ -111,8 +116,9 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color:
-                              titleColor.withValues(alpha: _checked ? 0.65 : 1),
+                          color: titleColor.withValues(
+                            alpha: _checked ? 0.65 : activeAlpha,
+                          ),
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           decoration: _checked
@@ -145,7 +151,7 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
 
             const SizedBox(height: 8),
 
-            // CHIPS - Make them wrap if needed
+            // CHIPS
             Wrap(
               spacing: 15,
               runSpacing: 8,
@@ -167,11 +173,11 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
 
             const SizedBox(height: 10),
 
-            // BOTTOM ROW - Fixed overflow issue
+            // BOTTOM ROW
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Assigned to - Fixed width
+                // Assigned to
                 SizedBox(
                   width: 60,
                   child: Column(
@@ -219,35 +225,56 @@ class _ChoresTaskCardState extends State<ChoresTaskCard> {
 
                 const SizedBox(width: 8),
 
-                // Reminder pill - Flexible
+                // Reminder
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Reminder Time ${widget.reminderTime}",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPurple)),
-                      const SizedBox(height: 6),
-                      _MiniLavenderPill(
-                        text: widget.reminderRepeat,
-                        icon: Icons.sync,
-                        onTap: widget.onReminderTap,
-                      ),
-                    ],
+                  child: Opacity(
+                    opacity: widget.completionEnabled ? 1.0 : 0.9,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Reminder Time ${widget.reminderTime}",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPurple)),
+                        const SizedBox(height: 6),
+                        _MiniLavenderPill(
+                          text: widget.reminderRepeat,
+                          icon: Icons.sync,
+                          onTap: widget.onReminderTap,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
                 const SizedBox(width: 8),
 
-                // Clickable checkbox - Fixed width
-                _CheckBoxSquare(
-                  checked: _checked,
-                  onTap: _toggleChecked,
-                ),
+// ✅ Checkbox OR message
+                if (widget.completionEnabled)
+                  _CheckBoxSquare(
+                    checked: _checked,
+                    onTap: _toggleChecked,
+                  )
+                else
+                  Expanded(
+                    flex: 0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Text(
+                        widget.lockMessage, // ← use custom message
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 11,
+                          height: 1.2,
+                          color: AppColors.textPurple.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ],
@@ -352,9 +379,12 @@ class _MiniLavenderPill extends StatelessWidget {
   }
 }
 
-/// Clickable square checkbox styled like your mock.
 class _CheckBoxSquare extends StatelessWidget {
-  const _CheckBoxSquare({required this.checked, required this.onTap});
+  const _CheckBoxSquare({
+    required this.checked,
+    required this.onTap,
+  });
+
   final bool checked;
   final VoidCallback onTap;
 

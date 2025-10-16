@@ -112,22 +112,34 @@ class Roommateoverviewcard extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              "$tasksCompleted/$tasksTotal",
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
+                            if (tasksTotal == 0 && tasksCompleted == 0)
+                              const Text(
+                                "No tasks today",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black54,
+                                ),
+                              )
+                            else ...[
+                              Text(
+                                "$tasksCompleted/$tasksTotal",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w900,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 5),
-                            const Text(
-                              "Tasks Completed",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
+                              const SizedBox(height: 5),
+                              const Text(
+                                "Tasks Completed",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),

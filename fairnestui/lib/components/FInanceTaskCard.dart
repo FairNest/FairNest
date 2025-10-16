@@ -29,6 +29,7 @@ class Financetaskcard extends StatelessWidget {
     this.paidByImage,
     this.qrData,
     this.onSettled,
+    this.isCompleted = false, // ADD THIS: Track completion status
   });
 
   // ---- data ----
@@ -46,6 +47,7 @@ class Financetaskcard extends StatelessWidget {
   final ImageProvider? paidByImage;
   final String? qrData; // Now expects base64 string
   final VoidCallback? onSettled;
+  final bool isCompleted; // ADD THIS: Track if the task is completed
 
   String get _splitLabel {
     if (splitType == SplitType.even) {
@@ -197,9 +199,12 @@ class Financetaskcard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
+              // UPDATED BUTTON: Changes based on completion status
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF9C2D3C),
+                  backgroundColor: isCompleted
+                      ? const Color(0xFF6CC08B) // Green when settled
+                      : const Color(0xFF9C2D3C), // Red when not settled
                   foregroundColor: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -207,8 +212,20 @@ class Financetaskcard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onPressed: () => _showQrSheet(context),
-                child: const Text('Settle now'),
+                onPressed: isCompleted
+                    ? null // Disable button when completed
+                    : () => _showQrSheet(
+                        context), // Show QR sheet when not completed
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isCompleted) ...[
+                      const Icon(Icons.check_circle, size: 16),
+                      const SizedBox(width: 4),
+                    ],
+                    Text(isCompleted ? 'Settled' : 'Settle now'),
+                  ],
+                ),
               ),
             ],
           ),
@@ -313,16 +330,11 @@ class Financetaskcard extends StatelessWidget {
                         onPressed: () {
                           Navigator.pop(sheetCtx);
                           Future.microtask(() {
-                            showPaymentSentDialog(
-                              rootContext,
-                              payer: 'You',
-                              receiver: payToName,
-                              amount: '${_fmt(amount)} $currency',
-                            );
+                            // Call the onSettled callback which should handle polling
                             onSettled?.call();
                           });
                         },
-                        child: const Text('Mark as Paid'),
+                        child: const Text('Verify'),
                       ),
                     ),
                   ],

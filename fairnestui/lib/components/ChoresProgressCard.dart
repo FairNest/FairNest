@@ -48,6 +48,56 @@ class ChoresProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check for empty state (0/0)
+    final bool isEmpty = totalTasks == 0;
+
+    if (isEmpty) {
+      return Container(
+        height: height,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // title
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF645A80),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Empty state message with icon
+            Row(
+              children: [
+                Icon(
+                  Icons.check_circle_outline,
+                  color: fillColor.withOpacity(0.6),
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'No Tasks Today',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: fillColor.withOpacity(0.8),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Normal state with progress
     final double vReal = _computeValue();
     final int completedShown = completedTasks ?? (vReal * totalTasks).round();
     final int pct = (vReal * 100).round();

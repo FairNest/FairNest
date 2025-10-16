@@ -237,7 +237,7 @@ class OutstandingBalanceCard extends StatelessWidget {
                             );
                           });
                         },
-                        child: const Text('Mark as Paid'),
+                        child: const Text('Verify'),
                       ),
                     ),
                   ],

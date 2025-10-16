@@ -5,6 +5,7 @@ import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/services/api_client.dart';
 import 'package:fairnestui/widgets/celebration_pop_up.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class TaskNavFolder extends StatefulWidget {
   const TaskNavFolder({
@@ -16,7 +17,7 @@ class TaskNavFolder extends StatefulWidget {
     required this.todayUnfinishedTasks,
     required this.completedTasks,
     required this.upcomingUnfinishedTasks,
-    this.onTaskCompleted, // Callback to refresh parent dashboard
+    this.onTaskCompleted,
   });
 
   final double panelHeight;
@@ -24,7 +25,6 @@ class TaskNavFolder extends StatefulWidget {
   final int completedCount;
   final int upcomingUnfinishedCount;
 
-  // Separated data from backend
   final UserTasksSeparatedResponse todayUnfinishedTasks;
   final UserTasksSeparatedResponse completedTasks;
   final UserTasksSeparatedResponse upcomingUnfinishedTasks;
@@ -38,7 +38,6 @@ class TaskNavFolder extends StatefulWidget {
 class _TaskNavFolderState extends State<TaskNavFolder> {
   int activeIndex = 0;
 
-  // Track which assignments are currently being completed (prevent double-tap)
   final Set<int> _completingChores = {};
   final Set<int> _completingFinances = {};
 
@@ -75,7 +74,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
     }
   }
 
-  // Mark chore as complete
   Future<void> _markChoreComplete(UserChoreItem chore) async {
     if (chore.choreAssignmentId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +93,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
 
       if (!mounted) return;
 
-      // Show celebration popup
       CelebrationPopup.show(
         context,
         message: 'Task Completed!\nGreat job! 🎉',
@@ -104,7 +101,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
         autoCloseDuration: const Duration(seconds: 2),
       );
 
-      // Notify parent to refresh dashboard data
       widget.onTaskCompleted?.call();
     } catch (e) {
       if (!mounted) return;
@@ -118,7 +114,8 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
     }
   }
 
-  // Mark finance as paid/settled
+// Updated _markFinancePaid method in TaskNavFolder with better error handling
+
   Future<void> _markFinancePaid(UserFinanceItem finance) async {
     if (finance.transactionId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -131,30 +128,103 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
 
     setState(() => _completingFinances.add(finance.transactionId!));
 
+    // Track if dialog is showing to prevent multiple pop attempts
+    bool dialogShowing = true;
+
+    // Show loading dialog with a specific route name
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      routeSettings: const RouteSettings(name: 'payment_verification'),
+      builder: (dialogContext) => WillPopScope(
+        onWillPop: () async => false, // Prevent back button from closing
+        child: const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Verifying payment...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ).then((_) {
+      dialogShowing = false;
+    });
+
     try {
-      // TODO: Replace with your actual finance completion endpoint
-      await ApiClient.post('/finances/mark-paid', data: {
-        'transaction_id': finance.transactionId,
-      });
+      final isSucceeded = await _pollPaymentStatus(finance.transactionId!);
 
-      if (!mounted) return;
+      // Only try to pop if dialog is still showing and context is still mounted
+      if (mounted && dialogShowing) {
+        // Check if we can pop and if the current route is our dialog
+        if (Navigator.of(context).canPop()) {
+          // Use careful navigation to only pop the dialog
+          Navigator.of(context).popUntil((route) {
+            // Stop popping when we reach the dialog or the base route
+            return route.settings.name != 'payment_verification';
+          });
+        }
+        dialogShowing = false;
+      }
 
-      // Show celebration popup
-      CelebrationPopup.show(
-        context,
-        message: 'Payment Settled!\nWell done! 💰',
-        backgroundColor: const Color(0xFFF8F9FA),
-        textColor: const Color(0xFF2D3748),
-        autoCloseDuration: const Duration(seconds: 2),
-      );
+      if (isSucceeded && mounted) {
+        // Small delay to ensure dialog is fully closed
+        await Future.delayed(const Duration(milliseconds: 100));
 
-      // Notify parent to refresh dashboard data
-      widget.onTaskCompleted?.call();
+        CelebrationPopup.show(
+          context,
+          message: 'Payment Settled!\nWell done! 💰',
+          backgroundColor: const Color(0xFFF8F9FA),
+          textColor: const Color(0xFF2D3748),
+          autoCloseDuration: const Duration(seconds: 2),
+        );
+
+        widget.onTaskCompleted?.call();
+      } else if (mounted) {
+        // Show timeout message instead of throwing error
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment verification timed out. Please try again.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to mark as paid: $e')),
-      );
+      if (kDebugMode) {
+        print('❌ Error in payment verification: $e');
+      }
+
+      // Safely close dialog if still open
+      if (mounted && dialogShowing) {
+        if (Navigator.of(context).canPop()) {
+          // Only pop if we're sure the dialog is on top
+          final currentRoute = ModalRoute.of(context);
+          if (currentRoute?.settings.name == 'payment_verification' ||
+              currentRoute?.isCurrent == true) {
+            Navigator.of(context).pop();
+          }
+        }
+        dialogShowing = false;
+      }
+
+      if (mounted) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment verification failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _completingFinances.remove(finance.transactionId));
@@ -162,9 +232,115 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
     }
   }
 
-  // Build chore card
+// Updated _pollPaymentStatus with better error handling
+  Future<bool> _pollPaymentStatus(int transactionId) async {
+    const maxAttempts = 15; // 30 seconds total
+    int attempts = 0;
+
+    // Add timeout wrapper to prevent infinite waiting
+    try {
+      return await Future.any([
+        _performPolling(transactionId, maxAttempts),
+        Future.delayed(
+          const Duration(seconds: 35), // Slightly longer than max polling time
+          () => false, // Return false on timeout
+        ),
+      ]);
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Polling failed with error: $e');
+      }
+      return false;
+    }
+  }
+
+  Future<bool> _performPolling(int transactionId, int maxAttempts) async {
+    int attempts = 0;
+
+    while (attempts < maxAttempts) {
+      // Check if widget is still mounted before each attempt
+      if (!mounted) {
+        if (kDebugMode) {
+          print('⚠️ Widget unmounted, stopping payment polling');
+        }
+        return false;
+      }
+
+      try {
+        if (kDebugMode) {
+          print(
+              '🔄 Polling payment status (attempt ${attempts + 1}/$maxAttempts)');
+        }
+
+        final response = await ApiClient.get(
+          '/GetPaymentStatusByTransactionID/$transactionId',
+        ).timeout(
+          const Duration(seconds: 5), // Add timeout for each request
+          onTimeout: () {
+            throw Exception('Request timeout');
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = response.data as Map<String, dynamic>;
+          final status = data['status'] as String?;
+
+          if (kDebugMode) {
+            print('📊 Payment status: $status');
+          }
+
+          if (status == 'succeeded') {
+            if (kDebugMode) {
+              print('✅ Payment succeeded!');
+            }
+            return true;
+          }
+
+          // Check for failure status to stop polling early
+          if (status == 'failed' || status == 'cancelled') {
+            if (kDebugMode) {
+              print('❌ Payment failed or cancelled: $status');
+            }
+            return false;
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print(
+              '⚠️ Error polling payment status (attempt ${attempts + 1}): $e');
+        }
+        // Continue polling even on error
+      }
+
+      attempts++;
+
+      // Don't wait on the last attempt
+      if (attempts < maxAttempts && mounted) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+
+    if (kDebugMode) {
+      print('❌ Payment status polling completed without success');
+    }
+    return false;
+  }
+
   Widget _buildChoreCard(UserChoreItem chore) {
     final isCompleting = _completingChores.contains(chore.choreAssignmentId);
+
+    // Which tab are we on?
+    final bool isTodayTab = activeIndex == 0;
+    final bool isCompletedTab = activeIndex == 1;
+    final bool isUpcomingTab = activeIndex == 2;
+
+    // Enable completion only on Today tab
+    final bool completionEnabled = isTodayTab;
+
+    // Message to show when completion is disabled
+    final String lockMessage = isUpcomingTab
+        ? "Only today's chores\ncan be completed"
+        : (isCompletedTab ? "Already completed" : "");
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -182,9 +358,25 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
                 ? NetworkImage(chore.assignedAvatar!)
                 : const AssetImage('assets/images/default_avatar.png')
                     as ImageProvider,
-            initiallyChecked: chore.isCompleted,
+
+            // Whatever your source says about completion (usually false in Today/Upcoming)
+            initiallyChecked: chore.isCompleted == true,
+
+            // 🔒 key bits:
+            completionEnabled: completionEnabled,
+            lockMessage: lockMessage,
+
             onCheckedChanged: (checked) {
-              if (!checked) return; // Only trigger on check, not uncheck
+              // Guard: don’t allow completion from Upcoming/Completed tabs
+              if (!completionEnabled) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(lockMessage.replaceAll('\n', ' '))),
+                );
+                return;
+              }
+
+              if (!checked) return;
+
               if (chore.choreAssignmentId == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('No assignment ID')),
@@ -192,10 +384,10 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
                 return;
               }
               if (_completingChores.contains(chore.choreAssignmentId)) return;
+
               _markChoreComplete(chore);
             },
           ),
-          // Loading overlay when completing
           if (isCompleting)
             Positioned.fill(
               child: Container(
@@ -204,9 +396,7 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.textPink,
-                  ),
+                  child: CircularProgressIndicator(color: AppColors.textPink),
                 ),
               ),
             ),
@@ -215,9 +405,15 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
     );
   }
 
-  // Build finance card
+  // Update the _buildFinanceCard method in TaskNavFolder to pass isCompleted:
+
+// Update the _buildFinanceCard method in TaskNavFolder to pass isCompleted:
+
   Widget _buildFinanceCard(UserFinanceItem finance) {
     final isCompleting = _completingFinances.contains(finance.transactionId);
+
+    // Determine if we're in the completed tab
+    final isInCompletedTab = activeIndex == 1;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -240,7 +436,12 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
                 : const AssetImage('assets/images/default_avatar.png')
                     as ImageProvider,
             qrData: finance.qrCode,
+            isCompleted: isInCompletedTab ||
+                finance.isCompleted == true, // ADD THIS LINE
             onSettled: () {
+              // Don't allow settling if already completed
+              if (isInCompletedTab || finance.isCompleted == true) return;
+
               if (finance.transactionId == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('No transaction ID')),
@@ -251,7 +452,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
               _markFinancePaid(finance);
             },
           ),
-          // Loading overlay when completing
           if (isCompleting)
             Positioned.fill(
               child: Container(
@@ -276,15 +476,15 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
     String emptyMessage;
 
     switch (activeIndex) {
-      case 0: // TODAY
+      case 0:
         tasks = widget.todayUnfinishedTasks;
         emptyMessage = "No tasks for today 🎉";
         break;
-      case 1: // COMPLETED
+      case 1:
         tasks = widget.completedTasks;
         emptyMessage = "Nothing completed yet.";
         break;
-      case 2: // UPCOMING
+      case 2:
         tasks = widget.upcomingUnfinishedTasks;
         emptyMessage = "No upcoming tasks.";
         break;
@@ -318,10 +518,7 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Show finances first
           ...tasks.finances.map((finance) => _buildFinanceCard(finance)),
-
-          // Then show chores
           ...tasks.chores.map((chore) => _buildChoreCard(chore)),
         ],
       ),
@@ -335,7 +532,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
             child: Row(
@@ -368,14 +564,12 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
               ],
             ),
           ),
-
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Sidebar tabs
                 SizedBox(
-                  width: 60,
+                  width: 48,
                   child: Column(
                     children: List.generate(tabs.length, (i) {
                       final tab = tabs[i];
@@ -391,8 +585,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
                     }),
                   ),
                 ),
-
-                // Main area
                 Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),

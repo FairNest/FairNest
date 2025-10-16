@@ -10,8 +10,10 @@ import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:fairnestui/services/api_client.dart';
 import 'package:fairnestui/services/user_service.dart';
 import 'package:fairnestui/services/notification_service.dart';
+import 'package:fairnestui/widgets/celebration_pop_up.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Financepage extends StatefulWidget {
   const Financepage({super.key});
@@ -223,6 +225,221 @@ class _FinancepageState extends State<Financepage> {
     await _showQRCodeDialog(payment);
   }
 
+  Future<void> _handleMarkAsPaid(_UpcomingPayment payment) async {
+    if (kDebugMode) {
+      print('✅ Marking payment as paid: ${payment.titleName}');
+    }
+
+    // Track if dialog is showing to prevent multiple pop attempts
+    bool dialogShowing = true;
+
+    // Show loading dialog with a specific route name
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        routeSettings: const RouteSettings(name: 'payment_verification_dialog'),
+        builder: (dialogContext) => WillPopScope(
+          onWillPop: () async => false, // Prevent back button from closing
+          child: const Center(
+            child: Card(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Verifying payment...'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ).then((_) {
+        dialogShowing = false;
+      });
+    }
+
+    try {
+      // Poll the payment status with timeout protection
+      final isSucceeded =
+          await _pollPaymentStatusWithTimeout(payment.transactionId);
+
+      // Only try to pop if dialog is still showing and context is still mounted
+      if (mounted && dialogShowing) {
+        // Check if we can pop and if the current route is our dialog
+        if (Navigator.of(context).canPop()) {
+          // Use careful navigation to only pop the dialog
+          Navigator.of(context).popUntil((route) {
+            // Stop popping when we reach a route that's not our dialog
+            return route.settings.name != 'payment_verification_dialog';
+          });
+        }
+        dialogShowing = false;
+      }
+
+      if (isSucceeded && mounted) {
+        // Small delay to ensure dialog is fully closed
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        CelebrationPopup.show(
+          context,
+          message: 'Payment Verified!\nWell done! 💰',
+          backgroundColor: const Color(0xFFF8F9FA),
+          textColor: const Color(0xFF2D3748),
+          autoCloseDuration: const Duration(seconds: 2),
+        );
+
+        // Refresh the data
+        await _loadAllFinanceData();
+      } else if (mounted) {
+        // Show timeout message instead of throwing error
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment verification timed out. Please try again.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error in payment verification: $e');
+      }
+
+      // Safely close dialog if still open
+      if (mounted && dialogShowing) {
+        if (Navigator.of(context).canPop()) {
+          // Check if the dialog route is on top before popping
+          Navigator.of(context).popUntil((route) {
+            return route.settings.name != 'payment_verification_dialog';
+          });
+        }
+        dialogShowing = false;
+      }
+
+      if (mounted) {
+        // Show user-friendly error message
+        String errorMessage = 'Payment verification failed';
+        if (e.toString().contains('timeout')) {
+          errorMessage = 'Payment verification timed out. Please try again.';
+        } else if (e.toString().contains('network')) {
+          errorMessage = 'Network error. Please check your connection.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+// Add this new method for polling with timeout protection
+  Future<bool> _pollPaymentStatusWithTimeout(int transactionId) async {
+    try {
+      // Use Future.any to race between polling and a timeout
+      return await Future.any([
+        _performPaymentPolling(transactionId),
+        Future.delayed(
+          const Duration(seconds: 35), // Slightly longer than 30 seconds
+          () => false, // Return false on timeout
+        ),
+      ]);
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Polling failed with error: $e');
+      }
+      return false;
+    }
+  }
+
+// Separate the actual polling logic
+  Future<bool> _performPaymentPolling(int transactionId) async {
+    const maxAttempts = 15; // 15 attempts × 2 seconds = 30 seconds
+    int attempts = 0;
+
+    while (attempts < maxAttempts) {
+      // Check if widget is still mounted
+      if (!mounted) {
+        if (kDebugMode) {
+          print('⚠️ Widget unmounted, stopping payment polling');
+        }
+        return false;
+      }
+
+      try {
+        if (kDebugMode) {
+          print(
+              '🔄 Polling payment status (attempt ${attempts + 1}/$maxAttempts)');
+        }
+
+        final response = await ApiClient.get(
+          '/GetPaymentStatusByTransactionID/$transactionId',
+        ).timeout(
+          const Duration(seconds: 5), // Timeout for individual requests
+          onTimeout: () {
+            throw Exception('Request timeout');
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = response.data as Map<String, dynamic>;
+          final status = data['status'] as String?;
+
+          if (kDebugMode) {
+            print('📊 Payment status: $status');
+          }
+
+          if (status == 'succeeded') {
+            if (kDebugMode) {
+              print('✅ Payment succeeded!');
+            }
+            return true;
+          }
+
+          // Check for terminal states to stop polling early
+          if (status == 'failed' ||
+              status == 'cancelled' ||
+              status == 'refunded') {
+            if (kDebugMode) {
+              print('❌ Payment terminated with status: $status');
+            }
+            return false;
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print(
+              '⚠️ Error polling payment status (attempt ${attempts + 1}): $e');
+        }
+        // Continue polling even on error (API might be temporarily unavailable)
+      }
+
+      attempts++;
+
+      // Wait before next attempt (unless it's the last attempt)
+      if (attempts < maxAttempts && mounted) {
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+
+    if (kDebugMode) {
+      print('❌ Payment status polling completed without success');
+    }
+    return false;
+  }
+
+// Keep the existing _pollPaymentStatus method but update it to use the new implementation
+  Future<bool> _pollPaymentStatus(int transactionId) async {
+    return _pollPaymentStatusWithTimeout(transactionId);
+  }
+
   Future<bool?> _showCustomReminderDialog(String name) {
     const cardSize = Size(382, 247);
     const bgColor = Color(0xFFECE9E6);
@@ -298,6 +515,71 @@ class _FinancepageState extends State<Financepage> {
       ),
     );
   }
+
+  Future<void> _launchPaymentLink(String paymentLink) async {
+    try {
+      final Uri url = Uri.parse(paymentLink);
+
+      if (kDebugMode) {
+        print('🔗 Attempting to launch payment link: $paymentLink');
+      }
+
+      // First check if the URL can be launched
+      final canLaunch = await canLaunchUrl(url);
+
+      if (kDebugMode) {
+        print('🔗 Can launch URL: $canLaunch');
+      }
+
+      if (canLaunch) {
+        // Launch the URL in external browser
+        final launched = await launchUrl(
+          url,
+          mode: LaunchMode.externalApplication, // Opens in external browser
+        );
+
+        if (kDebugMode) {
+          print('🔗 URL launched successfully: $launched');
+        }
+
+        if (!launched && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open payment link'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        // If can't launch, show error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to open payment link'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error launching payment link: $e');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening link: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+// Update the _showQRCodeDialog method in Financepage class
+// Replace the existing _showQRCodeDialog method with this updated version:
 
   Future<void> _showQRCodeDialog(_UpcomingPayment payment) {
     const bgColor = Color(0xFFECE9E6);
@@ -403,6 +685,31 @@ class _FinancepageState extends State<Financepage> {
                     ],
                   ),
                 ),
+
+                // Payment Link Button (NEW ADDITION)
+                if (payment.paymentLink != null &&
+                    payment.paymentLink!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () =>
+                            _launchPaymentLink(payment.paymentLink!),
+                        icon: const Icon(Icons.open_in_new, size: 20),
+                        label: const Text('Open Payment Link'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: accent,
+                          side: BorderSide(color: accent, width: 1.5),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
                 // Action buttons
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
@@ -419,7 +726,7 @@ class _FinancepageState extends State<Financepage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: SecondaryButton(
-                          text: 'Mark as Paid',
+                          text: 'Verify',
                           backgroundColor: const Color(0xFF6CC08B),
                           textColor: Colors.white,
                           width: double.infinity,
@@ -439,44 +746,6 @@ class _FinancepageState extends State<Financepage> {
         ),
       ),
     );
-  }
-
-  Future<void> _handleMarkAsPaid(_UpcomingPayment payment) async {
-    if (kDebugMode) {
-      print('✅ Marking payment as paid: ${payment.titleName}');
-    }
-
-    try {
-      // TODO: Call your API to mark the payment as paid
-      // Example:
-      // await ApiClient.post('/MarkPaymentAsPaid/${payment.transactionId}');
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment marked as paid successfully!'),
-            backgroundColor: Color(0xFF6CC08B),
-            duration: Duration(seconds: 2),
-          ),
-        );
-
-        // Refresh the data
-        await _loadAllFinanceData();
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Error marking payment as paid: $e');
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to mark as paid: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    }
   }
 
   Future<void> _showNotifiedDialog(String name) {
