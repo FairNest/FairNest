@@ -214,7 +214,7 @@ func (s roomService) CreateRoomByUserId(userId int, request dtos.CreateRoomByUse
 		RoomName:               request.RoomName,
 		RoomType:               request.RoomType,
 		RoomMaxCapacity:        request.RoomMaxCapacity,
-		RoomCurrentCapacity:    v.Ptr(1), // Since the creator is the first member
+		RoomCurrentCapacity:    v.Ptr(0),
 		RoomDescription:        request.RoomDescription,
 		RoomCode:               v.Ptr(code),
 		RoomCompatibilityScore: request.RoomCompatibilityScore,

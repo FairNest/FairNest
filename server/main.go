@@ -116,6 +116,12 @@ func main() {
 		} else {
 			log.Println("Overdue penalty check completed successfully at startup.")
 		}
+
+		if err := choreService.ProcessMissedChores(); err != nil {
+			log.Printf("Failed to process missed chores at startup: %v", err)
+		} else {
+			log.Println("Missed chores processed successfully at startup.")
+		}
 	}()
 
 	userHandler := handler.NewUserHandler(userService, jwtSecret, uploadService, roomService)

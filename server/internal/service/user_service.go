@@ -455,6 +455,11 @@ func (s userService) UpdateRoommateScore(userID uint, scoreChange float64) (*flo
 		newScore = 0
 	}
 
+	// * ensure score doesn't go beyond 100
+	if newScore > 100 {
+		newScore = 100
+	}
+
 	// * update score in database
 	err = s.userRepo.UpdateRoommateScore(userID, newScore)
 	if err != nil {
@@ -477,6 +482,11 @@ func (s userService) UpdateRoommateScorePenalty(userID uint, scoreChange float64
 	// * ensure score doesn't go below 0
 	if newScore < 0 {
 		newScore = 0
+	}
+
+	// * ensure score doesn't go beyond 100
+	if newScore > 100 {
+		newScore = 100
 	}
 
 	// * update score in database
