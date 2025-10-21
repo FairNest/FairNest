@@ -6,6 +6,7 @@ import 'package:fairnestui/services/storage_service.dart';
 import 'package:fairnestui/services/user_profile_service.dart'; // Your existing service
 import 'package:fairnestui/services/api_client.dart'; // Your existing API client
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart'; // Add this import
@@ -32,7 +33,9 @@ class SettingsPage extends StatelessWidget {
         throw 'Could not launch phone app';
       }
     } catch (e) {
-      print('Error launching phone app: $e');
+      if (kDebugMode) {
+        print('Error launching phone app: $e');
+      }
     }
   }
 
@@ -52,7 +55,9 @@ class SettingsPage extends StatelessWidget {
         throw 'Could not launch YouTube';
       }
     } catch (e) {
-      print('Error launching YouTube: $e');
+      if (kDebugMode) {
+        print('Error launching YouTube: $e');
+      }
     }
   }
 
@@ -73,9 +78,11 @@ class SettingsPage extends StatelessWidget {
           cached ?? await UserProfileService.instance.getCurrentUserProfile();
 
       // Hide loading indicator
+      if (!context.mounted) return;
       Navigator.of(context).pop();
 
       if (profile == null || profile.roomId == 0) {
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('No room found. Please join a room first.'),
@@ -89,36 +96,28 @@ class SettingsPage extends StatelessWidget {
           await ApiClient.get('/GetHouseRulesByRoomId/${profile.roomId}');
 
       // Handle the response based on your ApiClient implementation
-      if (res != null) {
-        // Your API returns the house rules data directly
-        final houseRules = res.data ?? res; // Get the actual response data
+      final houseRules = res.data ?? res;
 
-        if (houseRules is Map<String, dynamic> &&
-            houseRules.containsKey('room_id')) {
-          await RoommateAgreementPdfGenerator.previewPdf(houseRules);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Invalid house rules data. Please try again.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+      if (houseRules is Map<String, dynamic> &&
+          houseRules.containsKey('room_id')) {
+        await RoommateAgreementPdfGenerator.previewPdf(houseRules);
       } else {
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-                'Unable to connect to server. Please check your internet connection.'),
+            content: Text('Invalid house rules data. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
       // Hide loading indicator if still showing
+      if (!context.mounted) return;
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
 
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error generating PDF: ${e.toString()}'),
@@ -506,11 +505,13 @@ class SettingsPage extends StatelessWidget {
                     await StorageService.clearAll();
 
                     // Hide loading indicator
+                    if (!context.mounted) return;
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
                     }
 
                     // Navigate to welcome page and clear navigation stack
+                    if (!context.mounted) return;
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
                           builder: (context) => const WelcomePage()),
@@ -518,10 +519,12 @@ class SettingsPage extends StatelessWidget {
                     );
                   } catch (e) {
                     // Hide loading indicator if still showing
+                    if (!context.mounted) return;
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
                     }
 
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Error during logout: ${e.toString()}'),
@@ -578,8 +581,8 @@ class _BulletedSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: items.map((t) => _Bullet(text: t, style: style)).toList(),
       crossAxisAlignment: CrossAxisAlignment.start,
+      children: items.map((t) => _Bullet(text: t, style: style)).toList(),
     );
   }
 }

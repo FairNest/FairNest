@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
-import 'package:fairnestui/pages/room_creation/room_creation_controller.dart'
-    show CreateRoomData, GroupType;
 
 // NEW: Provider + controller
 import 'package:provider/provider.dart';

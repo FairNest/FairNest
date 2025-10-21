@@ -3,8 +3,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:fairnestui/theme/app_colors.dart';
-import 'package:fairnestui/util/paymentSentDialog.dart'
-    show showPaymentSentDialog;
 
 enum SplitType { even, custom }
 
@@ -236,7 +234,6 @@ class Financetaskcard extends StatelessWidget {
 
   // ---------- QR Sheet + Dialog ----------
   Future<void> _showQrSheet(BuildContext context) async {
-    final rootContext = context;
     final qrImageBytes = _base64ToImage(qrData);
 
     await showModalBottomSheet(

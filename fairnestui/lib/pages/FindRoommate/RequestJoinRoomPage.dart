@@ -87,7 +87,7 @@ class _RequestjoinroompageState extends State<Requestjoinroompage> {
       "members": (data["members"] as List? ?? [])
           .whereType<Map<String, dynamic>>()
           .map((m) => {
-                "name": (m["firstname"]?.toString()?.isNotEmpty ?? false)
+                "name": (m["firstname"]?.toString().isNotEmpty ?? false)
                     ? "${m["firstname"] ?? ""} ${m["lastname"] ?? ""}".trim()
                     : (m["username"]?.toString() ?? "Member"),
                 "pic": m["user_picture"]?.toString(),

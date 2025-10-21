@@ -229,12 +229,16 @@ class OutstandingBalanceCard extends StatelessWidget {
                           Navigator.pop(sheetCtx);
                           // 2) then show your Payment Sent dialog
                           Future.microtask(() {
-                            showPaymentSentDialog(
-                              rootContext,
-                              payer: 'You', // or your current user
-                              receiver: name, // the roommate you're paying
-                              amount: '${_fmt(amount)} $currency',
-                            );
+                            // Check if rootContext is still valid
+                            if (rootContext.mounted) {
+                              // ✅ Add mounted check
+                              showPaymentSentDialog(
+                                rootContext,
+                                payer: 'You',
+                                receiver: name,
+                                amount: '${_fmt(amount)} $currency',
+                              );
+                            }
                           });
                         },
                         child: const Text('Verify'),

@@ -161,9 +161,6 @@ class _DateStripState extends State<DateStrip> {
         'November',
         'December'
       ][m];
-
-  static String _weekdayShort(int w) =>
-      const ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][w];
 }
 
 class _DateChip extends StatelessWidget {

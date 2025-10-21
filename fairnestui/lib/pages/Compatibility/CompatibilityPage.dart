@@ -31,13 +31,14 @@ class CompatibilityPairDto {
   });
 
   factory CompatibilityPairDto.fromJson(Map<String, dynamic> j) {
-    double _num(v) => (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+    double parseNum(v) =>
+        (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
     return CompatibilityPairDto(
       userAId: (j['user_a_id'] as num).toInt(),
       userAName: (j['user_a_name'] ?? '') as String,
       userBId: (j['user_b_id'] as num).toInt(),
       userBName: (j['user_b_name'] ?? '') as String,
-      scorePct: _num(j['score']),
+      scorePct: parseNum(j['score']),
     );
   }
 }
@@ -80,12 +81,13 @@ class CompatibilityMatchItemDto {
   });
 
   factory CompatibilityMatchItemDto.fromJson(Map<String, dynamic> j) {
-    double _num(v) => (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+    double parseNum(v) =>
+        (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
     return CompatibilityMatchItemDto(
       userId: (j['user_id'] as num).toInt(),
       username: (j['username'] ?? '') as String,
       profilePicture: j['profile_picture'] as String?,
-      scorePct: _num(j['score']),
+      scorePct: parseNum(j['score']),
       matchLabel: (j['match'] ?? '') as String,
     );
   }

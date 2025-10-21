@@ -215,7 +215,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
 
       // If your API returns a token, you can store it here:
       // await StorageService.setToken(resp.data['token']);
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile completed & registered!')),
       );

@@ -285,7 +285,7 @@ class _FilterDialogState extends State<_FilterDialog> {
             const SizedBox(height: 16),
 
             // Rent Range
-            Text(
+            const Text(
               'Rent Range',
               style: TextStyle(
                 fontFamily: 'Krub',
@@ -323,7 +323,8 @@ class _FilterDialogState extends State<_FilterDialog> {
             _FilterField(
               label: 'Max Electricity Cost',
               controller: _maxElectricityController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               suffix: '฿/unit',
             ),
 
@@ -333,14 +334,15 @@ class _FilterDialogState extends State<_FilterDialog> {
             _FilterField(
               label: 'Max Water Cost',
               controller: _maxWaterController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               suffix: '฿/unit',
             ),
 
             const SizedBox(height: 16),
 
             // Quiet Hours
-            Text(
+            const Text(
               'Quiet Hours Start',
               style: TextStyle(
                 fontFamily: 'Krub',
@@ -382,7 +384,8 @@ class _FilterDialogState extends State<_FilterDialog> {
             _FilterField(
               label: 'Min Compatibility',
               controller: _minCompatibilityController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               suffix: '%',
             ),
           ],
@@ -392,12 +395,12 @@ class _FilterDialogState extends State<_FilterDialog> {
         // Clear Button
         TextButton(
           onPressed: _clearFilters,
-          child: Text(
+          child: const Text(
             'Clear All',
             style: TextStyle(
               fontFamily: 'Krub',
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF8C8885),
+              color: Color(0xFF8C8885),
             ),
           ),
         ),
@@ -411,12 +414,12 @@ class _FilterDialogState extends State<_FilterDialog> {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          child: Text(
+          child: const Text(
             'Apply Filters',
             style: TextStyle(
               fontFamily: 'Krub',
               fontWeight: FontWeight.w700,
-              color: const Color(0xFFC34C04),
+              color: Color(0xFFC34C04),
             ),
           ),
         ),
@@ -448,7 +451,7 @@ class _FilterField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontFamily: 'Krub',
             fontWeight: FontWeight.w600,
             fontSize: 14,
@@ -480,7 +483,7 @@ class _FilterField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.accent),
+              borderSide: const BorderSide(color: AppColors.accent),
             ),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -882,8 +885,8 @@ class _PublicRoomsTabState extends State<_PublicRoomsTab> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Filters cleared'),
+      const SnackBar(
+        content: Text('Filters cleared'),
         backgroundColor: AppColors.accent,
       ),
     );
@@ -921,16 +924,17 @@ class _PublicRoomsTabState extends State<_PublicRoomsTab> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.2),
+                  color: AppColors.accent.withValues(alpha: .2),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.accent.withOpacity(0.5)),
+                  border:
+                      Border.all(color: AppColors.accent.withValues(alpha: .5)),
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.filter_alt,
                       size: 16,
-                      color: const Color(0xFFC34C04),
+                      color: Color(0xFFC34C04),
                     ),
                     const SizedBox(width: 8),
                     Text(

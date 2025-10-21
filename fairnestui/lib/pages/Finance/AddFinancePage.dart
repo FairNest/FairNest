@@ -183,7 +183,7 @@ class _AddFinancePageState extends State<AddFinancePage> {
         child: child!,
       ),
     );
-    if (date == null) return;
+    if (date == null || !mounted) return;
 
     final time = await showTimePicker(
       context: context,
@@ -797,7 +797,7 @@ class _AddFinancePageState extends State<AddFinancePage> {
                     Text('Category', style: _labelStyle),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: _category,
+                      initialValue: _category,
                       items: _categoryOptions
                           .map(
                               (e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -868,43 +868,6 @@ class _AddFinancePageState extends State<AddFinancePage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Split Type
-                    Text('Split Type', style: _labelStyle),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      value: _splitType,
-                      items: _splitTypes
-                          .map(
-                              (e) => DropdownMenuItem(value: e, child: Text(e)))
-                          .toList(),
-                      onChanged: (v) async {
-                        setState(() => _splitType = v);
-                        if (v == 'Custom') {
-                          await _editCustomSplit();
-                        } else {
-                          _customSplits = {};
-                        }
-                      },
-                      decoration: _fieldDecoration('Select'),
-                      validator: (v) => v == null ? 'Select split type' : null,
-                    ),
-                    if (_splitType == 'Custom') ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        _isCustomValid
-                            ? 'Custom split set'
-                            : 'Set custom split (must equal total)',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: _isCustomValid
-                              ? Colors.green[800]
-                              : Colors.red[800],
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-
                     // Assign To (participants) - now inside Finance card
                     Text('Assign To', style: _labelStyle),
                     const SizedBox(height: 8),
@@ -959,6 +922,45 @@ class _AddFinancePageState extends State<AddFinancePage> {
                               ),
                       ),
                     ),
+
+                    const SizedBox(height: 16),
+
+                    // Split Type
+                    Text('Split Type', style: _labelStyle),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _splitType,
+                      items: _splitTypes
+                          .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (v) async {
+                        setState(() => _splitType = v);
+                        if (v == 'Custom') {
+                          await _editCustomSplit();
+                        } else {
+                          _customSplits = {};
+                        }
+                      },
+                      decoration: _fieldDecoration('Select'),
+                      validator: (v) => v == null ? 'Select split type' : null,
+                    ),
+                    if (_splitType == 'Custom') ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        _isCustomValid
+                            ? 'Custom split set'
+                            : 'Set custom split (must equal total)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: _isCustomValid
+                              ? Colors.green[800]
+                              : Colors.red[800],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),

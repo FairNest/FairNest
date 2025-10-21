@@ -51,9 +51,6 @@ class ChoresTaskCard extends StatefulWidget {
 }
 
 class _ChoresTaskCardState extends State<ChoresTaskCard> {
-  static const _purple = Color(0xFF645A80);
-  static const _lavender = Color(0xFFD9CFF1);
-
   late bool _checked;
 
   @override

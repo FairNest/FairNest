@@ -126,22 +126,26 @@ class EditHouseRulesDialog extends StatelessWidget {
                               _RuleSection(
                                   title: 'Shared Expenses', value: expensesTxt),
                               const SizedBox(height: 16),
-
-                              // ➜ open Edit page with mapped initialData (NO API there)
                               MainButton(
                                 text: 'Edit House Rule',
-                                onPressed: () {
+                                onPressed: () async {
                                   final initial =
                                       _mapHouseRulesToEditData(rules);
                                   Navigator.of(context).pop();
-                                  Future.microtask(() {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            EditHousePage(initialData: initial),
-                                      ),
-                                    );
-                                  });
+
+                                  // Small delay to ensure dialog closes
+                                  await Future.delayed(
+                                      const Duration(milliseconds: 100));
+
+                                  // Check if context is still valid
+                                  if (!context.mounted) return;
+
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          EditHousePage(initialData: initial),
+                                    ),
+                                  );
                                 },
                                 backgroundColor: const Color(0xFFE8B86D),
                                 textColor: Colors.black,
@@ -318,8 +322,9 @@ EditHouseRuleData _mapHouseRulesToEditData(HouseRules r) {
   if (resp.contains('kitchen')) respSet.add(ResponsibilityOption.kitchen);
   if (resp.contains('living')) respSet.add(ResponsibilityOption.livingRoom);
   if (resp.contains('bathroom')) respSet.add(ResponsibilityOption.bathroom);
-  if (resp.contains('trash') || resp.contains('garbage'))
+  if (resp.contains('trash') || resp.contains('garbage')) {
     respSet.add(ResponsibilityOption.trash);
+  }
 
   // Split Costs
   final sOpt =

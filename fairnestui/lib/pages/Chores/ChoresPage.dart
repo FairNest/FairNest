@@ -187,7 +187,7 @@ class _ChorespageState extends State<Chorespage> {
       final ymd = _toYmd(d);
 
       final respAll = await ApiClient.get(
-        '/rooms/${_roomId}/chores/day',
+        '/rooms/$_roomId/chores/day',
         queryParameters: {'date': ymd},
       );
       final listAll = (respAll.data as List<dynamic>)
@@ -195,7 +195,7 @@ class _ChorespageState extends State<Chorespage> {
           .toList();
 
       final respMine = await ApiClient.get(
-        '/rooms/${_roomId}/chores/day/mine',
+        '/rooms/$_roomId/chores/day/mine',
         queryParameters: {'date': ymd},
       );
       final listMine = (respMine.data as List<dynamic>)
@@ -278,6 +278,7 @@ class _ChorespageState extends State<Chorespage> {
 
   Future<void> _markComplete(_ChoreItem c) async {
     if (c.assignmentId == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Missing chore_assignment_id')),
       );
@@ -290,6 +291,8 @@ class _ChorespageState extends State<Chorespage> {
       await ApiClient.post('/chores/complete', data: {
         'chore_assignment_id': c.assignmentId,
       });
+
+      if (!mounted) return;
 
       setState(() {
         c.completed = true;
@@ -341,9 +344,9 @@ class _ChorespageState extends State<Chorespage> {
       );
     }
     if (items.isEmpty) {
-      return SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: const _EmptyArea(label: 'No chores here 🎉'),
+      return const SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: _EmptyArea(label: 'No chores here 🎉'),
       );
     }
     return SingleChildScrollView(
@@ -529,11 +532,10 @@ class _CountSegmentedPill extends StatefulWidget {
     this.height = 44,
     this.labelFontSize = 14,
     this.badgeHeight = 22,
-    this.badgeWidth,
+    // this.badgeWidth,
     this.badgeFontSize = 12,
     this.badgeRadius = 8,
     this.badgeHorizontalPadding = 7,
-    super.key,
   }) : assert(tabs.length == counts.length);
 
   final List<String> tabs;
@@ -544,7 +546,7 @@ class _CountSegmentedPill extends StatefulWidget {
 
   final double labelFontSize;
   final double badgeHeight;
-  final double? badgeWidth;
+  // final double? badgeWidth;
   final double badgeFontSize;
   final double badgeRadius;
   final double badgeHorizontalPadding;
@@ -635,7 +637,7 @@ class _CountSegmentedPillState extends State<_CountSegmentedPill> {
                           _MiniCountBadge(
                             value: widget.counts[i],
                             height: widget.badgeHeight,
-                            width: widget.badgeWidth,
+                            // width: widget.badgeWidth,
                             radius: widget.badgeRadius,
                             fontSize: widget.badgeFontSize,
                             paddingH: widget.badgeHorizontalPadding,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:fairnestui/services/storage_service.dart';
 
@@ -14,7 +15,9 @@ class UserService {
       if (iss == null) return null;
       return int.tryParse(iss.toString());
     } catch (e) {
-      print("❌ Failed to decode token: $e");
+      if (kDebugMode) {
+        print("❌ Failed to decode token: $e");
+      }
       return null;
     }
   }
@@ -28,7 +31,9 @@ class UserService {
       Map<String, dynamic> decoded = JwtDecoder.decode(token);
       return decoded['email']?.toString();
     } catch (e) {
-      print("❌ Failed to decode token: $e");
+      if (kDebugMode) {
+        print("❌ Failed to decode token: $e");
+      }
       return null;
     }
   }

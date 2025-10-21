@@ -174,7 +174,6 @@ class _AppHeaderState extends State<AppHeader> {
         );
 
       case AppHeaderRightType.none:
-      default:
         return const SizedBox.shrink();
     }
   }

@@ -31,16 +31,16 @@ class _LifestyleQuizPageState extends State<LifestyleQuizPage> {
   }
 
   List<LifestyleMetric> _computeMetrics(Map<int, int> a) {
-    double _avg(List<int> xs) =>
+    double avg(List<int> xs) =>
         xs.isEmpty ? 0 : xs.reduce((p, c) => p + c) / xs.length;
-    double _norm(double v) => (v / 5.0).clamp(0.0, 1.0);
+    double norm(double v) => (v / 5.0).clamp(0.0, 1.0);
 
-    final tidiness = _norm(_avg([a[1]!, a[2]!])); // Q1,Q2
-    final noiseActivity = _norm(_avg([a[3]!, a[4]!])); // Q3,Q4
-    final schedule = _norm(_avg([a[5]!, a[6]!])); // Q5,Q6
-    final guestFrequency = _norm(_avg([a[7]!, a[8]!])); // Q7,Q8
-    final taskStructure = _norm(_avg([a[9]!, a[10]!])); // Q9,Q10
-    final moneyAttitude = _norm(_avg([a[11]!, a[12]!])); // Q11,Q12
+    final tidiness = norm(avg([a[1]!, a[2]!])); // Q1,Q2
+    final noiseActivity = norm(avg([a[3]!, a[4]!])); // Q3,Q4
+    final schedule = norm(avg([a[5]!, a[6]!])); // Q5,Q6
+    final guestFrequency = norm(avg([a[7]!, a[8]!])); // Q7,Q8
+    final taskStructure = norm(avg([a[9]!, a[10]!])); // Q9,Q10
+    final moneyAttitude = norm(avg([a[11]!, a[12]!])); // Q11,Q12
 
     return [
       LifestyleMetric(kind: LifestyleMetricKind.tidiness, value: tidiness),
@@ -372,7 +372,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
                 flex: 3,
                 child: Text(
                   widget.endLabel,
-                  style: TextStyle(fontSize: 12),
+                  style: const TextStyle(fontSize: 12),
                   textAlign: TextAlign.right,
                   softWrap: true,
                 ),

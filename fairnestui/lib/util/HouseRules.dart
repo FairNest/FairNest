@@ -109,13 +109,18 @@ class HouseRulesDialog extends StatelessWidget {
 
                   MainButton(
                     text: 'Okay, Send Request!',
-                    onPressed: () {
+                    onPressed: () async {
                       // Close this dialog and return true
                       Navigator.of(context).pop(true);
+
+                      // Small delay to ensure dialog closes
+                      await Future.delayed(const Duration(milliseconds: 100));
+
+                      // Check if context is still valid
+                      if (!context.mounted) return;
+
                       // Then open the "voting" popup
-                      Future.microtask(() {
-                        showJoinRequestSubmittedDialog(context);
-                      });
+                      showJoinRequestSubmittedDialog(context);
                     },
                     backgroundColor: const Color(0xFFE8B86D),
                     textColor: Colors.black,

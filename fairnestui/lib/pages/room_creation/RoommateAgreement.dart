@@ -69,7 +69,7 @@ class _RoommateAgreementPageState extends State<RoommateAgreementPage> {
     );
 
     if (!controller.isComplete) {
-      controller.debugPrintState();
+      // controller.debugPrintState();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all steps first.')),
       );
@@ -582,23 +582,44 @@ Future<T?> _showRadioSelector<T>({
                     ),
                   ),
                 ),
-                ...options.entries.map(
-                  (e) => RadioListTile<T>(
-                    value: e.key,
-                    groupValue: current,
-                    onChanged: (v) {
-                      if (v == null) return;
-                      setStateSheet(() => current = v);
-                      onChanged?.call(v);
-                    },
-                    title: Text(
-                      e.value,
-                      style: const TextStyle(
-                        fontFamily: 'Krub',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
+                RadioGroup<T>(
+                  groupValue: current,
+                  onChanged: (v) {
+                    if (v == null) return;
+                    setStateSheet(() => current = v);
+                    onChanged?.call(v);
+                  },
+                  child: Column(
+                    children: options.entries
+                        .map(
+                          (e) => InkWell(
+                            onTap: () {
+                              setStateSheet(() => current = e.key);
+                              onChanged?.call(e.key);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: Row(
+                                children: [
+                                  Radio<T>(value: e.key),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      e.value,
+                                      style: const TextStyle(
+                                        fontFamily: 'Krub',
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
                 if (extraFooter != null) extraFooter(ctx, setStateSheet),

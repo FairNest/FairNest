@@ -5,10 +5,10 @@ class ProfileAvatar extends StatelessWidget {
   final String imagePath;
 
   const ProfileAvatar({
-    Key? key,
+    super.key,
     required this.name,
     required this.imagePath,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

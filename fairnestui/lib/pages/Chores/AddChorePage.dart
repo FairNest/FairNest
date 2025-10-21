@@ -135,7 +135,7 @@ class _AddChorePageState extends State<AddChorePage> {
       _loadError = null;
     });
     try {
-      final resp = await ApiClient.get('/rooms/${_roomId}/users/basic');
+      final resp = await ApiClient.get('/rooms/$_roomId/users/basic');
       final data = resp.data as List;
       final list = data
           .map((e) => RoomUserInfo.fromJson(e as Map<String, dynamic>))
@@ -174,7 +174,7 @@ class _AddChorePageState extends State<AddChorePage> {
         child: child!,
       ),
     );
-    if (date == null) return;
+    if (date == null || !mounted) return;
 
     final time = await showTimePicker(
       context: context,
@@ -440,7 +440,7 @@ class _AddChorePageState extends State<AddChorePage> {
 
     setState(() => _submitting = true);
     try {
-      await ApiClient.post('/rooms/${_roomId}/chores', data: body);
+      await ApiClient.post('/rooms/$_roomId/chores', data: body);
       if (!mounted) return;
 
       setState(() => _submitting = false);
@@ -700,7 +700,7 @@ class _AddChorePageState extends State<AddChorePage> {
                     Text('Category', style: _labelStyle),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: _category,
+                      initialValue: _category,
                       items: _categoryOptions
                           .map(
                               (e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -754,7 +754,7 @@ class _AddChorePageState extends State<AddChorePage> {
                     Text('Recurrence', style: _labelStyle),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: _recurrence,
+                      initialValue: _recurrence,
                       items: _recurrences
                           .map(
                               (e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -769,7 +769,7 @@ class _AddChorePageState extends State<AddChorePage> {
                     Text('Auto-Rotate', style: _labelStyle),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: _autoRotate,
+                      initialValue: _autoRotate,
                       items: _yesNo
                           .map(
                               (e) => DropdownMenuItem(value: e, child: Text(e)))

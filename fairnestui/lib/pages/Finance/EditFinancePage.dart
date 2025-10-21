@@ -99,7 +99,7 @@ class _EditFinancePageState extends State<EditFinancePage> {
         child: child!,
       ),
     );
-    if (date == null) return;
+    if (date == null || !mounted) return;
 
     final time = await showTimePicker(
       context: context,
@@ -244,16 +244,6 @@ class _EditFinancePageState extends State<EditFinancePage> {
     return (sum - _totalAmount).abs() < 0.01;
   }
 
-  bool get _canSave =>
-      _titleCtrl.text.trim().isNotEmpty &&
-      (_dateTime ?? widget.dateTime) != null &&
-      _participants.isNotEmpty &&
-      (_category ?? widget.category) != null &&
-      _totalAmount > 0 &&
-      (_splitType ?? widget.splitType) != null &&
-      _paidBy.isNotEmpty &&
-      _isCustomValid;
-
   Future<void> _editCustomSplit() async {
     if (_participants.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -388,25 +378,6 @@ class _EditFinancePageState extends State<EditFinancePage> {
       },
     );
     setState(() {});
-  }
-
-  void _onSave() {
-    if (!_formKey.currentState!.validate() || !_canSave) return;
-
-    final payload = {
-      'title': _titleCtrl.text.trim(),
-      'dateTime': (_dateTime ?? widget.dateTime)?.toIso8601String(),
-      'participants': _participants,
-      'category': _category ?? widget.category,
-      'totalAmount': _totalAmount,
-      'splitType': _splitType ?? widget.splitType,
-      'customSplits': (_splitType ?? widget.splitType) == 'Custom'
-          ? (_customSplits.isNotEmpty ? _customSplits : widget.customSplits)
-          : null,
-      'paidBy': _paidBy,
-    };
-
-    Navigator.pop(context, {'action': 'save', 'data': payload});
   }
 
   void _onDelete() {
@@ -558,7 +529,7 @@ class _EditFinancePageState extends State<EditFinancePage> {
                     Text('Category', style: _labelStyle),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: _category,
+                      initialValue: _category,
                       items: _categories
                           .map(
                               (e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -632,7 +603,7 @@ class _EditFinancePageState extends State<EditFinancePage> {
                     Text('Split Type', style: _labelStyle),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: _splitType,
+                      initialValue: _splitType,
                       items: _splitTypes
                           .map(
                               (e) => DropdownMenuItem(value: e, child: Text(e)))

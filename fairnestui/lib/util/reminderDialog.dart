@@ -141,13 +141,19 @@ Future<bool?> showReminderDialog(BuildContext context, {required String name}) {
                         textColor: Colors.white,
                         width: double.infinity,
                         height: 48,
-                        onPressed: () {
-                          // 1) Close this dialog
+                        onPressed: () async {
+                          // 1) Close this dialog first
                           Navigator.of(rootContext).pop(true);
-                          // 2) Then show the "notified" dialog
-                          Future.microtask(() {
-                            showNotifiedDialog(rootContext, name: name);
-                          });
+
+                          // 2) Small delay to ensure dialog is closed
+                          await Future.delayed(
+                              const Duration(milliseconds: 100));
+
+                          // 3) Check context is still valid before showing next dialog
+                          if (!rootContext.mounted) return;
+
+                          // 4) Show the "notified" dialog
+                          showNotifiedDialog(rootContext, name: name);
                         },
                       ),
                     ),

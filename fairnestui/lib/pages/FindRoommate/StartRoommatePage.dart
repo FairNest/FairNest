@@ -2,7 +2,6 @@
 import 'package:fairnestui/widgets/LifestyleOverview.dart';
 import 'package:fairnestui/services/api_client.dart';
 import 'package:flutter/material.dart';
-import 'package:fairnestui/theme/app_colors.dart';
 import 'package:fairnestui/theme/app_fonts.dart';
 import 'package:fairnestui/widgets/app_header.dart';
 import 'package:fairnestui/components/RoomComponentsCard.dart';
@@ -46,7 +45,7 @@ class _StartRoommatePageState extends State<StartRoommatePage> {
     final members = (data['members'] as List? ?? [])
         .whereType<Map<String, dynamic>>()
         .map((m) => {
-              "name": (m["firstname"]?.toString()?.isNotEmpty ?? false)
+              "name": (m["firstname"]?.toString().isNotEmpty ?? false)
                   ? "${m["firstname"] ?? ""} ${m["lastname"] ?? ""}".trim()
                   : (m["username"]?.toString() ?? "Member"),
               "pic": m["user_picture"]?.toString(),

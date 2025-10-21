@@ -242,7 +242,7 @@ class NotificationCard extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Krub',
                   fontSize: 14,
-                  color: AppColors.darkPurple.withOpacity(0.8),
+                  color: AppColors.darkPurple.withValues(alpha: .8),
                   fontWeight: FontWeight.w600,
                 ),
               ),

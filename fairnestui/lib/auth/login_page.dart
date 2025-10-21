@@ -181,12 +181,14 @@ class _LoginPageState extends State<LoginPage> {
                               hint: 'Your Email',
                               keyboardType: TextInputType.emailAddress,
                               validator: (v) {
-                                if (v == null || v.trim().isEmpty)
+                                if (v == null || v.trim().isEmpty) {
                                   return 'Email is required';
+                                }
                                 if (!RegExp(
                                         r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$')
-                                    .hasMatch(v.trim()))
+                                    .hasMatch(v.trim())) {
                                   return 'Please enter a valid email';
+                                }
                                 return null;
                               },
                             ),
@@ -211,8 +213,9 @@ class _LoginPageState extends State<LoginPage> {
                                     setState(() => _obscure = !_obscure),
                               ),
                               validator: (v) {
-                                if (v == null || v.isEmpty)
+                                if (v == null || v.isEmpty) {
                                   return 'Password is required';
+                                }
                                 return null;
                               },
                             ),

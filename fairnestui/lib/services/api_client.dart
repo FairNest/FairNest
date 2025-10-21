@@ -170,28 +170,46 @@ class ApiClient {
   // ------------ Logging ------------
 
   static void _prettyLogRequest(RequestOptions options) {
-    print('📤 ${options.method} ${options.uri}');
-    print('Headers: ${options.headers}');
+    if (kDebugMode) {
+      print('📤 ${options.method} ${options.uri}');
+    }
+    if (kDebugMode) {
+      print('Headers: ${options.headers}');
+    }
     final data = options.data;
     if (data is FormData) {
       final fields = data.fields.map((e) => '${e.key}=${e.value}').join(', ');
       final files = data.files.map((e) => e.key).join(', ');
-      print('Body: FormData{ fields: {$fields}, files: [$files] }');
+      if (kDebugMode) {
+        print('Body: FormData{ fields: {$fields}, files: [$files] }');
+      }
     } else {
-      print('Body: ${data ?? '(no body)'}');
+      if (kDebugMode) {
+        print('Body: ${data ?? '(no body)'}');
+      }
     }
   }
 
   static void _prettyLogResponse(Response response) {
-    print('📥 ${response.statusCode} ${response.requestOptions.uri}');
-    print('Response: ${response.data}');
+    if (kDebugMode) {
+      print('📥 ${response.statusCode} ${response.requestOptions.uri}');
+    }
+    if (kDebugMode) {
+      print('Response: ${response.data}');
+    }
   }
 
   static void _prettyLogError(DioException error) {
-    print('❌ ${error.requestOptions.method} ${error.requestOptions.uri}');
-    print('Error: ${error.message}');
+    if (kDebugMode) {
+      print('❌ ${error.requestOptions.method} ${error.requestOptions.uri}');
+    }
+    if (kDebugMode) {
+      print('Error: ${error.message}');
+    }
     if (error.response != null) {
-      print('Response: ${error.response?.data}');
+      if (kDebugMode) {
+        print('Response: ${error.response?.data}');
+      }
     }
   }
 }

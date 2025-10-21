@@ -104,7 +104,7 @@ class RoommateAgreementPdfGenerator {
                   pw.Row(
                     children: [
                       pw.Icon(
-                        pw.IconData(0xe88e), // info icon
+                        const pw.IconData(0xe88e), // info icon
                         size: 20,
                         color: PdfColors.blue800,
                       ),

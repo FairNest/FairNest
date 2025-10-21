@@ -27,7 +27,6 @@ class RoomDashboardPage extends StatefulWidget {
 
 class _RoomDashboardPageState extends State<RoomDashboardPage> {
   int _tab = 0;
-  int _bottomIndex = 0;
   String _firstName = "User";
   List<NotificationModel> _recentNotifications = [];
   bool _isLoadingNotifications = true;
@@ -52,7 +51,7 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
           await UserProfileService.instance.getCachedProfile();
       if (cachedProfile != null && mounted) {
         setState(() {
-          _firstName = cachedProfile.firstname ?? "User";
+          _firstName = cachedProfile.firstname;
         });
       }
 
@@ -60,7 +59,7 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
       final profile = await UserProfileService.instance.getCurrentUserProfile();
       if (profile != null && mounted) {
         setState(() {
-          _firstName = profile.firstname ?? "User";
+          _firstName = profile.firstname;
         });
       }
     } catch (e) {
@@ -122,25 +121,6 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
     await _loadRoomDashboardData();
   }
 
-  void _onBottomTab(int i) {
-    setState(() => _bottomIndex = i);
-  }
-
-  void _onCenterAction() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => SizedBox(
-        height: 260,
-        child:
-            Center(child: Text('Create something…', style: AppFonts.heading1)),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -187,7 +167,6 @@ class _RoomDashboardPageState extends State<RoomDashboardPage> {
 
 class _RoomDashContent extends StatelessWidget {
   const _RoomDashContent({
-    super.key,
     required this.notifications,
     required this.isLoadingNotifications,
     required this.onRefreshNotifications,
@@ -204,21 +183,6 @@ class _RoomDashContent extends StatelessWidget {
   final bool isLoadingDashboard;
   final String? dashboardError;
   final Future<void> Function() onRefreshDashboard;
-
-  String _getTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -492,7 +456,7 @@ class _RoomDashContent extends StatelessWidget {
 // Replace the _YourDashContent class in your RoomDashboardPage.dart
 
 class _YourDashContent extends StatefulWidget {
-  const _YourDashContent({super.key});
+  const _YourDashContent();
 
   @override
   State<_YourDashContent> createState() => _YourDashContentState();
@@ -637,7 +601,6 @@ class _PillSegmentedControl extends StatefulWidget {
     required this.onChanged,
     this.initialIndex = 0,
     this.height = 44,
-    super.key,
   });
 
   final List<String> tabs;
@@ -653,7 +616,6 @@ class _PillSegmentedControlState extends State<_PillSegmentedControl> {
   late int _index = widget.initialIndex;
 
   static const Color _pink = Color(0xFFFF8FB5);
-  static const Color _cream = Color(0xFFFFF1E8);
   static const EdgeInsets _padding = EdgeInsets.all(6);
 
   Alignment _alignmentFor(int i, int len) {

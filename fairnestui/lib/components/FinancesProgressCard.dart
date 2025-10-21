@@ -77,7 +77,7 @@ class FinancesProgressCard extends StatelessWidget {
               children: [
                 Icon(
                   Icons.account_balance_wallet_outlined,
-                  color: fillColor.withOpacity(0.6),
+                  color: fillColor.withValues(alpha: .6),
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -86,7 +86,7 @@ class FinancesProgressCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: fillColor.withOpacity(0.8),
+                    color: fillColor.withValues(alpha: .8),
                   ),
                 ),
               ],

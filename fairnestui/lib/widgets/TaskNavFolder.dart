@@ -75,16 +75,9 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
   }
 
   Future<void> _markChoreComplete(UserChoreItem chore) async {
-    if (chore.choreAssignmentId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Missing chore assignment ID')),
-      );
-      return;
-    }
-
     if (_completingChores.contains(chore.choreAssignmentId)) return;
 
-    setState(() => _completingChores.add(chore.choreAssignmentId!));
+    setState(() => _completingChores.add(chore.choreAssignmentId));
 
     try {
       await ApiClient.post('/chores/complete', data: {
@@ -117,16 +110,9 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
 // Updated _markFinancePaid method in TaskNavFolder with better error handling
 
   Future<void> _markFinancePaid(UserFinanceItem finance) async {
-    if (finance.transactionId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Missing transaction ID')),
-      );
-      return;
-    }
-
     if (_completingFinances.contains(finance.transactionId)) return;
 
-    setState(() => _completingFinances.add(finance.transactionId!));
+    setState(() => _completingFinances.add(finance.transactionId));
 
     // Track if dialog is showing to prevent multiple pop attempts
     bool dialogShowing = true;
@@ -136,9 +122,9 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
       context: context,
       barrierDismissible: false,
       routeSettings: const RouteSettings(name: 'payment_verification'),
-      builder: (dialogContext) => WillPopScope(
-        onWillPop: () async => false, // Prevent back button from closing
-        child: const Center(
+      builder: (dialogContext) => const PopScope(
+        canPop: false, // Prevent back button from closing
+        child: Center(
           child: Card(
             child: Padding(
               padding: EdgeInsets.all(20),
@@ -159,7 +145,7 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
     });
 
     try {
-      final isSucceeded = await _pollPaymentStatus(finance.transactionId!);
+      final isSucceeded = await _pollPaymentStatus(finance.transactionId);
 
       // Only try to pop if dialog is still showing and context is still mounted
       if (mounted && dialogShowing) {
@@ -177,7 +163,7 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
       if (isSucceeded && mounted) {
         // Small delay to ensure dialog is fully closed
         await Future.delayed(const Duration(milliseconds: 100));
-
+        if (!mounted) return;
         CelebrationPopup.show(
           context,
           message: 'Payment Settled!\nWell done! 💰',
@@ -235,7 +221,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
 // Updated _pollPaymentStatus with better error handling
   Future<bool> _pollPaymentStatus(int transactionId) async {
     const maxAttempts = 15; // 30 seconds total
-    int attempts = 0;
 
     // Add timeout wrapper to prevent infinite waiting
     try {
@@ -376,13 +361,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
               }
 
               if (!checked) return;
-
-              if (chore.choreAssignmentId == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('No assignment ID')),
-                );
-                return;
-              }
               if (_completingChores.contains(chore.choreAssignmentId)) return;
 
               _markChoreComplete(chore);
@@ -441,13 +419,6 @@ class _TaskNavFolderState extends State<TaskNavFolder> {
             onSettled: () {
               // Don't allow settling if already completed
               if (isInCompletedTab || finance.isCompleted == true) return;
-
-              if (finance.transactionId == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('No transaction ID')),
-                );
-                return;
-              }
               if (_completingFinances.contains(finance.transactionId)) return;
               _markFinancePaid(finance);
             },

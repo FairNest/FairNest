@@ -118,49 +118,6 @@ class WelcomePage extends StatelessWidget {
   }
 }
 
-class _Blob extends StatelessWidget {
-  const _Blob({
-    required this.color,
-    required this.size,
-    this.top,
-    this.left,
-    this.right,
-    this.bottom,
-    this.angle = 0,
-    this.hollow = false,
-  });
-
-  final Color color;
-  final double size;
-  final double? top, left, right, bottom;
-  final double angle;
-  final bool hollow;
-
-  @override
-  Widget build(BuildContext context) {
-    final child = Transform.rotate(
-      angle: angle,
-      child: Container(
-        width: size,
-        height: size * 0.7,
-        decoration: BoxDecoration(
-          color: hollow ? Colors.transparent : color,
-          borderRadius: BorderRadius.circular(size),
-          border: hollow ? Border.all(color: color, width: 6) : null,
-        ),
-      ),
-    );
-
-    return Positioned(
-      top: top,
-      left: left,
-      right: right,
-      bottom: bottom,
-      child: child,
-    );
-  }
-}
-
 class _OutlinedButtonCustom extends StatelessWidget {
   const _OutlinedButtonCustom({
     required this.label,

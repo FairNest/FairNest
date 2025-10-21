@@ -153,27 +153,8 @@ class RoomCreationController extends ChangeNotifier {
     return missing;
   }
 
-  /// Print current state + missing fields to console
-  void debugPrintState() {
-    print("=== RoomCreationController Debug ===");
-    print("RoomName: $_roomName");
-    print("GroupType: $_groupType");
-    print("RoommateCount: $_roommateCount");
-    print("RoomDescription: $_roomDescription");
-    print("Living: ${_living?.toJson()}");
-    print("QuietHours: $_quietHours");
-    print("QuietHoursCustom: $_quietHoursCustom");
-    print("GuestPolicy: $_guestPolicy");
-    print("CleaningMethod: $_cleaningMethod");
-    print("Responsibilities: $_responsibilities");
-    print("SplitCosts: $_splitCosts");
-    print("Missing fields: ${debugMissingFields()}");
-    print("===================================");
-  }
-
   // ================================= Setters =================================
   void setDetails(CreateRoomData data) {
-    print("DEBUG: setDetails called - name: ${data.name}, type: ${data.type}");
     _roomName = data.name;
     _groupType = data.type;
     _roommateCount = data.roommateCount;
@@ -338,7 +319,7 @@ class RoomCreationController extends ChangeNotifier {
       throw StateError('Could not determine current user id');
     }
 
-    final uri = Uri.parse('http://10.0.2.2:8652/CreateRoomByUserId/$userId');
+    Uri.parse('http://10.0.2.2:8652/CreateRoomByUserId/$userId');
 
     final payload = toBackendJson(
       roomCurrentCapacity: roomCurrentCapacity,

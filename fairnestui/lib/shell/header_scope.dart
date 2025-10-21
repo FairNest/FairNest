@@ -6,8 +6,8 @@ class HeaderScope extends InheritedNotifier<HeaderController> {
   const HeaderScope({
     super.key,
     required HeaderController controller,
-    required Widget child,
-  }) : super(notifier: controller, child: child);
+    required super.child,
+  }) : super(notifier: controller);
 
   static HeaderController of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<HeaderScope>();

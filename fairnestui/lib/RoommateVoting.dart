@@ -25,7 +25,6 @@ class _RoommateVotingPageState extends State<RoommateVotingPage> {
   bool _isSubmitting = false;
 
   static const _lavender = Color(0xFF645A80);
-  static const _compatText = Color(0xFFC34C04);
   static const _aboutLavenderFill = Color(0xFFD6CCE6);
 
   @override
@@ -352,8 +351,9 @@ class _RoommateVotingPageState extends State<RoommateVotingPage> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: myVote == 'approve'
-                                  ? const Color(0xFF79C79A).withOpacity(0.2)
-                                  : Colors.red.withOpacity(0.2),
+                                  ? const Color(0xFF79C79A)
+                                      .withValues(alpha: .2)
+                                  : Colors.red.withValues(alpha: .2),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: myVote == 'approve'

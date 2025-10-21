@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:fairnestui/components/OutstandingBalanceCard.dart';
 import 'package:fairnestui/components/TransactionCard.dart';
@@ -239,9 +238,9 @@ class _FinancepageState extends State<Financepage> {
         context: context,
         barrierDismissible: false,
         routeSettings: const RouteSettings(name: 'payment_verification_dialog'),
-        builder: (dialogContext) => WillPopScope(
-          onWillPop: () async => false, // Prevent back button from closing
-          child: const Center(
+        builder: (dialogContext) => const PopScope(
+          canPop: false, // Prevent back button from closing
+          child: Center(
             child: Card(
               child: Padding(
                 padding: EdgeInsets.all(20),
@@ -267,6 +266,8 @@ class _FinancepageState extends State<Financepage> {
       final isSucceeded =
           await _pollPaymentStatusWithTimeout(payment.transactionId);
 
+      if (!mounted) return; // ✅ Add this extra safety check
+
       // Only try to pop if dialog is still showing and context is still mounted
       if (mounted && dialogShowing) {
         // Check if we can pop and if the current route is our dialog
@@ -283,6 +284,8 @@ class _FinancepageState extends State<Financepage> {
       if (isSucceeded && mounted) {
         // Small delay to ensure dialog is fully closed
         await Future.delayed(const Duration(milliseconds: 100));
+
+        if (!mounted) return;
 
         CelebrationPopup.show(
           context,
@@ -436,9 +439,6 @@ class _FinancepageState extends State<Financepage> {
   }
 
 // Keep the existing _pollPaymentStatus method but update it to use the new implementation
-  Future<bool> _pollPaymentStatus(int transactionId) async {
-    return _pollPaymentStatusWithTimeout(transactionId);
-  }
 
   Future<bool?> _showCustomReminderDialog(String name) {
     const cardSize = Size(382, 247);
@@ -678,7 +678,7 @@ class _FinancepageState extends State<Financepage> {
                       Text(
                         'Due: ${_formatDueDate(payment.dueDate)}',
                         style: TextStyle(
-                          color: accent.withOpacity(0.7),
+                          color: accent.withValues(alpha: .7),
                           fontSize: 14,
                         ),
                       ),
@@ -700,7 +700,7 @@ class _FinancepageState extends State<Financepage> {
                         label: const Text('Open Payment Link'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: accent,
-                          side: BorderSide(color: accent, width: 1.5),
+                          side: const BorderSide(color: accent, width: 1.5),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),

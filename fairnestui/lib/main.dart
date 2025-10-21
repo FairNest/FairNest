@@ -1,19 +1,8 @@
-import 'package:fairnestui/TestCardPage.dart';
-import 'package:fairnestui/auth/login_page.dart';
 import 'package:fairnestui/auth/welcome_page.dart';
-import 'package:fairnestui/pages/Chores/ChoresPage.dart';
-import 'package:fairnestui/pages/Finance/FinancePage.dart';
-import 'package:fairnestui/pages/FindRoommate/GroupCheckPage.dart';
-import 'package:fairnestui/pages/FindRoommate/GroupHomePage.dart';
-import 'package:fairnestui/pages/FindRoommate/RequestJoinRoomPage.dart';
-import 'package:fairnestui/pages/Settings/SettingPage.dart';
-import 'package:fairnestui/pages/home/RoomDashboardPage.dart';
-import 'package:fairnestui/shell/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:fairnestui/pages/room_creation/room_creation_controller.dart';
-import 'package:fairnestui/pages/room_creation/create_room_flow.dart';
 
 void main() {
   runApp(

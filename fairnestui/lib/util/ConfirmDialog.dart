@@ -101,12 +101,17 @@ Future<void> showConfirmDialog(
                       textColor: Colors.white,
                       width: double.infinity,
                       height: 44,
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.of(rootContext).pop(); // close confirm
-                        Future.microtask(() async {
-                          await showVoteSubmittedDialog(rootContext);
-                          onYesAfterPopup?.call();
-                        });
+
+                        // Small delay to ensure dialog closes
+                        await Future.delayed(const Duration(milliseconds: 100));
+
+                        // Check if context is still valid
+                        if (!rootContext.mounted) return;
+
+                        await showVoteSubmittedDialog(rootContext);
+                        onYesAfterPopup?.call();
                       },
                     ),
                   ),

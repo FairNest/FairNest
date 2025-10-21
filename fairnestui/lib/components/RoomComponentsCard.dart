@@ -204,7 +204,7 @@ class _Badge extends StatelessWidget {
     required this.label,
     required this.textStyle,
     this.trailing,
-    this.width = 63,
+    // this.width = 63,
     this.height = 28,
   });
 
@@ -212,14 +212,14 @@ class _Badge extends StatelessWidget {
   final Color textColor;
   final String label;
   final TextStyle textStyle;
-  final double width;
+  // final double width;
   final double height;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width,
+      width: 63,
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(

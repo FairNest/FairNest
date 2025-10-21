@@ -144,16 +144,21 @@ Future<void> showPaymentReminderDialog(
                       textColor: Colors.white,
                       width: double.infinity,
                       height: 44,
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.of(rootContext).pop(); // close reminder
-                        Future.microtask(() {
-                          showPaymentSentDialog(
-                            rootContext,
-                            payer: 'Max',
-                            receiver: fromName,
-                            amount: amount,
-                          );
-                        });
+
+                        // Small delay to ensure dialog closes
+                        await Future.delayed(const Duration(milliseconds: 100));
+
+                        // Check if context is still valid
+                        if (!rootContext.mounted) return;
+
+                        showPaymentSentDialog(
+                          rootContext,
+                          payer: 'Max',
+                          receiver: fromName,
+                          amount: amount,
+                        );
                       },
                     ),
                   ),

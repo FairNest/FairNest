@@ -78,7 +78,7 @@ class ChoresProgressCard extends StatelessWidget {
               children: [
                 Icon(
                   Icons.check_circle_outline,
-                  color: fillColor.withOpacity(0.6),
+                  color: fillColor.withValues(alpha: .6),
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -87,7 +87,7 @@ class ChoresProgressCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: fillColor.withOpacity(0.8),
+                    color: fillColor.withValues(alpha: .8),
                   ),
                 ),
               ],
@@ -99,7 +99,7 @@ class ChoresProgressCard extends StatelessWidget {
 
     // Normal state with progress
     final double vReal = _computeValue();
-    final int completedShown = completedTasks ?? (vReal * totalTasks).round();
+    final int completedShown = completedTasks;
     final int pct = (vReal * 100).round();
 
     return Container(
@@ -200,11 +200,8 @@ class ChoresProgressCard extends StatelessWidget {
   }
 
   double _computeValue() {
-    if (completedTasks != null) {
-      if (totalTasks <= 0) return 0;
-      final clamped = completedTasks!.clamp(0, totalTasks);
-      return clamped / totalTasks;
-    }
-    return (value ?? 0).clamp(0.0, 1.0);
+    if (totalTasks <= 0) return 0;
+    final clamped = completedTasks.clamp(0, totalTasks);
+    return clamped / totalTasks;
   }
 }

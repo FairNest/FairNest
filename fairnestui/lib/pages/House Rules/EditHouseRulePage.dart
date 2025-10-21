@@ -176,16 +176,18 @@ class _EditHousePageState extends State<EditHousePage> {
                               onChanged: (v) {
                                 setState(() {
                                   _quietHours = v;
-                                  if (v != QuietHoursOption.custom)
+                                  if (v != QuietHoursOption.custom) {
                                     _quietHoursCustom = null;
+                                  }
                                 });
                               },
                             );
                             if (sel != null) {
                               setState(() {
                                 _quietHours = sel;
-                                if (sel != QuietHoursOption.custom)
+                                if (sel != QuietHoursOption.custom) {
                                   _quietHoursCustom = null;
+                                }
                               });
                             }
                           },
@@ -249,8 +251,9 @@ class _EditHousePageState extends State<EditHousePage> {
                               onChanged: (v) =>
                                   setState(() => _cleaningMethod = v),
                             );
-                            if (sel != null)
+                            if (sel != null) {
                               setState(() => _cleaningMethod = sel);
+                            }
                           },
                         ),
                         const SizedBox(height: 14),
@@ -523,23 +526,44 @@ Future<T?> _showRadioSelector<T>({
                     ),
                   ),
                 ),
-                ...options.entries.map(
-                  (e) => RadioListTile<T>(
-                    value: e.key,
-                    groupValue: current,
-                    onChanged: (v) {
-                      if (v == null) return;
-                      setStateSheet(() => current = v);
-                      onChanged?.call(v);
-                    },
-                    title: Text(
-                      e.value,
-                      style: const TextStyle(
-                        fontFamily: 'Krub',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
+                RadioGroup<T>(
+                  groupValue: current,
+                  onChanged: (v) {
+                    if (v == null) return;
+                    setStateSheet(() => current = v);
+                    onChanged?.call(v);
+                  },
+                  child: Column(
+                    children: options.entries
+                        .map(
+                          (e) => InkWell(
+                            onTap: () {
+                              setStateSheet(() => current = e.key);
+                              onChanged?.call(e.key);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: Row(
+                                children: [
+                                  Radio<T>(value: e.key),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      e.value,
+                                      style: const TextStyle(
+                                        fontFamily: 'Krub',
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
                 if (extraFooter != null) extraFooter(ctx, setStateSheet),

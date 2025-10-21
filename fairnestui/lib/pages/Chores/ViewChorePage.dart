@@ -44,7 +44,6 @@ class _ViewChorePageState extends State<ViewChorePage> {
   String? _recurrence;
   bool _autoRotate = false;
   int _choreScore = 10;
-  String _choreDescription = '';
   List<String> _assignees = [];
 
   /* ---------------- helpers ---------------- */
@@ -70,19 +69,6 @@ class _ViewChorePageState extends State<ViewChorePage> {
     }
     return names;
   }
-
-  static const _weekdayFull = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday'
-  ];
-
-  String _timeHHmm(DateTime dt) =>
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
   // API provides "14:00" -> bind to today (for a consistent display time)
   DateTime _todayWithHHmm(String hhmm) {
@@ -149,8 +135,6 @@ class _ViewChorePageState extends State<ViewChorePage> {
     });
     try {
       final resp = await ApiClient.get('/chores/${widget.choreId}');
-
-      print("GET /chores/${widget.choreId} response: ${resp.data}");
       final j = resp.data as Map<String, dynamic>;
 
       final title = (j['chore_title'] ?? '') as String;
@@ -158,7 +142,6 @@ class _ViewChorePageState extends State<ViewChorePage> {
       final category = j['category'] as String?;
       final recurrence = j['recurrence'] as String?;
       final autoRotate = (j['auto_rotate'] ?? false) as bool;
-      final desc = (j['chore_description'] ?? '') as String;
       final scoreAny = j['chore_score'];
       final score =
           scoreAny is int ? scoreAny : int.tryParse('$scoreAny') ?? 10;
@@ -172,8 +155,6 @@ class _ViewChorePageState extends State<ViewChorePage> {
         assignedUsers = _dedupUsernamesByUserId([j['assigned_user']]);
       }
 
-      print("Assigned users (deduped): $assignedUsers");
-
       setState(() {
         _title = title;
         _dueDateTime =
@@ -182,7 +163,6 @@ class _ViewChorePageState extends State<ViewChorePage> {
         _recurrence = recurrence;
         _autoRotate = autoRotate;
         _assignees = assignedUsers;
-        _choreDescription = desc;
         _choreScore = score;
       });
     } catch (e) {

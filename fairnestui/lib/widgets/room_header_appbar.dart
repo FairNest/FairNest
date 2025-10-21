@@ -51,7 +51,6 @@ class _RoomHeaderAppBarState extends State<RoomHeaderAppBar> {
     }
   }
 
-  @override
   Size get preferredSize => Size.fromHeight(widget.height);
 
   @override
@@ -136,7 +135,7 @@ class _RoomHeaderAppBarState extends State<RoomHeaderAppBar> {
                       top: 8,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.red,
                           shape: BoxShape.circle,
                         ),

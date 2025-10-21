@@ -6,7 +6,7 @@ import 'package:fairnestui/services/user_service.dart';
 import 'package:fairnestui/services/storage_service.dart';
 
 class UserProfileTestPage extends StatefulWidget {
-  const UserProfileTestPage({Key? key}) : super(key: key);
+  const UserProfileTestPage({super.key});
 
   @override
   State<UserProfileTestPage> createState() => _UserProfileTestPageState();
