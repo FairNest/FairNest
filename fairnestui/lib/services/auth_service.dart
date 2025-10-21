@@ -6,7 +6,7 @@ import 'package:fairnestui/services/storage_service.dart';
 
 class AuthService {
   static final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2:8652',
+    baseUrl: 'https://fairnest.bocchikitsunei.com',
     connectTimeout: const Duration(seconds: 5),
     receiveTimeout: const Duration(seconds: 3),
     headers: {

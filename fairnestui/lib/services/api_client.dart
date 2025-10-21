@@ -12,7 +12,8 @@ class ApiClient {
 
     _dio = Dio(
       BaseOptions(
-        baseUrl: 'http://10.0.2.2:8652', // Android emulator -> host machine
+        baseUrl:
+            'https://fairnest.bocchikitsunei.com', // Android emulator -> host machine
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {
