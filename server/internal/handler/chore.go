@@ -5,6 +5,7 @@ import (
 	"fairnest/internal/service"
 	"fairnest/internal/utils"
 	"fairnest/internal/utils/v"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -269,7 +270,20 @@ func (h *choreHandler) DeleteChore(c *fiber.Ctx) error {
 	})
 }
 
-func (h choreHandler) GetRoomTasksForDate(c *fiber.Ctx) error {
+func (h *choreHandler) ProcessMissedChores(c *fiber.Ctx) error {
+	if err := h.choreSer.ProcessMissedChores(); err != nil {
+		log.Printf("Failed to process chore missed assignments: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to process chore missed assignments: " + err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "ok",
+		"message": "Chore miss assignments processed successfully",
+	})
+}
+
+func (h *choreHandler) GetRoomTasksForDate(c *fiber.Ctx) error {
 	roomID, err := strconv.Atoi(c.Params("roomID"))
 	if err != nil || roomID <= 0 {
 		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
@@ -291,7 +305,7 @@ func (h choreHandler) GetRoomTasksForDate(c *fiber.Ctx) error {
 	return c.JSON(items)
 }
 
-func (h choreHandler) GetMyTasksForDate(c *fiber.Ctx) error {
+func (h *choreHandler) GetMyTasksForDate(c *fiber.Ctx) error {
 	roomID, err := strconv.Atoi(c.Params("roomID"))
 	if err != nil || roomID <= 0 {
 		return fiber.NewError(fiber.StatusBadRequest, "invalid room id")
