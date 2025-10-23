@@ -1134,7 +1134,7 @@ class _FinancepageState extends State<Financepage> {
                         date: transaction.formattedDate,
                         amount: 'THB ${transaction.totalAmount}',
                         paidTo: 'Paid to ${transaction.paidToUsername}',
-                        points: 0, // Points not provided by API
+                        points: 10, // Points not provided by API
                       );
                     }).toList(),
                   ),

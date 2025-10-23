@@ -376,154 +376,167 @@ class _CompatibilityPageState extends State<CompatibilityPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _error != null
-                ? _ErrorPane(
-                    error: '$_error', onRetry: _loadDataCacheThenRefresh)
-                : _isSingleUser
-                    ? _SingleUserView(
-                        userMetrics: _userMetrics,
-                        onRetry: _loadDataCacheThenRefresh,
-                      )
-                    : SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Compatibility Overview',
-                                style: AppFonts.heading1
-                                    .copyWith(color: AppColors.textPurple)),
-                            const SizedBox(height: 12),
+        backgroundColor: AppColors.background,
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? _ErrorPane(
+                      error: '$_error', onRetry: _loadDataCacheThenRefresh)
+                  : _isSingleUser
+                      ? _SingleUserView(
+                          userMetrics: _userMetrics,
+                          onRetry: _loadDataCacheThenRefresh,
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _loadDataCacheThenRefresh,
+                          color: AppColors.secondary,
+                          backgroundColor: AppColors.background,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Compatibility Overview',
+                                    style: AppFonts.heading1
+                                        .copyWith(color: AppColors.textPurple)),
+                                const SizedBox(height: 12),
 
-                            // ===== Swappable overview section =====
-                            _OverviewSwitchCard(
-                              controller: _pageCtrl,
-                              page: _page,
-                              onPageChanged: (i) => setState(() => _page = i),
-                              onDotTap: (i) => _pageCtrl.animateToPage(
-                                i,
-                                duration: const Duration(milliseconds: 220),
-                                curve: Curves.easeOut,
-                              ),
-                              pages: [
-                                _OverviewPane(
-                                  title: 'Room Lifestyle',
-                                  metrics: _roomMetrics,
-                                ),
-                                _OverviewPane(
-                                  title: 'Your Lifestyle',
-                                  metrics: _userMetrics,
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 18),
-
-                            // ===== Room Compatibility Insights =====
-                            Text('Room Compatibility Insights',
-                                style: AppFonts.heading3
-                                    .copyWith(color: AppColors.textDark)),
-                            const SizedBox(height: 8),
-
-                            LavenderBorderedCard(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(10, 12, 10, 12),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    RoomCompatibilityCard(
-                                      // widget expects 0..1; backend returns % → divide by 100
-                                      value: ((_roomSummary?.scorePct ?? 0.0) /
-                                          100.0),
+                                // ===== Swappable overview section =====
+                                _OverviewSwitchCard(
+                                  controller: _pageCtrl,
+                                  page: _page,
+                                  onPageChanged: (i) =>
+                                      setState(() => _page = i),
+                                  onDotTap: (i) => _pageCtrl.animateToPage(
+                                    i,
+                                    duration: const Duration(milliseconds: 220),
+                                    curve: Curves.easeOut,
+                                  ),
+                                  pages: [
+                                    _OverviewPane(
+                                      title: 'Room Lifestyle',
+                                      metrics: _roomMetrics,
                                     ),
-                                    const SizedBox(height: 12),
-
-                                    // Light panel inside lavender card
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color:
-                                            Colors.white.withValues(alpha: .35),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      padding: const EdgeInsets.all(12),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Roommate Insights',
-                                              style: AppFonts.heading3.copyWith(
-                                                  color: AppColors.textPurple)),
-                                          const SizedBox(height: 8),
-                                          _insightRow(
-                                            'Best Matched Pair:',
-                                            _roomSummary == null
-                                                ? '-'
-                                                : '${_roomSummary!.bestMatched.userAName} & ${_roomSummary!.bestMatched.userBName}',
-                                          ),
-                                          const SizedBox(height: 6),
-                                          _insightRow(
-                                            'Most Divergent Lifestyle:',
-                                            _roomSummary == null
-                                                ? '-'
-                                                : '${_roomSummary!.mostDivergent.userAName} & ${_roomSummary!.mostDivergent.userBName}',
-                                          ),
-                                        ],
-                                      ),
+                                    _OverviewPane(
+                                      title: 'Your Lifestyle',
+                                      metrics: _userMetrics,
                                     ),
                                   ],
                                 ),
-                              ),
-                            ),
 
-                            const SizedBox(height: 18),
+                                const SizedBox(height: 18),
 
-                            // ===== Roommate Compatibility Cards =====
-                            Text('Roommate Compatibility',
-                                style: AppFonts.heading3
-                                    .copyWith(color: AppColors.textDark)),
-                            const SizedBox(height: 8),
+                                // ===== Room Compatibility Insights =====
+                                Text('Room Compatibility Insights',
+                                    style: AppFonts.heading3
+                                        .copyWith(color: AppColors.textDark)),
+                                const SizedBox(height: 8),
 
-                            if (_matches.isEmpty)
-                              Text('No roommate matches to show.',
-                                  style: AppFonts.body1
-                                      .copyWith(color: AppColors.textPurple))
-                            else
-                              Column(
-                                children: _matches.map((m) {
-                                  final img = (m.profilePicture?.isNotEmpty ??
-                                          false)
-                                      ? NetworkImage(m.profilePicture!)
-                                      : const AssetImage(
-                                              'assets/images/default_avatar.png')
-                                          as ImageProvider;
+                                LavenderBorderedCard(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        10, 12, 10, 12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        RoomCompatibilityCard(
+                                          // widget expects 0..1; backend returns % → divide by 100
+                                          value:
+                                              ((_roomSummary?.scorePct ?? 0.0) /
+                                                  100.0),
+                                        ),
+                                        const SizedBox(height: 12),
 
-                                  // Generate dynamic advice based on compatibility percentage
-                                  final adviceList =
-                                      _generateAdvice(m.scorePct);
-
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 10),
-                                    child: Roommatecompatibilitycard(
-                                      avatarImage: img,
-                                      name: m.username,
-                                      compatibilityPercent: m.scorePct.round(),
-                                      traits: [m.matchLabel],
-                                      insights: adviceList,
+                                        // Light panel inside lavender card
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white
+                                                .withValues(alpha: .35),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          padding: const EdgeInsets.all(12),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text('Roommate Insights',
+                                                  style: AppFonts.heading3
+                                                      .copyWith(
+                                                          color: AppColors
+                                                              .textPurple)),
+                                              const SizedBox(height: 8),
+                                              _insightRow(
+                                                'Best Matched Pair:',
+                                                _roomSummary == null
+                                                    ? '-'
+                                                    : '${_roomSummary!.bestMatched.userAName} & ${_roomSummary!.bestMatched.userBName}',
+                                              ),
+                                              const SizedBox(height: 6),
+                                              _insightRow(
+                                                'Most Divergent Lifestyle:',
+                                                _roomSummary == null
+                                                    ? '-'
+                                                    : '${_roomSummary!.mostDivergent.userAName} & ${_roomSummary!.mostDivergent.userBName}',
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  );
-                                }).toList(),
-                              ),
-                            const SizedBox(height: 8),
-                          ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 18),
+
+                                // ===== Roommate Compatibility Cards =====
+                                Text('Roommate Compatibility',
+                                    style: AppFonts.heading3
+                                        .copyWith(color: AppColors.textDark)),
+                                const SizedBox(height: 8),
+
+                                if (_matches.isEmpty)
+                                  Text('No roommate matches to show.',
+                                      style: AppFonts.body1.copyWith(
+                                          color: AppColors.textPurple))
+                                else
+                                  Column(
+                                    children: _matches.map((m) {
+                                      final img = (m
+                                                  .profilePicture?.isNotEmpty ??
+                                              false)
+                                          ? NetworkImage(m.profilePicture!)
+                                          : const AssetImage(
+                                                  'assets/images/default_avatar.png')
+                                              as ImageProvider;
+
+                                      // Generate dynamic advice based on compatibility percentage
+                                      final adviceList =
+                                          _generateAdvice(m.scorePct);
+
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 10),
+                                        child: Roommatecompatibilitycard(
+                                          avatarImage: img,
+                                          name: m.username,
+                                          compatibilityPercent:
+                                              m.scorePct.round(),
+                                          traits: [m.matchLabel],
+                                          insights: adviceList,
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                const SizedBox(height: 8),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-      ),
-    );
+        ));
   }
 }
 

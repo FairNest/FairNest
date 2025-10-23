@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fairnestui/services/notification_service.dart';
 import 'package:fairnestui/widgets/error_pop_up.dart';
 import 'package:fairnestui/widgets/success_pop_up.dart';
 import 'package:flutter/foundation.dart';
@@ -443,6 +444,12 @@ class _AddChorePageState extends State<AddChorePage> {
       await ApiClient.post('/rooms/$_roomId/chores', data: body);
       if (!mounted) return;
 
+      if (!mounted) return;
+
+      // 2. Send notifications to all assigned users
+      final choreTitle = _titleCtrl.text.trim();
+      await _sendNotificationsToAssignees(choreTitle);
+
       setState(() => _submitting = false);
 
       SuccessPopup.show(context, message: 'Task created successfully!',
@@ -460,6 +467,24 @@ class _AddChorePageState extends State<AddChorePage> {
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  Future<void> _sendNotificationsToAssignees(String choreTitle) async {
+    final dueDateStr = _dateTime != null ? 'Due: ${_dateTimeLabel()}' : '';
+
+    for (final userId in _assigneeIds) {
+      try {
+        await NotificationService.createNotification(
+          receiverId: userId,
+          message:
+              'New chore assigned: $choreTitle${dueDateStr.isNotEmpty ? ' - $dueDateStr' : ''}',
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('Failed to send notification to user $userId: $e');
+        }
+      }
     }
   }
 

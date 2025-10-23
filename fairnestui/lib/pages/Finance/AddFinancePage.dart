@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fairnestui/services/notification_service.dart';
 import 'package:fairnestui/widgets/error_pop_up.dart';
 import 'package:fairnestui/widgets/success_pop_up.dart';
 import 'package:flutter/foundation.dart';
@@ -596,6 +597,13 @@ class _AddFinancePageState extends State<AddFinancePage> {
       );
       if (!mounted) return;
 
+      if (!mounted) return;
+
+      // 2. Send notifications to all participants
+      final financeTitle = _titleCtrl.text.trim();
+      final amount = _totalAmount.toStringAsFixed(2);
+      await _sendNotificationsToParticipants(financeTitle, amount);
+
       setState(() => _submitting = false);
 
       SuccessPopup.show(
@@ -617,6 +625,33 @@ class _AddFinancePageState extends State<AddFinancePage> {
         showRetryButton: true,
         onRetry: () => _onCreate(), // Retry the same action
       );
+    }
+  }
+
+  Future<void> _sendNotificationsToParticipants(
+    String financeTitle,
+    String amount,
+  ) async {
+    for (final userId in _participantIds) {
+      try {
+        String userAmount;
+        if (_splitType == 'Evenly') {
+          userAmount =
+              (_totalAmount / _participantIds.length).toStringAsFixed(2);
+        } else {
+          userAmount = (_customSplits[userId] ?? 0.0).toStringAsFixed(2);
+        }
+
+        final category = _category ?? 'Finance';
+        await NotificationService.createNotification(
+          receiverId: userId,
+          message: '[$category] $financeTitle - Your share: \$$userAmount',
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('Failed to send notification to user $userId: $e');
+        }
+      }
     }
   }
 
