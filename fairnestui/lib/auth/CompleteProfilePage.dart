@@ -22,10 +22,10 @@ class CompleteProfilePage extends StatefulWidget {
     this.initialUsername = '',
     this.initialBio = '',
     this.avatarChoices = const [
-      'assets/images/bird.png',
-      'assets/images/char.png',
-      'assets/images/pikachu.png',
-      'assets/images/poke.png',
+      'assets/images/green.png',
+      'assets/images/orange.png',
+      'assets/images/red.png',
+      'assets/images/blue.png',
     ],
     this.metrics, // ⬅️ optional: if provided by the quiz page we use it directly
   });
@@ -119,14 +119,14 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
     final file = assetPath.split('/').last.toLowerCase();
     const base = 'https://minio.bocchikitsunei.com/fairnest';
     switch (file) {
-      case 'bird.png':
-        return '$base/bird.png';
-      case 'char.png':
-        return '$base/char.png';
-      case 'poke.png':
-        return '$base/poke.png';
-      case 'pikachu.png':
-        return '$base/pikachu.png';
+      case 'green.png':
+        return '$base/green.png';
+      case 'orange.png':
+        return '$base/orange.png';
+      case 'red.png':
+        return '$base/red.png';
+      case 'blue.png':
+        return '$base/blue.png';
       default:
         return '$base/$file';
     }
