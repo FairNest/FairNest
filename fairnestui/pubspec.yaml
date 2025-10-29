@@ -82,8 +82,14 @@ flutter:
 
 
 flutter_launcher_icons:
-  android: true
-  image_path: "assets/images/fairnest_logo.png"
+  android: "launcher_icon"   # generate ic_launcher
+  image_path: assets/images/fairnest_logo.png
+  min_sdk_android: 21
+
+  # Adaptive icon (Android 8+ / Android 13+)
+  adaptive_icon_background: "#FFFFFF"        # or a png: assets/images/icon_bg.png
+  adaptive_icon_foreground: assets/images/fairnest_logo.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
