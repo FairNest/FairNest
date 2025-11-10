@@ -7,14 +7,12 @@ Because a shared space shouldn't come at the cost of your peace.
 ---
 
 ## Demo Video
-[![FairNest Demo](https://img.youtube.com/vi/QsN__Zqpbp8/0.jpg)](https://www.youtube.com/watch?v=QsN__Zqpbp8)
-
-*Click the image to watch our demo on YouTube.*
+https://www.youtube.com/watch?v=QsN__Zqpbp8
 
 ---
 
 ## Project Profile
-🔗 [FairNest — Senior Project Portal (KMUTT)](https://seniorproject.sit.kmutt.ac.th/showproject/CS65-RE75)
+[FairNest — Senior Project Portal (KMUTT)](https://seniorproject.sit.kmutt.ac.th/showproject/CS65-RE75)
 
 ---
 
