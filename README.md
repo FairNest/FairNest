@@ -3,3 +3,14 @@ Finding roommates is already hard — but living with them? Even harder. From un
 
 We’re a smart roommate management system designed to make co-living fair, transparent, and harmonious — from the moment you match to how you manage chores, finances, and compatibility. With built-in accountability tools, lifestyle alignment insights, and streamlined task coordination, FairNest transforms shared living from chaotic to collaborative.
 Because a shared space shouldn't come at the cost of your peace.
+
+# Project Profile
+https://seniorproject.sit.kmutt.ac.th/showproject/CS65-RE75
+
+# FairNest | Demo
+https://www.youtube.com/watch?v=QsN__Zqpbp8
+
+# Contributors
+[@xXNeonKitsuneXx](https://github.com/xXNeonKitsuneXx)
+[@andhikark](https://github.com/andhikark)
+[@nsennes](https://github.com/nsennes)
