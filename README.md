@@ -6,6 +6,98 @@ Because a shared space shouldn't come at the cost of your peace.
 
 ---
 
+# FairNest – Simple Installation Guide
+
+This guide explains how to install and run FairNest **locally** for testing and demonstration.
+No Docker, no external database setup — only the basic run commands.
+
+---
+
+# 1. Requirements
+
+### Backend (Go)
+
+* Go **1.21+**
+
+### Frontend (Flutter)
+
+* Flutter **3.22+**
+* Chrome (for Web run)
+
+---
+
+# 2. Clone the Project
+
+```bash
+git clone https://github.com/yourusername/FairNest.git
+cd FairNest-main
+```
+
+Make sure you can see both folders:
+
+```
+/server
+/fairnestui
+```
+
+---
+
+# 3. Run the Backend (Go Server)
+
+Navigate to the backend folder:
+
+```bash
+cd server
+```
+
+Install dependencies:
+
+```bash
+go mod tidy
+```
+
+Run the server:
+
+```bash
+go run main.go
+```
+
+Expected message:
+
+```
+Server running on http://localhost:8080
+```
+
+> Keep this terminal open.
+
+---
+
+# 4. Run the Frontend (Flutter UI)
+
+Open a new terminal, then navigate to the Flutter folder:
+
+```bash
+cd fairnestui
+flutter pub get
+```
+
+Run the Flutter on Android Devices
+
+This will automatically open the FairNest UI in your browser.
+
+---
+
+# 5. Done
+
+If both steps succeed:
+
+* Backend is running on **[http://localhost:8080](http://localhost:8080)**
+* Frontend is running in Chrome
+
+Your installation is complete.
+
+---
+
 ## Demo Video
 https://www.youtube.com/watch?v=QsN__Zqpbp8
 
