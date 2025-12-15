@@ -109,6 +109,6 @@ https://www.youtube.com/watch?v=QsN__Zqpbp8
 ---
 
 ## Contributors
-- [@xXNeonKitsuneXx](https://github.com/xXNeonKitsuneXx)
-- [@andhikark](https://github.com/andhikark)
-- [@nsennes](https://github.com/nsennes)
+- Nithit Lertcharoensombat (65130500212) Telphone no : 0888345999, nithit.lert@kmutt.ac.th[@xXNeonKitsuneXx](https://github.com/xXNeonKitsuneXx)
+- Panita Chavikkhunram (65130500214) Telphone no : 0972074461, panita.chav@kmutt.ac.th[@nsennes](https://github.com/nsennes)
+- Putu Andhika Restu Kurnia (65130500247) Telphone no : 0640964371, putuandhika.rest@kmutt.ac.th[@andhikark](https://github.com/andhikark)
